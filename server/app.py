@@ -666,22 +666,22 @@ def _es_contraataque(ses, objetivo, ahora=None) -> bool:
     if objetivo == getattr(ses, 'objetivo_actual', None):
         ses._contra = None          # ya peleaba con el (clic o habilidad)
         return False
-    c = getattr(ses, '_contra', None)
-    if c and c['eid'] == objetivo:
-        if _a_ritmo_de_reenvio(ahora - c['t']):
-            c['t'] = ahora
-            return True
-        ses._contra = None          # clic a otro ritmo: lo quiere de verdad
-        return False
-    ses._contra = None
+    # Primero, si es la respuesta a un golpe que acaba de salir. Mirarlo
+    # despues del recordado dejaba pasar los contraataques nuevos contra un
+    # bicho que ya se habia filtrado antes: no iban al ritmo de reenvio y se
+    # tomaban por un clic.
     p = getattr(ses, 'personaje', None)
     m = (getattr(ses, 'monstruos', None) or {}).get(objetivo)
-    if p is None or m is None:
-        return False
-    if (getattr(m, 'en_combate_con', None) == p.entity_id
-            and 0 <= ahora - getattr(m, 'ultimo_ataque', 0) <= CONTRA_VENTANA):
+    if (p is not None and m is not None
+            and getattr(m, 'en_combate_con', None) == p.entity_id
+            and 0 <= ahora - getattr(m, 'golpe_al_jugador', 0) <= CONTRA_VENTANA):
         ses._contra = {'eid': objetivo, 't': ahora}
         return True
+    c = getattr(ses, '_contra', None)
+    if c and c['eid'] == objetivo and _a_ritmo_de_reenvio(ahora - c['t']):
+        c['t'] = ahora
+        return True
+    ses._contra = None              # clic a otro ritmo: lo quiere de verdad
     return False
 
 
@@ -7800,6 +7800,7 @@ class Servidor:
                 # de mediana, que es lo medido en el Lyceum de Celestia.
                 PROB_PASO = TICK_IA / _cb.SEGUNDOS_ENTRE_PASEOS
                 MOVE = Msg.registry[(0x0005, 's2c', '*')]
+                ses._golpes_sin_volcar = []
                 try:
                     while (getattr(ses, 'personaje', None)
                            and not getattr(ses, 'cerrada', False)):
@@ -8282,6 +8283,8 @@ class Servidor:
                                             ef_atk = m.proj_ef if m.proj_ef > 0 else 148
 
                                             ses.enviar(_cb.ataque(m.entity_id, targ_eid, _cb.anim_de_monstruo(m.nombre)))
+                                            if targ_eid == yo:
+                                                ses._golpes_sin_volcar.append(m)
 
                                             def _impacto(m=m, suyo=suyo, ef_atk=ef_atk, teid=targ_eid):
                                                 if not getattr(m, 'vivo', False):
@@ -8884,6 +8887,13 @@ class Servidor:
                         # se movia el jugador. Los golpes si se veian porque
                         # usan enviar_inmediato, que ya volcaba.
                         ses.volcar()
+                        # La hora del golpe es la de SALIDA: _es_contraataque
+                        # la compara con la respuesta del cliente.
+                        if ses._golpes_sin_volcar:
+                            _t_volc = time.time()
+                            for _m_g in ses._golpes_sin_volcar:
+                                _m_g.golpe_al_jugador = _t_volc
+                            ses._golpes_sin_volcar.clear()
                 except asyncio.CancelledError:
                     raise
                 except Exception:
