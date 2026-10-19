@@ -640,6 +640,51 @@ def _raton_sostenido(ses, ahora=None) -> bool:
     return ahora - t[0] <= RAFAGA_SEG
 
 
+# CONTRAATAQUE AUTOMATICO DEL CLIENTE. Cuando un bicho le pega, Angel.exe
+# contesta solo con un 0x0016 accion 0x0c sobre el, sin que el jugador toque
+# nada, y lo repite cada ~1,43 s como si se hubiera hecho clic. En las
+# sesiones grabadas, 34 de 36 objetivos nuevos que acababan de pegarnos
+# llegaron 0..30 ms despues del 0x000A del bicho; los otros dos, a 219 y 665
+# ms, son clics de verdad. Ningun ajuste del cliente lo apaga (no esta en
+# los .lua), asi que se filtra aqui.
+CONTRA_VENTANA = 0.12           # s desde el golpe del bicho
+# Los reenvios automaticos van como un reloj: 170 intervalos medidos entre
+# 1,38 y 1,49 s, y alguno doble (~2,85 s) cuando se salta uno. Un clic de
+# verdad cae a cualquier ritmo y deshace el filtro.
+CONTRA_CADENCIA = 1.435
+CONTRA_TOLERANCIA = 0.08
+
+
+def _a_ritmo_de_reenvio(dt) -> bool:
+    n = round(dt / CONTRA_CADENCIA)
+    return n in (1, 2) and abs(dt - n * CONTRA_CADENCIA) <= CONTRA_TOLERANCIA
+
+
+def _es_contraataque(ses, objetivo, ahora=None) -> bool:
+    """True si este 0x0016 accion 0x0c lo mando el cliente por su cuenta."""
+    ahora = time.time() if ahora is None else ahora
+    if objetivo == getattr(ses, 'objetivo_actual', None):
+        ses._contra = None          # ya peleaba con el (clic o habilidad)
+        return False
+    c = getattr(ses, '_contra', None)
+    if c and c['eid'] == objetivo:
+        if _a_ritmo_de_reenvio(ahora - c['t']):
+            c['t'] = ahora
+            return True
+        ses._contra = None          # clic a otro ritmo: lo quiere de verdad
+        return False
+    ses._contra = None
+    p = getattr(ses, 'personaje', None)
+    m = (getattr(ses, 'monstruos', None) or {}).get(objetivo)
+    if p is None or m is None:
+        return False
+    if (getattr(m, 'en_combate_con', None) == p.entity_id
+            and 0 <= ahora - getattr(m, 'ultimo_ataque', 0) <= CONTRA_VENTANA):
+        ses._contra = {'eid': objetivo, 't': ahora}
+        return True
+    return False
+
+
 def _cant_de(ses, ranura: int) -> int:
     return max(1, int(_cantidades(ses).get(int(ranura), 1)))
 
@@ -16192,6 +16237,10 @@ class Servidor:
                         and _raton_sostenido(ses)):
                     log.info(f"[{addr}] ataque a {parametro} ignorado: anda "
                              f"con el raton apretado y el cursor paso por encima")
+                    return
+                if _es_contraataque(ses, parametro):
+                    log.info(f"[{addr}] ataque a {parametro} ignorado: es el "
+                             f"contraataque automatico del cliente")
                     return
                 import combate as _cb5
                 self.manejar(ses, 0x0006, m, d, addr,
