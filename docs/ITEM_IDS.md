@@ -1,0 +1,90 @@
+# 物品 ID
+
+用 GM 指令給自己，例如 `/item 3851`（或在 `data/gm.txt` 寫 `item 3851`）。
+
+共 82238 個物品，由 `tools/listas_de_ids.py` 依物品表產生（`corpus/content.db` 的 item … item9；較新的更新會取代同 ID 的舊資料）。中文名稱取自 Global 客戶端的 BIG5 文字表；其中 10 個 Global 沒有中文名稱，保留原本的英文名稱。每個類別一個檔案；寵物蛋與融合寵物另有專門清單：[PET_EGG_IDS.md](PET_EGG_IDS.md)、[FUSION_PET_IDS.md](FUSION_PET_IDS.md)。
+
+※ = 此 ID 在 Global 客戶端的英文名稱與本伺服器（IGG）資料不同，中文名稱可能屬於另一個物品，請以遊戲內為準。
+
+| 物品類別 | 數量 | 檔案 |
+|---|---:|---|
+| 紙娃娃 | 12794 | [items/fashion.md](items/fashion.md) |
+| 一般 | 8302 | [items/general.md](items/general.md) |
+| 禮物 | 8056 | [items/gift_box.md](items/gift_box.md) |
+| 紅包 | 7034 | [items/lucky_bag.md](items/lucky_bag.md) |
+| 配方 | 5112 | [items/recipe.md](items/recipe.md) |
+| 卷軸 | 4049 | [items/scroll.md](items/scroll.md) |
+| 隱藏 | 3476 | [items/hidden.md](items/hidden.md) |
+| 傢俱 | 2614 | [items/furniture.md](items/furniture.md) |
+| 衣服 | 2369 | [items/armor.md](items/armor.md) |
+| 頭飾 | 2292 | [items/headgear.md](items/headgear.md) |
+| 手套 | 2262 | [items/gloves.md](items/gloves.md) |
+| 鞋子 | 2259 | [items/shoes.md](items/shoes.md) |
+| 座騎 | 1819 | [items/mount.md](items/mount.md) |
+| 扭蛋 | 1614 | [items/gashapon.md](items/gashapon.md) |
+| 未分類 | 1412 | [items/uncategorized.md](items/uncategorized.md) |
+| 幸運骰 | 1234 | [items/lucky_dice.md](items/lucky_dice.md) |
+| 彈藥 | 1192 | [items/ammo.md](items/ammo.md) |
+| 寶石 | 1177 | [items/gem.md](items/gem.md) |
+| 徽章 | 991 | [items/badge.md](items/badge.md) |
+| 杖 | 985 | [items/staff.md](items/staff.md) |
+| 槍 | 976 | [items/gun.md](items/gun.md) |
+| 弓箭 | 955 | [items/bow.md](items/bow.md) |
+| 影刃 | 923 | [items/shadow_blade.md](items/shadow_blade.md) |
+| 機甲 | 817 | [items/mecha.md](items/mecha.md) |
+| 訂單 | 785 | [items/order.md](items/order.md) |
+| 飾品 | 730 | [items/accessory.md](items/accessory.md) |
+| 盾 | 619 | [items/shield.md](items/shield.md) |
+| 刀 | 557 | [items/blade.md](items/blade.md) |
+| 錘 | 546 | [items/hammer.md](items/hammer.md) |
+| 寵物 | 483 | [items/pet.md](items/pet.md) |
+| 卡片 | 467 | [items/card.md](items/card.md) |
+| 斧 | 435 | [items/axe.md](items/axe.md) |
+| 披風 | 435 | [items/cape.md](items/cape.md) |
+| 劍 | 429 | [items/sword.md](items/sword.md) |
+| 背包 | 272 | [items/backpack.md](items/backpack.md) |
+| 農場種子 | 208 | [items/farm_seed.md](items/farm_seed.md) |
+| 經驗卷 | 189 | [items/exp_scroll.md](items/exp_scroll.md) |
+| 打孔道具 | 140 | [items/socket_punch.md](items/socket_punch.md) |
+| 強化道具 | 111 | [items/enhancement.md](items/enhancement.md) |
+| 防禦塔 | 107 | [items/defense_tower.md](items/defense_tower.md) |
+| 強化飼料 | 102 | [items/pet_feed.md](items/pet_feed.md) |
+| 怪物蛋 | 100 | [items/monster_egg.md](items/monster_egg.md) |
+| 對話泡泡 | 95 | [items/chat_bubble.md](items/chat_bubble.md) |
+| 附魔 | 92 | [items/enchant.md](items/enchant.md) |
+| 箭矢 | 90 | [items/arrow.md](items/arrow.md) |
+| 計時道具 | 84 | [items/timed_item.md](items/timed_item.md) |
+| 字卡 | 59 | [items/letter_card.md](items/letter_card.md) |
+| 表情卡 | 42 | [items/emote_card.md](items/emote_card.md) |
+| 機甲零件 | 38 | [items/mecha_part.md](items/mecha_part.md) |
+| 寵物武器 | 35 | [items/pet_weapon.md](items/pet_weapon.md) |
+| 寵物防具 | 35 | [items/pet_armor.md](items/pet_armor.md) |
+| 寵物飾品 | 35 | [items/pet_accessory.md](items/pet_accessory.md) |
+| 寵物寶石 | 34 | [items/pet_gem.md](items/pet_gem.md) |
+| 彈弓 | 21 | [items/slingshot.md](items/slingshot.md) |
+| 小遊戲道具 | 16 | [items/minigame_item.md](items/minigame_item.md) |
+| 房屋外觀 | 16 | [items/house_exterior.md](items/house_exterior.md) |
+| 特殊碎片 | 13 | [items/special_fragment.md](items/special_fragment.md) |
+| DNA道具 | 12 | [items/dna_item.md](items/dna_item.md) |
+| 房屋 | 11 | [items/house.md](items/house.md) |
+| 技能經驗球 | 11 | [items/skill_exp_orb.md](items/skill_exp_orb.md) |
+| 地圖碎片 | 10 | [items/map_fragment.md](items/map_fragment.md) |
+| 融合劑 | 9 | [items/fusion_potion.md](items/fusion_potion.md) |
+| 魔力骰 | 8 | [items/magic_dice.md](items/magic_dice.md) |
+| 抓寵空蛋 | 6 | [items/capture_egg.md](items/capture_egg.md) |
+| 寵物強化 | 5 | [items/pet_enhance.md](items/pet_enhance.md) |
+| 挖寶石道具 | 4 | [items/gem_digging.md](items/gem_digging.md) |
+| 經驗球 | 4 | [items/exp_orb.md](items/exp_orb.md) |
+| 星盤金幣抽 | 4 | [items/star_wheel_draw.md](items/star_wheel_draw.md) |
+| 鐵鍬 | 3 | [items/shovel.md](items/shovel.md) |
+| 釣竿 | 3 | [items/fishing_rod.md](items/fishing_rod.md) |
+| 儲值道具 | 2 | [items/topup_item.md](items/topup_item.md) |
+| 加速肥料 | 2 | [items/fertilizer.md](items/fertilizer.md) |
+| 驅蟲劑 | 2 | [items/repellent.md](items/repellent.md) |
+| 寵物經驗球 | 2 | [items/pet_exp_orb.md](items/pet_exp_orb.md) |
+| 金錢 | 1 | [items/money.md](items/money.md) |
+| 寵物復活 | 1 | [items/pet_revive.md](items/pet_revive.md) |
+| 小鋼珠 | 1 | [items/pachinko_ball.md](items/pachinko_ball.md) |
+| 魯易浮標 | 1 | [items/fishing_float.md](items/fishing_float.md) |
+| 星盤賓果 | 1 | [items/star_bingo.md](items/star_bingo.md) |
+| 更名道具 | 1 | [items/rename_item.md](items/rename_item.md) |
