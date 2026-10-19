@@ -685,6 +685,34 @@ def _es_contraataque(ses, objetivo, ahora=None) -> bool:
     return False
 
 
+# MODO MAGIA. Tras un hechizo el cliente sigue mandando el 0x0016 accion 0x0c
+# sobre el blanco cada ~1,43 s, como si fuera a pegar con el arma, y el mago
+# se ponia a dar golpes normales entre hechizo y hechizo. Medido en
+# 127_0_0_1_16769_20261019_215631: tres Shock Wave al Evil Fish y en medio
+# cuatro 0x0016 a ritmo de reenvio; el primero, 1,75 s despues del hechizo.
+# El clic derecho para seleccionar el siguiente bicho manda lo mismo, y lo
+# mato de un golpe normal. Mientras dure el modo magia el 0x0016 solo
+# selecciona. Se sale usando una habilidad fisica (guerrero, arquero) o
+# haciendo clic a proposito en el blanco que ya se tiene: fuera del rato
+# que sigue al hechizo y no al ritmo de los reenvios.
+TRAS_HECHIZO = 2.5              # s; el reenvio mas tardio medido fue a 2,03
+
+
+def _clic_para_pegar(ses, objetivo, anterior, ahora) -> bool:
+    """True si este 0x0016 accion 0x0c es un clic para pegar con el arma."""
+    if objetivo != getattr(ses, 'objetivo_actual', None):
+        return False                # clic en otro bicho: lo selecciona
+    if ahora - getattr(ses, 'ultimo_hechizo', 0.0) <= TRAS_HECHIZO:
+        return False
+    if (anterior and anterior[0] == objetivo
+            and _a_ritmo_de_reenvio(ahora - anterior[1])):
+        return False
+    m = (getattr(ses, 'monstruos', None) or {}).get(objetivo)
+    if m is not None and 0 <= ahora - getattr(m, 'golpe_al_jugador', 0) <= CONTRA_VENTANA:
+        return False                # contesta a un golpe del bicho
+    return True
+
+
 def _cant_de(ses, ranura: int) -> int:
     return max(1, int(_cantidades(ses).get(int(ranura), 1)))
 
@@ -2391,6 +2419,23 @@ def _procesar_muerte_lord_playground(ses, m, addr):
     log.info(f"[{addr}] {m.nombre} (eid={m.entity_id}) ha sido derrotado en Playground.")
 
 
+def _paquetes_reaparicion(m) -> tuple:
+    """0x0008 del monstruo revivido mas su vida al 100 %.
+
+    El oficial le da otro entity_id a cada monstruo que reaparece (de 1218
+    muertes en corpus/packets.db, solo una volvio con el mismo), asi que el
+    cliente lo crea de cero con la vida llena. Aqui se reutiliza el id, y el
+    cliente se queda con el 0 % del 0x0013 de la muerte: el cartel que sale
+    con el clic derecho mostraba la barra vacia hasta pegarle.
+    """
+    import login as _lg_rp
+    import combate as _cb_rp
+    return (_lg_rp._npc_spawn(m.entity_id, m.npc_type, m.nombre,
+                              (m.tile_x, m.tile_y),
+                              sprite=getattr(m, 'sprite', 0), klass=1),
+            _cb_rp.atributo(m.entity_id, m.porcentaje))
+
+
 def _despawn_monstruo_muerto(ses, m, objetivo):
     """Manda el despawn del monstruo al jugador y a sus companeros, y limpia si fue generado."""
     import combate as _cb
@@ -2529,14 +2574,11 @@ def _procesar_muerte_monstruo(ses, m, yo, addr, espera=0.0):
             return
         if not getattr(m, 'vivo', False):
             m.revivir()
-            import login as _lg
-            _sp_pkg = _lg._npc_spawn(
-                objetivo, m.npc_type, m.nombre, (m.tile_x, m.tile_y),
-                sprite=getattr(m, 'sprite', 0), klass=1)
-            ses.enviar_inmediato(_sp_pkg)
+            _sp_pkg = _paquetes_reaparicion(m)
+            ses.enviar_inmediato(*_sp_pkg)
             for _comp in _companeros(ses):
                 try:
-                    _comp.enviar_inmediato(_sp_pkg)
+                    _comp.enviar_inmediato(*_sp_pkg)
                 except Exception:
                     pass
             log.info(f"[{addr}] monstruo {m.nombre} (entidad {objetivo}) reaparecio en ({m.tile_x}, {m.tile_y})")
@@ -3790,14 +3832,11 @@ def _intentar_captura_monstruo(ses, target_entity, addr='?'):
                 return
             if not getattr(monster, 'vivo', False):
                 monster.revivir()
-                import login as _lg_cap
-                sp_pkg = _lg_cap._npc_spawn(
-                    eid, monster.npc_type, monster.nombre, (monster.tile_x, monster.tile_y),
-                    sprite=getattr(monster, 'sprite', 0), klass=1)
-                ses.enviar_inmediato(sp_pkg)
+                sp_pkg = _paquetes_reaparicion(monster)
+                ses.enviar_inmediato(*sp_pkg)
                 for comp in _companeros(ses):
                     try:
-                        comp.enviar_inmediato(sp_pkg)
+                        comp.enviar_inmediato(*sp_pkg)
                     except Exception:
                         pass
                 log.info('[%s] captured monster %s (eid=%s) respawned at (%s, %s)',
@@ -4643,10 +4682,8 @@ def _revivir_en_carrera(ses, estado, fin, m):
         return
     if (ses.monstruos or {}).get(m.entity_id) is not m:
         return
-    import login as _lg_c
     m.revivir()
-    ses.enviar_inmediato(_lg_c._npc_spawn(m.entity_id, m.npc_type, m.nombre, (m.tile_x, m.tile_y),
-                                          sprite=getattr(m, 'sprite', 0), klass=1))
+    ses.enviar_inmediato(*_paquetes_reaparicion(m))
 
 
 # La ventana del marcador (WND_NPCKILLGAME, el "006-055" rosa y azul del
@@ -6537,11 +6574,11 @@ class Servidor:
                 for mid, m in list(monstruos.items()):
                     if not _en_instancia and m.toca_reaparecer():
                         m.revivir()
-                        _sp_pkg = _lg._npc_spawn(m.entity_id, m.npc_type, m.nombre, (m.tile_x, m.tile_y), sprite=getattr(m, 'sprite', 0), klass=1)
-                        ses.enviar(_sp_pkg)
+                        _sp_pkg = _paquetes_reaparicion(m)
+                        ses.enviar(*_sp_pkg)
                         for _comp in _companeros(ses):
                             try:
-                                _comp.enviar_inmediato(_sp_pkg)
+                                _comp.enviar_inmediato(*_sp_pkg)
                             except Exception:
                                 pass
                         log.info(f"monstruo {m.nombre} (eid={m.entity_id}) reaparecio en ({m.tile_x}, {m.tile_y})")
@@ -9284,6 +9321,10 @@ class Servidor:
                              f"insuficiente ({getattr(ses, 'sp', 0)}/{_sp_req})")
                     return
                 _usos[tipo] = _ahora_atk
+                if _ofensiva:
+                    import skills as _sk_md
+                    ses.modo_magia = _sk_md.skill_de_magia(tipo) in (1, 2, 3, 4)
+                    ses.ultimo_hechizo = _ahora_atk if ses.modo_magia else 0.0
             else:
                 _cad = _cb.cadencia_ataque(
                     getattr(ses.personaje, 'buffs', None) if ses.personaje else None,
@@ -16243,6 +16284,20 @@ class Servidor:
                 # habilidad ni espera a que se le conteste un clic: manda este
                 # 0x0016 y lo repite solo cada ~1,5 s mientras dure el combate.
                 # Medido en Celestia, mundo_201655_173169 t=40.4.
+                #
+                # Tambien es lo que manda el clic derecho para seleccionar,
+                # y el cartel del nombre lee la vida que el cliente tenga
+                # guardada: si nunca se le mando, sale vacia. Se contesta
+                # siempre con la vida, aunque luego no se pegue (lejos,
+                # filtrado o en modo magia).
+                _m0c = (getattr(ses, 'monstruos', None) or {}).get(parametro)
+                if _m0c is not None:
+                    import combate as _cb0c
+                    ses.enviar(_cb0c.atributo(
+                        parametro, _m0c.porcentaje if getattr(_m0c, 'vivo', False) else 0))
+                _ahora_0c = time.time()
+                _ant_0c = getattr(ses, '_ultimo_0c', None)
+                ses._ultimo_0c = (parametro, _ahora_0c)
                 if (parametro != getattr(ses, 'objetivo_actual', None)
                         and _raton_sostenido(ses)):
                     log.info(f"[{addr}] ataque a {parametro} ignorado: anda "
@@ -16252,6 +16307,16 @@ class Servidor:
                     log.info(f"[{addr}] ataque a {parametro} ignorado: es el "
                              f"contraataque automatico del cliente")
                     return
+                if getattr(ses, 'modo_magia', False):
+                    if not _clic_para_pegar(ses, parametro, _ant_0c, _ahora_0c):
+                        if _m0c is not None and getattr(_m0c, 'vivo', False):
+                            ses.objetivo_actual = parametro
+                        log.info(f"[{addr}] {parametro} solo seleccionado: "
+                                 f"en modo magia no hay golpe normal")
+                        return
+                    ses.modo_magia = False
+                    log.info(f"[{addr}] sale del modo magia: clic para pegar "
+                             f"a {parametro} con el arma")
                 import combate as _cb5
                 self.manejar(ses, 0x0006, m, d, addr,
                              struct.pack('<HI', _cb5.ATAQUE_NORMAL, parametro))
