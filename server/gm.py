@@ -34,11 +34,25 @@ _CMDS_CLEARSKILLS = ('clearskills', 'clearskill')
 _CMDS_PET = ('pet', 'mascota')
 _CMDS_QUEST = ('quest', 'mision')
 _CMDS_BALL = ('ball', 'baile', 'fiesta')
-_CMDS = frozenset(('help',) + _CMDS_ITEM + _CMDS_LEVEL + _CMDS_LEVELALL
+_CMDS_GOLD = ('gold', 'oro', 'money')
+_CMDS_MALL = ('mall', 'itemmall')
+_CMDS = frozenset(('help',) + _CMDS_ITEM + _CMDS_GOLD + _CMDS_LEVEL + _CMDS_LEVELALL
                   + _CMDS_SKILLS + _CMDS_SKILLSALL + _CMDS_SKILLS5
-                  + _CMDS_CLEARSKILLS + _CMDS_PET + _CMDS_QUEST + _CMDS_BALL)
+                  + _CMDS_CLEARSKILLS + _CMDS_PET + _CMDS_QUEST + _CMDS_BALL
+                  + _CMDS_MALL)
 
-AYUDA = ("GM: /item <id> [qty]  /level <n>  /levelall <n>  "
+# Item Mall stand-in, paid in gold. The client's real mall window and the NPC
+# shop window both read their item lists from client data, so neither can
+# show items the client doesn't already list; this is a chat shop instead.
+# (item_id, name shown, price in gold). Edit freely: the number shown is the
+# position in this list. Both certificates are just "Blood Certificate" in
+# item.xml, hence the names here.
+MALL = (
+    (3377, 'Medium Blood Certificate (pet Lv35)', 100000),
+    (3378, 'Advanced Blood Certificate (pet Lv55)', 300000),
+)
+
+AYUDA = ("GM: /item <id> [qty]  /gold <amount>  /mall [no] [qty]  /level <n>  /levelall <n>  "
          "/skills [lv]  /skillsall [lv]  /skills5  /clearskills  "
          "/pet level|exp|path|evolve  /ball reset  /quest <id> <step>  "
          "/rango [1..20]  /estacion <normal|navidad|halloween|sakura|verano>")
@@ -85,6 +99,58 @@ def dar_item(ses, item_id: int, n: int = 1) -> str:
     ses.enviar(*a._refrescar(ses, [ranura]))
     a._guardar_bolsa(ses, ses.personaje.char_id)
     return f"gave {n}x {nom} ({item_id}) slot {ranura}"
+
+
+def dar_oro(ses, n: int) -> str:
+    """Add gold the same way an NPC sale does (capped at 2,000,000,000)."""
+    a = _app()
+    if getattr(ses, 'inventario', None) is None or not getattr(ses, 'personaje', None):
+        return "no character in world yet"
+    import clases as _cl
+    n = max(1, int(n))
+    ses.oro = min(2000000000, getattr(ses, 'oro', 0) + n)
+    ses.personaje.oro = ses.oro
+    ses.enviar(*a._refrescar(ses, [], con_oro=True),
+               _cl.aviso(f"{n} Gold", tipo=0, msg_id=_cl.MSG_ITEM))
+    if getattr(ses, 'usuario', None):
+        cuentas.guardar_oro(ses.usuario, ses.personaje.char_id, ses.oro)
+    return f"gave {n} gold (total {ses.oro})"
+
+
+def mall_lista(ses) -> str:
+    for k, (_iid, nom, precio) in enumerate(MALL, 1):
+        _avisar(ses, f"Mall {k}: {nom} - {precio} Gold")
+    msg = "Item Mall: buy with /mall <no> [qty]"
+    _avisar(ses, msg)
+    return msg
+
+
+def mall_comprar(ses, no: int, n: int = 1) -> str:
+    """Same packets and saves as an NPC shop purchase, at the MALL price."""
+    a = _app()
+    if getattr(ses, 'inventario', None) is None or not getattr(ses, 'personaje', None):
+        return "no character in world yet"
+    if not 1 <= no <= len(MALL):
+        return f"no mall item {no} (1-{len(MALL)}, see /mall)"
+    item_id, nom, precio = MALL[no - 1]
+    n = max(1, min(9999, int(n)))
+    total = precio * n
+    if getattr(ses, 'oro', 0) < total:
+        return f"not enough gold: {total} needed, you have {getattr(ses, 'oro', 0)}"
+    ranura = a._meter(ses, item_id, n)
+    if ranura is None:
+        return "Your backpack is full."
+    import clases as _cl
+    ses.oro -= total
+    ses.personaje.oro = ses.oro
+    cartel = nom if n == 1 else f"{n}x {nom}"
+    ses.enviar(*a._refrescar(ses, [ranura], con_oro=True),
+               _cl.aviso(f'{total} Gold', tipo=0, msg_id=_cl.MSG_PAGO),
+               _cl.aviso(cartel, tipo=0, msg_id=_cl.MSG_ITEM))
+    a._guardar_bolsa(ses, ses.personaje.char_id)
+    if getattr(ses, 'usuario', None):
+        cuentas.guardar_oro(ses.usuario, ses.personaje.char_id, ses.oro)
+    return f"bought {n}x {nom} ({item_id}) for {total}; {ses.oro} gold left"
 
 
 def poner_nivel(ses, n: int) -> str:
@@ -402,6 +468,25 @@ def parsear(texto: str):
             except ValueError:
                 return ('err', 'qty must be a number')
         return ('item', iid, qty)
+    if cmd in _CMDS_GOLD:
+        if len(parts) < 2:
+            return ('err', 'usage: /gold <amount>')
+        try:
+            return ('gold', int(parts[1], 0))
+        except ValueError:
+            return ('err', 'amount must be a number')
+    if cmd in _CMDS_MALL:
+        args = parts[1:]
+        if args and args[0].lower() == 'buy':
+            args = args[1:]
+        if not args:
+            return ('mall',)
+        try:
+            no = int(args[0], 0)
+            qty = int(args[1], 0) if len(args) >= 2 else 1
+        except ValueError:
+            return ('err', 'usage: /mall [no] [qty]')
+        return ('mallbuy', no, qty)
     if cmd in _CMDS_LEVEL + _CMDS_LEVELALL:
         kind = 'levelall' if cmd in _CMDS_LEVELALL else 'level'
         if len(parts) < 2:
@@ -486,6 +571,15 @@ def aplicar(ses, parsed) -> str:
     if kind == 'item':
         msg = dar_item(ses, parsed[1], parsed[2])
         if not msg.startswith('gave '):
+            _avisar(ses, msg)
+        return msg
+    if kind == 'gold':
+        return dar_oro(ses, parsed[1])
+    if kind == 'mall':
+        return mall_lista(ses)
+    if kind == 'mallbuy':
+        msg = mall_comprar(ses, parsed[1], parsed[2])
+        if not msg.startswith('bought '):
             _avisar(ses, msg)
         return msg
     if kind == 'level':
@@ -657,6 +751,23 @@ def apply_app_hooks(app_path) -> bool:
             '        tareas.append(gm.consola(self))\n'
             '        tareas.append(gm.cola(self))\n',
             1)
+    # /mall: app.py's own chat parser only forwards a fixed list of commands
+    # here, so add mall to both its forward list and its dispatch list.
+    fwd = "               'pet', 'mascota'):\n        import gm as _gm\n"
+    if "'mascota', 'mall'" not in text and fwd in text:
+        text = text.replace(
+            fwd,
+            "               'pet', 'mascota', 'mall', 'itemmall'):\n"
+            "        import gm as _gm\n", 1)
+    # The client drops the '/', so the word must also be in PALABRAS_GM.
+    pal = "    'ball', 'baile', 'fiesta',\n))\n"
+    if "'mall', 'itemmall',\n))" not in text and pal in text:
+        text = text.replace(
+            pal, "    'ball', 'baile', 'fiesta',\n    'mall', 'itemmall',\n))\n", 1)
+    dsp = "'skilllevel', 'pet', 'ball'):\n"
+    if "'ball', 'mall'" not in text and dsp in text:
+        text = text.replace(
+            dsp, "'skilllevel', 'pet', 'ball', 'mall', 'mallbuy'):\n", 1)
     if text == orig:
         return False
     path.write_text(text, encoding='utf-8')

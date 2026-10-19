@@ -1275,6 +1275,7 @@ PALABRAS_GM = frozenset((
     'pet', 'mascota',
     'emote', 'e', 'emocion',
     'ball', 'baile', 'fiesta',
+    'mall', 'itemmall',
 ))
 
 
@@ -1385,7 +1386,7 @@ def _gm_parsear(texto: str):
     if cmd in ('level', 'lvl', 'lv', 'levelall', 'lvlall',
                'skills', 'spells', 'skillsall', 'learnall', 'skillall', 'skills5', 'skill5',
                'clearskills', 'clearskill',
-               'pet', 'mascota'):
+               'pet', 'mascota', 'mall', 'itemmall'):
         import gm as _gm
         return _gm.parsear(texto)
     if cmd in ('emote', 'e', 'emocion'):
@@ -1663,7 +1664,7 @@ def _probar_gm(ses, cuerpo, addr) -> bool:
             cuentas.guardar_rango(ses.usuario, ses.personaje.char_id, _rk_new, _cred_rk)
         log.info('[%s] GM rango -> %d (%s)' % (addr, _rk_new, _tit))
         return True
-    if leido[0] in ('level', 'levelall', 'skills', 'skillsall', 'skills5', 'clearskills', 'skilllevel', 'pet', 'ball'):
+    if leido[0] in ('level', 'levelall', 'skills', 'skillsall', 'skills5', 'clearskills', 'skilllevel', 'pet', 'ball', 'mall', 'mallbuy'):
         import gm as _gm
         msg = _gm.aplicar(ses, leido)
         log.info('[%s] GM %s' % (addr, msg))
