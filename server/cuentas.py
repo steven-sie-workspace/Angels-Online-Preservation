@@ -352,6 +352,22 @@ def _guardar(datos: dict):
     guardar_documento(datos)
 
 
+def proximo_char_id() -> int:
+    """El siguiente char_id libre de TODO el servidor, no solo de la cuenta.
+
+    Se calculaba con los personajes de la propia cuenta, asi que el primero
+    de cada cuenta era siempre el 1001: con dos cuentas dentro a la vez
+    chocaban la entidad, la casa y las instancias, que van por char_id.
+    """
+    with _LOCK:
+        con = _get_conn()
+        try:
+            row = con.execute("SELECT MAX(char_id) FROM personajes").fetchone()
+        finally:
+            con.close()
+    return max(1000, int(row[0] or 0)) + 1
+
+
 def guardar_personaje_nuevo(usuario: str, p: dict):
     """Inserta o actualiza un personaje directamente en SQLite."""
     with _LOCK:

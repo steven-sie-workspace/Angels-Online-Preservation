@@ -22,6 +22,12 @@ import time
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'proto'))
 
+# Arrancado como script este modulo es '__main__'. Sin esto, el `import app`
+# de presencia/equipos/gm cargaria app.py OTRA vez, con sus propios contadores
+# de entidades, salas del mundo y caches, distintos de los del servidor.
+if __name__ == '__main__':
+    sys.modules.setdefault('app', sys.modules['__main__'])
+
 from session import Session
 from login import Personaje, secuencia
 from grabador import Grabador
@@ -661,6 +667,75 @@ def _mover_inst(ses, origen: int, destino: int):
         mej[d] = a
     if b is not None:
         mej[o] = b
+
+
+def _extras_al_banco(ses, ranura):
+    """Lo que va guardado por CASILLA de la mochila y no en el item: las
+    mejoras (con la vinculacion) y la ficha de la mascota.
+
+    El banco solo guardaba (objeto, cantidad), asi que al depositar todo eso
+    se quedaba en la casilla vieja: el arma volvia limpia del banco y el
+    siguiente objeto que cayera en esa casilla heredaba su "+N". Se saca de
+    la casilla y viaja dentro de la entrada del banco.
+    """
+    r = int(ranura)
+    _instancias(ses).pop(r, None)
+    p = getattr(ses, 'personaje', None)
+    if p is None:
+        return None
+    extras = {}
+    mej = getattr(p, 'mejoras', None)
+    if mej:
+        e = mej.pop(r, None)
+        if e:
+            extras['mejoras'] = e
+    mascs = getattr(p, 'mascotas', None)
+    if mascs:
+        f = mascs.pop(str(r), None) or mascs.pop(r, None)
+        if f:
+            extras['mascota'] = f
+    return extras or None
+
+
+def _extras_del_banco(ses, ranura, extras):
+    """Lo contrario de _extras_al_banco: deja en la casilla de destino lo
+    que el objeto traia guardado en el banco."""
+    r = int(ranura)
+    p = getattr(ses, 'personaje', None)
+    if p is None:
+        return
+    mej = getattr(p, 'mejoras', None)
+    if mej is not None:
+        mej.pop(r, None)
+    mascs = getattr(p, 'mascotas', None)
+    if mascs:
+        mascs.pop(str(r), None)
+        mascs.pop(r, None)
+    if not isinstance(extras, dict):
+        return
+    if extras.get('mejoras'):
+        if mej is None:
+            p.mejoras = mej = {}
+        mej[r] = extras['mejoras']
+    f = extras.get('mascota')
+    if isinstance(f, dict):
+        if getattr(p, 'mascotas', None) is None:
+            p.mascotas = {}
+        f['ranura'] = r
+        p.mascotas[str(r)] = f
+
+
+def _desempacar_banco(v):
+    """Una casilla del banco: objeto, (objeto, cantidad) o (objeto,
+    cantidad, extras). Devuelve siempre las tres cosas."""
+    if isinstance(v, (list, tuple)):
+        return (v[0], int(v[1]) if len(v) > 1 else 1,
+                v[2] if len(v) > 2 else None)
+    return v, 1, None
+
+
+def _empacar_banco(it, cn, extras):
+    return (it, cn, extras) if extras else (it, cn)
 
 
 def _meter(ses, item_id: int, n: int = 1, pet_metadata: dict = None) -> int:
@@ -6709,6 +6784,11 @@ class Servidor:
         except (ConnectionResetError, ConnectionAbortedError, ConnectionError, asyncio.IncompleteReadError, OSError):
             pass
         finally:
+            # Desde aqui la sesion no recibe nada: las difusiones la saltan y
+            # los bucles/temporizadores que la tengan capturada se paran.
+            ses.cerrada = True
+            if getattr(ses, 'ia_task', None):
+                ses.ia_task.cancel()
             try:
                 _casa_tick_limpieza(ses, flush=True)
             except Exception:
@@ -7416,10 +7496,8 @@ class Servidor:
             if not d['nombre']:
                 log.warning(f"[{addr}] CREAR: nombre vacio, se ignora")
                 return
-            cta = cuentas.cargar()['cuentas'].get(ses.usuario) or {'personajes': []}
-            usados = {x.get('char_id', 0) for x in cta.get('personajes', [])}
             nuevo = personajes.personaje_nuevo(
-                d['nombre'], d['ranura'], max(usados or [1000]) + 1,
+                d['nombre'], d['ranura'], cuentas.proximo_char_id(),
                 elegidos=d.get('elegidos'))
             log.info(f"[{addr}] CREAR: elegido (bytes +1..+5) = "
                      f"{bytes(d.get('elegidos') or []).hex(' ')} -> "
@@ -7648,7 +7726,8 @@ class Servidor:
                 PROB_PASO = TICK_IA / _cb.SEGUNDOS_ENTRE_PASEOS
                 MOVE = Msg.registry[(0x0005, 's2c', '*')]
                 try:
-                    while getattr(ses, 'personaje', None):
+                    while (getattr(ses, 'personaje', None)
+                           and not getattr(ses, 'cerrada', False)):
                         # Cada 100 ms. Las cadencias de los monstruos van de
                         # 672 a 1120 ms: con un bucle de 300 ms un bicho de
                         # 1.0 s acababa pegando cada 1.2 s y a saltos, que es
@@ -8730,6 +8809,8 @@ class Servidor:
                         # se movia el jugador. Los golpes si se veian porque
                         # usan enviar_inmediato, que ya volcaba.
                         ses.volcar()
+                except asyncio.CancelledError:
+                    raise
                 except Exception:
                     # Estaba en 'pass': si algo fallaba UNA vez la tarea
                     # moria en silencio y todos los monstruos del mapa se
@@ -8737,11 +8818,17 @@ class Servidor:
                     # log. Ahora se anota y la IA se vuelve a levantar.
                     log.exception(f"[{addr}] la IA de monstruos fallo, "
                                   f"se reinicia")
-                    if getattr(ses, 'personaje', None):
-                        asyncio.get_event_loop().call_later(
-                            1.0, lambda: asyncio.create_task(_ia_monstruos()))
+                    def _relanzar():
+                        if (getattr(ses, 'personaje', None)
+                                and not getattr(ses, 'cerrada', False)):
+                            ses.ia_task = asyncio.create_task(_ia_monstruos())
+                    asyncio.get_event_loop().call_later(1.0, _relanzar)
 
-            asyncio.create_task(_ia_monstruos())
+            # Una sola IA por sesion: si ya habia una (volver a entrar sin
+            # cortar la conexion), se para antes de lanzar la nueva.
+            if getattr(ses, 'ia_task', None):
+                ses.ia_task.cancel()
+            ses.ia_task = asyncio.create_task(_ia_monstruos())
             log.info(f"[{addr}] entro al mundo: '{p.nombre}' entidad={p.entity_id} "
                      f"char_id={p.char_id} tile=({p.tile_x},{p.tile_y})")
             log.info(f"[{addr}] (credenciales NO validadas: formato aun sin descifrar)")
@@ -9095,6 +9182,21 @@ class Servidor:
                 if _espera < _cd:
                     log.info(f"[{addr}] HABILIDAD {tipo} RECHAZADA: pidio a "
                              f"los {_espera:.3f}s y su cooldown es {_cd:.3f}s")
+                    return
+                # MP y SP se miran AQUI, antes de apuntar el cooldown. Cada
+                # rama de abajo los vuelve a comprobar, pero ya tarde: una
+                # habilidad rechazada por falta de MP dejaba el cooldown
+                # corriendo (y algunas ya habian gastado el SP).
+                _mp_req = mag.get('mp', 0)
+                if (ses.personaje and _mp_req > 0
+                        and ses.personaje.mp < _mp_req):
+                    log.info(f"[{addr}] HABILIDAD {tipo} RECHAZADA: MP "
+                             f"insuficiente ({ses.personaje.mp}/{_mp_req})")
+                    return
+                _sp_req = mag.get('cost_sp', 0)
+                if _sp_req > 0 and getattr(ses, 'sp', 0) < _sp_req:
+                    log.info(f"[{addr}] HABILIDAD {tipo} RECHAZADA: SP "
+                             f"insuficiente ({getattr(ses, 'sp', 0)}/{_sp_req})")
                     return
                 _usos[tipo] = _ahora_atk
             else:
@@ -11991,10 +12093,11 @@ class Servidor:
                         log.info(f"[{addr}] mochila llena, no se puede sacar del banco")
                         return
                     _v = _p.banco.pop(_ori)
-                    _it, _cn = _v if isinstance(_v, (list, tuple)) else (_v, 1)
+                    _it, _cn, _ex = _desempacar_banco(_v)
                     _bolsa[_d] = _it
                     if _cn > 1:
                         ses.cantidades[_d] = _cn
+                    _extras_del_banco(ses, _d, _ex)
                     ses.enviar(
                         _iv3.banco_sacar(_p.char_id, _d, _it, _cn, dueno=_p.entity_id),
                         _iv3.banco_vaciar_ranura(_ori),
@@ -12023,7 +12126,7 @@ class Servidor:
                         return
                     _it = _bolsa.pop(_ori)
                     _cn = ses.cantidades.pop(_ori, 1)
-                    _p.banco[_d] = (_it, _cn)
+                    _p.banco[_d] = _empacar_banco(_it, _cn, _extras_al_banco(ses, _ori))
                     ses.enviar(
                         _iv3.vaciar_ranura(_p.entity_id, _ori),
                         _stats_ses(ses),
@@ -12053,8 +12156,8 @@ class Servidor:
                         _v_dst = _p.banco[_dst]
                         _p.banco[_ori] = _v_dst
                         _p.banco[_dst] = _v_ori
-                        _it1, _cn1 = _v_ori if isinstance(_v_ori, (list, tuple)) else (_v_ori, 1)
-                        _it2, _cn2 = _v_dst if isinstance(_v_dst, (list, tuple)) else (_v_dst, 1)
+                        _it1, _cn1, _ = _desempacar_banco(_v_ori)
+                        _it2, _cn2, _ = _desempacar_banco(_v_dst)
                         ses.enviar(
                             _iv3.banco_poner(_p.char_id, _dst, _it1, _cn1, dueno=_p.entity_id),
                             _iv3.banco_poner(_p.char_id, _ori, _it2, _cn2, dueno=_p.entity_id)
@@ -12062,8 +12165,8 @@ class Servidor:
                         log.info(f"[{addr}] banco: swap casilla {_ori} ({_it1}) <-> {_dst} ({_it2})")
                     else:
                         _v = _p.banco.pop(_ori)
-                        _it, _cn = _v if isinstance(_v, (list, tuple)) else (_v, 1)
-                        _p.banco[_dst] = (_it, _cn)
+                        _it, _cn, _ex = _desempacar_banco(_v)
+                        _p.banco[_dst] = _v
                         ses.enviar(
                             _iv3.banco_vaciar_ranura(_ori),
                             _iv3.banco_poner(_p.char_id, _dst, _it, _cn, dueno=_p.entity_id)
@@ -12080,7 +12183,7 @@ class Servidor:
                     if _d is not None:
                         _it = _bolsa.pop(_ori)
                         _cn = ses.cantidades.pop(_ori, 1)
-                        _p.banco[_d] = (_it, _cn)
+                        _p.banco[_d] = _empacar_banco(_it, _cn, _extras_al_banco(ses, _ori))
                         ses.enviar(
                             _iv3.vaciar_ranura(_p.entity_id, _ori),
                             _stats_ses(ses),
@@ -12097,10 +12200,11 @@ class Servidor:
                     _d = _dst if (_dst >= 20 and _dst not in _bolsa) else _ranura_libre(_bolsa, desde=20)
                     if _d is not None:
                         _v = _p.banco.pop(_ori)
-                        _it, _cn = _v if isinstance(_v, (list, tuple)) else (_v, 1)
+                        _it, _cn, _ex = _desempacar_banco(_v)
                         _bolsa[_d] = _it
                         if _cn > 1:
                             ses.cantidades[_d] = _cn
+                        _extras_del_banco(ses, _d, _ex)
                         ses.enviar(
                             _iv3.banco_sacar(_p.char_id, _d, _it, _cn, dueno=_p.entity_id),
                             _iv3.banco_vaciar_ranura(_ori),
@@ -12199,7 +12303,7 @@ class Servidor:
                     return
                 _it = _bolsa.pop(_desde_bolsa)
                 _cn = ses.cantidades.pop(_desde_bolsa, 1)
-                _p.banco[_d] = (_it, _cn)
+                _p.banco[_d] = _empacar_banco(_it, _cn, _extras_al_banco(ses, _desde_bolsa))
                 ses.enviar(
                     _iv3.vaciar_ranura(_p.entity_id, _desde_bolsa),
                     _stats_ses(ses),
@@ -12247,10 +12351,11 @@ class Servidor:
                     log.info(f"[{addr}] mochila llena, no se puede sacar del banco")
                     return
                 _v = _p.banco.pop(arg1)
-                _it, _cn = _v if isinstance(_v, (list, tuple)) else (_v, 1)
+                _it, _cn, _ex = _desempacar_banco(_v)
                 _bolsa[_d] = _it
                 if _cn > 1:
                     ses.cantidades[_d] = _cn
+                _extras_del_banco(ses, _d, _ex)
                 ses.enviar(
                     _iv3.banco_sacar(_p.char_id, _d, _it, _cn, dueno=_p.entity_id),
                     _iv3.banco_vaciar_ranura(arg1),
@@ -13226,16 +13331,39 @@ class Servidor:
             if falta:
                 ses.enviar(_cl.aviso("You don't have enough materials for this exchange.", tipo=7, msg_id=_cl.MSG_TEXTO))
                 return
+            # Foto de la mochila: si algun premio no cabe se deshace todo. Antes
+            # los materiales se gastaban primero y el premio que no cabia se
+            # perdia sin mas.
+            # Copias planas: consumir y _meter solo quitan o ponen casillas,
+            # no tocan las fichas, y asi la mascota invocada sigue siendo
+            # el mismo objeto.
+            _p_ex = ses.personaje
+            _foto = [(d, dict(d)) for d in (
+                ses.inventario, _cantidades(ses), _instancias(ses),
+                getattr(_p_ex, 'mejoras', None),
+                getattr(_p_ex, 'mascotas', None)) if isinstance(d, dict)]
             # Consumir materiales
             tocadas = []
             for mat_id, mat_cnt in receta['materiales']:
                 tocadas.extend(_consumir_item_total(ses, mat_id, mat_cnt * veces))
             # Entregar recompensas
+            sin_sitio = False
             for rew_id, rew_cnt in receta['premios']:
                 tot_rew = rew_cnt * veces
                 dest = _meter(ses, rew_id, tot_rew)
-                if dest is not None:
-                    tocadas.append(dest)
+                if dest is None:
+                    sin_sitio = True
+                    break
+                tocadas.append(dest)
+            if sin_sitio:
+                for _d_ex, _copia in _foto:
+                    _d_ex.clear()
+                    _d_ex.update(_copia)
+                ses.enviar(*_refrescar(ses, tocadas),
+                           _cl.aviso("Your bag is full.", tipo=7, msg_id=_cl.MSG_TEXTO))
+                log.info(f"[{addr}] Exchange recipe {rec_id} x{veces}: bolsa "
+                         f"llena, se deshace")
+                return
             if tocadas:
                 ses.enviar(*_refrescar(ses, list(set(tocadas))))
             _guardar_bolsa(ses, ses.personaje.char_id)

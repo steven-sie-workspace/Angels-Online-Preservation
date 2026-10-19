@@ -17,6 +17,7 @@ Los datos de cada bicho salen de la tabla monster de content.db, buscando por
 el npc_type que trae su NPC_SPAWN: Lily es el 7 (100 de vida, ataque 23+-2,
 defensa 25) y Slarm el 19 (118 de vida, ataque 28+-2, defensa 25).
 """
+import contextvars
 import json
 import logging
 import pathlib
@@ -473,7 +474,23 @@ def parsear_ataque(cuerpo: bytes) -> AtaqueInfo:
 # La sesion que el servidor esta atendiendo ahora mismo (un solo hilo: o el
 # paquete de un cliente o el tic de IA de un jugador). La pone app.py; la lee
 # Monstruo.registrar_dano para saber de quien es cada golpe.
-ATACANTE = [None]
+#
+# Va en un ContextVar y no en una lista global: asyncio copia el contexto en
+# cada call_later y cada tarea, asi que los golpes diferidos (sub-golpes de
+# area, golpes de la mascota, sangrados) siguen siendo de quien los lanzo. Con
+# la lista se los apuntaba el ultimo jugador que hubiera mandado un paquete.
+class _Atacante:
+    def __init__(self):
+        self._v = contextvars.ContextVar('atacante', default=None)
+
+    def __getitem__(self, i):
+        return self._v.get()
+
+    def __setitem__(self, i, ses):
+        self._v.set(ses)
+
+
+ATACANTE = _Atacante()
 
 
 class Monstruo:

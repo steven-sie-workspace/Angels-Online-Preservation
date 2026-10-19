@@ -45,6 +45,9 @@ class Session:
         self.usuario = None
         self.puerto = None
         self.cerrar_tras_redirect = False
+        # True desde que se cae la conexion: las difusiones la saltan y lo
+        # que aun le mande un temporizador pendiente se descarta.
+        self.cerrada = False
         self.sentado = False
         self.ultimo_movimiento = time.time()
         self.ultimo_combate = 0.0
@@ -73,7 +76,7 @@ class Session:
 
     def enviar(self, *submsgs):
         """submsgs: bytes ya serializados por Msg.build (opcode incluido)."""
-        if not submsgs:
+        if not submsgs or getattr(self, 'cerrada', False):
             return
         # sub_60ADC0 (0x0065) borra la lista de iconos de buff de WND_PET_INFO;
         # si va un 0x0065 y la mascota esta invocada, reenviar sus 0x001D kind=4 detras.
@@ -102,7 +105,7 @@ class Session:
     def enviar_sin_espejo(self, *submsgs):
         """Como enviar, pero sin reenviarlo al grupo: es lo que se usa para
         entregar lo que llega reenviado de otro, para que no rebote."""
-        if submsgs:
+        if submsgs and not getattr(self, 'cerrada', False):
             self.salida.append(build_frame(pack_submessages(submsgs), self._next_seq()))
 
     def enviar_crudo(self, payload):
@@ -127,7 +130,7 @@ class Session:
         los bichos solo andaban cuando andabas tu.
         """
         out = self.drenar()
-        if out and getattr(self, 'writer', None):
+        if out and not getattr(self, 'cerrada', False) and getattr(self, 'writer', None):
             try:
                 if getattr(self, 'grab', None):
                     self.grab.salida(out)
