@@ -1,0 +1,2028 @@
+MAGIC.XML 2258 說明
+  eng: For every %0, HP is reduced by %2%. Lasts %1
+  jpn: HPに追加ダメージ、%0毎にHP%2減少、%1継続
+STRING.XML 150 文字
+  eng: /c$1%-12s/c* invites you to play /c$2%s/c*. Do you want to accept the invitation?
+  jpn: \n/c$2%s/c*が、/c$1%-12s/c*に誘っています。
+STRING.XML 515 文字
+  eng: It needs level %d spell %s
+  jpn: %s技法レベル%dが必要です
+STRING.XML 518 文字
+  eng: %d-%d Attack
+  jpn: 攻撃	%s%d~%d
+STRING.XML 587 文字
+  eng: /c$b%d-%d/c*(%d-%d /c$b%s%d/c*) attack
+  jpn: 攻撃	/c$b%s%d~%d/c* (%d~%d/c$b%s%d/c*)
+STRING.XML 601 文字
+  eng: /c$b%s%d/c*(%d/c$b%s%d/c*) %s
+  jpn: %s	/c$b%s%d/c* (%d/c$b%s%d/c*)
+STRING.XML 602 文字
+  eng: %s%d %s
+  jpn: %s	%s%d
+STRING.XML 603 文字
+  eng: /c$b%s%d/c* %s
+  jpn: %s	/c$b%s%d/c*
+STRING.XML 723 文字
+  eng: /c$b%s%d%%/c*(%d%%/c$b%s%d%%/c*) %s
+  jpn: %s	/c$b%s%d%%/c* (%d%%/c$b%s%d%%/c*)
+STRING.XML 724 文字
+  eng: %s%d%% %s
+  jpn: %s	%s%d%%
+STRING.XML 725 文字
+  eng: /c$b%s%d%%/c* %s
+  jpn: %s	/c$b%s%d%%/c*
+STRING.XML 886 文字
+  eng: Slots:%02d  Time limit:%03d hours
+  jpn: スロット:%02d 時限:%02d時間
+STRING.XML 887 文字
+  eng: Slots:%02d  Time limit:%04d minutes
+  jpn: スロット:%02d 時限:%02d分
+STRING.XML 888 文字
+  eng: Slots:%02d  Time limit:%05d seconds
+  jpn: スロット:%02d 時限:%02d秒
+STRING.XML 976 文字
+  eng: %s /c$b%d%%/c*(%d%%/c$b%s%d%%/c*)
+  jpn: %s	/c$b%s%d%%/c* (%d%%/c$b%s%d%%/c*)
+STRING.XML 977 文字
+  eng: %s %d%%
+  jpn: %s	%s%d%%
+STRING.XML 978 文字
+  eng: %s /c$b%d%%/c*
+  jpn: %s	/c$b%s%d%%/c*
+STRING.XML 979 文字
+  eng: The totem battle will begin soon. You will be transported to the main city in % seconds.
+  jpn: エンブレムウォーはもうすぐ始まります。%s秒後に、所属国に転送されます。
+STRING.XML 1794 文字
+  eng: %d, it's your great luck to be killed by me!
+  jpn: 俺に倒されるとは幸せだな！
+STRING.XML 1795 文字
+  eng: %d, it is said that ten thousand are unable to get through if one man guards the pass...I'm the bravest man in Angels Online!
+  jpn: 我が道に敵なし…俺こそエデン一の勇者だ！
+STRING.XML 1796 文字
+  eng: %d, this is the 100th person...Is there no end to my slaughter?
+  jpn: これで100人目か…戦いが終わることは無いのか？
+STRING.XML 1797 文字
+  eng: %d, you will be blessed by the angel...the Archangel is waiting for you...
+  jpn: あなたの死に天使長の祝福があらんことを…。
+STRING.XML 1798 文字
+  eng: %d, no one can stop me! I can slaughter hundreds of people at the same time.
+  jpn: 誰にも止められまい！100人斬りだ！
+STRING.XML 1799 文字
+  eng: %d, come on!
+  jpn: かかって来い！
+STRING.XML 1800 文字
+  eng: %d I have continously killed 100 people. Who will be next?
+  jpn: さぁ！　次は誰だ？！
+STRING.XML 1801 文字
+  eng: %d Who wants to be the 101st victim of my wrath?
+  jpn: 誰がこの101人目になろうか？
+STRING.XML 1802 文字
+  eng: %d Please make a will and have it witnessed, signed and stamped by a notary before you challenge me!  Hahaha...!
+  jpn: 俺に挑戦したいなら、遺言を準備しておけ！
+STRING.XML 1803 文字
+  eng: %d Your spell is so 1st grade. Did you learn it in the sandbox at school?
+  jpn: 百人斬りはこんなもんだ！
+STRING.XML 1846 文字
+  eng: Your lover is online...
+  jpn: 結婚相手 %s がログインしました。
+STRING.XML 1847 文字
+  eng: It is a symbol of love.
+  jpn: これは%sの愛の証です。
+STRING.XML 2191 文字
+  eng: %s has defeated %s.
+  jpn: %s が勝利しました。
+STRING.XML 2227 文字
+  eng: [%s] took %s's Crystal back now.
+  jpn: %s「%s」は%sのクリスタルを奪いました。
+STRING.XML 2742 文字
+  eng: 戰天使擂台成績揭曉~ 第1名 %s  第2名 %s  第3名 %s  第4名 %s  第5名 %s  第6名 %s  第7名 %s  第8名 %s
+  jpn: コロシアムLv. %s ~ %s結果発表~ 1位 %s  2位 %s  3位 %s  4位 %s  5位 %s  6位 %s  7位 %s  8位 %s
+STRING.XML 3101 文字
+  eng: You have arrived in %'s Guild farm.
+  jpn: %sのギルド農園に入りました
+STRING.XML 3294 文字
+  eng: 戰天使擂台報名開始了！目前場次為：Lv. %d ~ %d，要參加的小天使們請盡速前往報名喔！
+  jpn: Lv. %s ～ %sコロシアムの申込受付が始まりました！申込はお早めに！
+STRING.XML 3295 文字
+  eng: 距離Lv. %d ~ %d戰天使擂台的報名截止時間不到十分鐘嚕！
+  jpn: Lv. %s ～ %sコロシアムの申込受付の締め切りまでは、後10分です！
+STRING.XML 3296 文字
+  eng: 距離Lv. %d ~ %d戰天使擂台的報名截止時間不到五分鐘嚕！
+  jpn: Lv. %s ～ %sコロシアムの申込受付の締め切りまでは、後5分です！
+STRING.XML 3297 文字
+  eng: 距離Lv. %d ~ %d戰天使擂台的報名截止時間不到一分鐘嚕！
+  jpn: Lv. %s ～ %sコロシアムの申込受付の締め切りまでは、後1分です！
+STRING.XML 3298 文字
+  eng: Lv. %d ~ %d戰天使擂台報名已經截止, 將於一分鐘後正式開打!
+  jpn: Lv. %s ～ %sコロシアムの申込受付を締め切りました。1分後に開戦します。
+STRING.XML 3299 文字
+  eng: 戰天使擂台Lv. %d ~ %d成績揭曉~
+  jpn: Lv. %s ～ %sコロシアムの成績を発表します。
+STRING.XML 3353 文字
+  eng: Victory!
+  jpn: サークル戦終了。%sの勝利！
+STRING.XML 3362 文字
+  eng: .
+  jpn: 資源を投入して、戦績点%sを獲得しました。
+STRING.XML 3397 文字
+  eng: Are you feeling the heat? Then let me ice you!
+  jpn: 走りっぱなしで体が熱いだろう、%s！冷やしてやるぞ！我は『優しい』からな！
+STRING.XML 3463 文字
+  eng: Shall I heat things up for you?
+  jpn: 燃えろ！%s！！
+STRING.XML 3464 文字
+  eng: Hahaha! You can run! But you cannot hide!
+  jpn: %s！俺の爪から逃げられると思うな！！
+STRING.XML 3467 文字
+  eng: You're such an eyesore! Be gone!
+  jpn: 貴様！%s 目障りだ！灰になれ！
+STRING.XML 3469 文字
+  eng: You're not too bad... You'll make a perfect minion!
+  jpn: %s 中々やるじゃないか！…ならば…岩漿となり、我が眷属になるがいい！！
+STRING.XML 3470 文字
+  eng: Let's turn everything into ashes!
+  jpn: 全て…全てを灰にしてやる！%s まずはおのれからだ！！
+STRING.XML 3511 文字
+  eng: %! Your end is nigh!
+  jpn: %s！そなたのカウントダウンを始めよう！
+STRING.XML 3831 文字
+  eng: Event Days Logged: %d / %d days
+  jpn: %d 日ログイン
+STRING.XML 3832 文字
+  eng: Spend a total of %d / %d Angel Gold
+  jpn: Angel Goldを累計 %d 消費
+STRING.XML 3833 文字
+  eng: Spend a total of %d / %d Angel Gold
+  jpn: Angel Goldを累計 %d チャージ
+STRING.XML 4139 文字
+  eng: Daily quests refresh at %d:%d every day
+  jpn: デイリー任務は毎日 %02d:%02d (UTC+8) に更新されます
+STRING.XML 4140 文字
+  eng: Weekly quests refresh every %s at %d:%d
+  jpn: ウィークリー任務は毎週%s曜日 %02d:%02d (UTC+8) に更新されます
+ITEM.XML 34 說明定義
+  eng: Eliminate %d / 10 Mutant Earth elves.
+  jpn: ミュータンアース10匹をクリア。
+ITEM.XML 104 說明定義
+  eng: Obtained %d / 1 [Statistical Report of Cupid in the East Playground]
+  jpn: 「東広場キューピットの統計報告」を1部取得
+ITEM.XML 105 說明定義
+  eng: Obtained %d / 1 [Statistical Report of Cupid in the West Playground]
+  jpn: 「西広場キューピットの統計報告」を1部取得
+ITEM.XML 119 說明定義
+  eng: Eliminate %d / 30 Water elves.
+  jpn: アクアエレメント30匹をクリア
+ITEM.XML 120 說明定義
+  eng: Eliminate %d / 30 Fire elves.
+  jpn: ファイエレメント30匹をクリア
+ITEM.XML 121 說明定義
+  eng: Eliminate %d / 30 Wind elves.
+  jpn: エアエレメント30匹をクリア
+ITEM.XML 122 說明定義
+  eng: Eliminate %d / 30 Earth elves.
+  jpn: アースエレメント30匹をクリア
+ITEM.XML 129 說明定義
+  eng: Obtain %d / 1 [Beast Core]
+  jpn: 「野獣のコア」を1個獲得
+ITEM.XML 130 說明定義
+  eng: Obtain %d / 1 [Human Core]
+  jpn: 「人型のコア」を1個獲得
+ITEM.XML 131 說明定義
+  eng: Obtain %d / 1 [Plant Core]
+  jpn: 「植物のコア」を１個獲得
+ITEM.XML 132 說明定義
+  eng: Obtain %d / 1 [Energy Core]
+  jpn: 「活力のコア」を１個獲得
+ITEM.XML 133 說明定義
+  eng: Obtain %d / 1 [Deathless Core]
+  jpn: 「不死のコア」を１個獲得
+ITEM.XML 134 說明定義
+  eng: Obtain %d / 1 [Evil Core]
+  jpn: 「悪魔のコア」を１個獲得
+ITEM.XML 135 說明定義
+  eng: Obtain %d / 1 [Disciple Loop]
+  jpn: 「使徒の首輪」を1個獲得
+ITEM.XML 146 說明定義
+  eng: Defeat %d / 1 Fire Goblin.
+  jpn: トリックファイアを倒しました
+ITEM.XML 202 說明定義
+  eng: Defeat %d / 1 Iron Mane Blaic.
+  jpn: 鉄嵐のバレークを倒しました
+ITEM.XML 319 說明定義
+  eng: Defeat %d / 1 Vice Colonel of Pirates.
+  jpn: ヴァイスキャップを倒しました
+ITEM.XML 324 說明定義
+  eng: Obtain %d / 1 [Golden Key]
+  jpn: 「金のキー」を１本獲得
+ITEM.XML 325 說明定義
+  eng: Obtain %d / 1 [Silver Key]
+  jpn: 「銀のキー」を１本獲得
+ITEM.XML 326 說明定義
+  eng: Obtain %d / 1 [Copper Key]
+  jpn: 「銅のキー」を１本獲得
+ITEM.XML 818 說明定義
+  eng: Defeat %d / 1 Ghost Seneschal
+  jpn: 幽霊執事を倒しました
+ITEM.XML 827 說明定義
+  eng: Defeat %d / 1 Beast Summoner.
+  jpn: 召喚モンスターを倒しました
+ITEM.XML 833 說明定義
+  eng: Defeat %d / 1 Rage Elf.
+  jpn: ドレイザーを倒しました
+ITEM.XML 838 說明定義
+  eng: Defeat %d / 1 Jackstraw Mige.
+  jpn: かかしのミーグを倒しました
+ITEM.XML 840 說明定義
+  eng: Defeat %d / 1 Pumpkin Banni.
+  jpn: カボチャのバンニを倒しました
+ITEM.XML 841 說明定義
+  eng: Defeat %d / 1 Pumpkin Pluto.
+  jpn: パンプブルートを倒しました
+ITEM.XML 844 說明定義
+  eng: Defeat %d / 1 Grey Mouse Mickey.
+  jpn: 灰鼠王ミィキーを倒しました
+ITEM.XML 845 說明定義
+  eng: Defeat %d / 1 Gold Soldier Crab.
+  jpn: ゴールドヤドカリを倒しました
+ITEM.XML 847 說明定義
+  eng: Defeat %d / 1 Sheep Music.
+  jpn: 羊王デノンを倒しました
+ITEM.XML 850 說明定義
+  eng: Defeat %d / 1 Crystal Lizard.
+  jpn: グラスフリルを倒しました
+ITEM.XML 855 說明定義
+  eng: Defeat %d / 1 Metal Robot.
+  jpn: 超合金：紅を倒しました
+ITEM.XML 856 說明定義
+  eng: Defeat %d / 1 Farmongee.
+  jpn: フレイムモンキーを倒しました
+ITEM.XML 857 說明定義
+  eng: Defeat %d / 1 Lizard Lisad.
+  jpn: キングリザードを倒しました
+ITEM.XML 859 說明定義
+  eng: Defeat %d / 1 Undying Lord.
+  jpn: ファラオを倒しました
+ITEM.XML 941 說明定義
+  eng: Defeat %d / 1 Red-hooded Skeleton Header.
+  jpn: スケルキャプテンを倒しました
+ITEM.XML 942 說明定義
+  eng: Defeat %d / 1 Giant Cat Cinlo.
+  jpn: 猫又シンラを倒しました
+ITEM.XML 944 說明定義
+  eng: Defeat %d / 1 Dream Paopao.
+  jpn: ファントムを倒しました
+ITEM.XML 947 說明定義
+  eng: Defeat %d / 1 Stunt Lord Abbi.
+  jpn: 百技のアビーを倒しました
+ITEM.XML 948 說明定義
+  eng: Defeat %d / 1 Wizard Mord.
+  jpn: 魔道士マドを倒しました
+ITEM.XML 950 說明定義
+  eng: Defeat %d / 1 Bloody Gent Pound.
+  jpn: 吸血鬼バンドを倒しました
+ITEM.XML 951 說明定義
+  eng: Defeat %d / 1 Evil Eye Bershala.
+  jpn: 魔眼ベルシャラを倒しました
+ITEM.XML 953 說明定義
+  eng: Defeat %d / 1 Evil Cat Yese.
+  jpn: 魔猫ナイカを倒しました
+ITEM.XML 957 說明定義
+  eng: Defeat %d / 1 Flame Lily.
+  jpn: ブラッディリリーを倒しました
+ITEM.XML 959 說明定義
+  eng: Defeat %d / 1 Yellow Mushroom.
+  jpn: 黄茸ファンガーを倒しました
+ITEM.XML 960 說明定義
+  eng: Defeat %d / 1 Iron Mane Blaic.
+  jpn: 鉄嵐のバレークを倒しました
+ITEM.XML 962 說明定義
+  eng: Defeat %d / 1 Crystal Mud Crab.
+  jpn: クリスタルシェルを倒しました
+ITEM.XML 963 說明定義
+  eng: Defeat %d / 1 Frog Lord Kuppa.
+  jpn: 蛙王クッパを倒しました
+ITEM.XML 965 說明定義
+  eng: Defeat %d / 1 Evil Moon Rabbit.
+  jpn: ムーンラビットを倒しました
+ITEM.XML 968 說明定義
+  eng: Defeat %d / 1 Queen Angela.
+  jpn: 花王アンジェラを倒しました
+ITEM.XML 1222 說明定義
+  eng: Defeat %d / 1 Evil Soldier Crab.
+  jpn: デビルクラブを倒しました
+ITEM.XML 1223 說明定義
+  eng: Defeat %d / 1 Blue Potec.
+  jpn: 青甲のバルテックを倒しました
+ITEM.XML 1225 說明定義
+  eng: Defeat %d / 1 Header Gaberna.
+  jpn: オフィサーガブナを倒しました
+ITEM.XML 3776 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: ランダムにアイテムを手に入れることができる。
+ITEM.XML 3777 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: ランダムにアイテムを手に入れることができる。
+ITEM.XML 3778 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: ランダムにアイテムを手に入れることができる。
+ITEM.XML 3779 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: ランダムにアイテムを手に入れることができる。
+ITEM.XML 3780 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: ランダムにアイテムを手に入れることができる。
+ITEM.XML 3781 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: ランダムにアイテムを手に入れることができる。
+ITEM.XML 3782 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: ランダムにアイテムを手に入れることができる。
+ITEM.XML 3824 說明定義
+  eng: Right click to obtain a level 35 superior weapon(Trial) for 7 days.
+  jpn: /c$2%s/c*
+開封すると、7日間使用できるLv35の武器を入手できる。
+ITEM.XML 3825 說明定義
+  eng: Right click to obtain a level 45 superior weapon(Trial) for 7 days.
+  jpn: /c$2%s/c*
+開封すると、7日間使用できるLv45の武器を入手できる。
+ITEM.XML 3826 說明定義
+  eng: Right click to obtain a level 55 superior weapon(Trial) for 7 days.
+  jpn: /c$2%s/c*
+開封すると、7日間使用できるLv55の武器を入手できる。
+ITEM.XML 4690 說明定義
+  eng: Open it to get one of the following things randomly:Black Fight Lizard,Blue Evil Cat,Wild Cat Robot,Silver Card 3,Intensified Chain 2,Fast Gear 2,Purple Evil Cat,Red Lizard,Lvl1 Time limit Gift Box,Flawed Purple Gem,Lvl1 Rare Defence Gift Box,Monster Breath(1 day),Mighty Fuel 1,Treasure Map Piece 3,Facture Speedup Card,Low-level Exp Stone,Mark Portal Scroll,Swiftness Scroll or Angel Ticket 30 Thousand.
+  jpn: /c$2%s/c*
+ITEM.XML 4691 說明定義
+  eng: Open it to get one of the following things randomly:Flame Warrior,Evil Lazard,Wild Cat Robot,Silver Card 3,Selected Red Lizard,Selected Purple Evil Cat,Blood Dog Battle Robot,Lvl2 Time limit Gift Box,Common Card 3,Flawed Purple Gem,Defective Orange Gem,Lvl1 Rare Defence Gift Box,Treasure Map Piece 4,Mighty Fuel 1,Monster Breath(1 day),Pet's Assault Potion,Pet's Defence Potion,Vegetable Juice,Mango Juice, or Angel Ticket 50 Thousand.
+  jpn: /c$2%s/c*
+ITEM.XML 4692 說明定義
+  eng: Open it to get one of the following things randomly:Night Cat,Icy Lizard,Weighty Cat Boots,Top Red Lizard,Top Purple Evil Cat,Bad Dog Robot 3,Lvl3 Time limit Gift Box,Lvl3 Rare Defence Gift Box,Treasure Map Piece 6,Mighty Fuel 3,Common Card 3,Ruby,Sapphire,Mighty Fuel 1,Monster Breath(1 day),Collection Speedup Card,Facture Speedup Card,Defense Scroll,Spell Defense Scroll or Angel Ticket 100 Thousand.
+  jpn: /c$2%s/c*
+ITEM.XML 4693 說明定義
+  eng: Open it to get one of the following things randomly:Red Stiff Beetle,Red Circus Elephant,Red Repair Duck Robot,Green Stiff Beetle,Green Circus Elephant,Blue Repair Duck Robot,Lvl4 Time limit Gift Box,Lvl3 Rare Defence Gift Box,Treasure Map Piece 6,Mighty Fuel 3,Common Card 3,Ruby,Sapphire,Mighty Fuel 2,Monster Breath(7 days),Collection Speedup Card,Facture Speedup Card,Attack Scroll,Spell Attack Scroll or Angel Ticket 200 Thousand.
+  jpn: /c$2%s/c*
+ITEM.XML 4699 說明定義
+  eng: Right click to use it and obtain Lvl 70 top weapon for (7-day) trial
+  jpn: /c$2%s/c*
+開封すると、7日間使用できるLv70の武器を入手できる。
+ITEM.XML 5679 說明定義
+  eng: Open to get one of the following things randomly: Black Fight Lizard, Blue Evil Cat, Wild Cat Robot, SiLvl er Card 3, Intensified Chain 2, Fast Gear 2, Purple Evil Cat, Red Lizard, Lvl 1 Time limit Gift Box, Flawed Purple Gem, Defective Orange Gem, Lvl 1 Rare Defence Gift Box, Monster Breath(1 day), Mighty Fuel 1,Pirate Treasure Map Piece 3, Facture Speedup Card, Low-level Exp Stone, Mark Portal Scroll, Swiftness Scroll, or Angel Ticket 30 Thousand
+  jpn: /c$2%s/c*
+ITEM.XML 5680 說明定義
+  eng: Open it to get one of the following things randomly: Flame Warrior, Evil Lazard, Wild Cat Robot, SiLvl er Card 3, Selected Red Lizard, Selected Purple Evil Cat, Blood Dog Battle Robot, Lvl 2 Time limit Gift Box, Common Card 3, Flawed Purple Gem, Defective Orange Gem, Lvl 1 Rare Defence Gift Box, Pirate Treasure Map Piece 4, Mighty Fuel 1, Monster Breath(1 day), Pet's Assault Potion, Pet's Defence Potion, Vegetable Juice, Mango Juice, or Angel Ticket 50 Thousand
+  jpn: /c$2%s/c*
+ITEM.XML 5681 說明定義
+  eng: Open to get one of the following things randomly: Night Cat, Icy Lizard, Weighty Cat Boots, Top Red Lizard, Top Purple Evil Cat, Bad Dog Robot 3, Lvl 3 Time limit Gift Box, Lvl 3 Rare Defence Gift Box, Pirate Treasure Map Piece 6, Mighty Fuel 3, Common Card 3, Ruby, Sapphire, Mighty Fuel 1, Monster Breath(1 day), Collection Speedup Card, Facture Speedup Card, Defense Scroll, Spell Defense Scroll, or Angel Ticket 100 Thousand
+  jpn: /c$2%s/c*
+ITEM.XML 5682 說明定義
+  eng: Open to get one of the following things randomly: Red Stiff Beetle, Red Circus Elephant, Red Repair Duck Robot, Green Stiff Beetle, Green Circus Elephant, Blue Repair Duck Robot, Lvl 4 Time limit Gift Box, Lvl 3 Rare Defence Gift Box, Pirate Treasure Map Piece 6, Mighty Fuel 3, Common Card 3, Ruby, Sapphire, Mighty Fuel 2, Monster Breath(7 days), Collection Speedup Card, Facture Speedup Card, Attack Scroll, Spell Attack Scroll, or Angel Ticket 200 Thousand
+  jpn: /c$2%s/c*
+ITEM.XML 6936 說明定義
+  eng: Requires 5 free slots in your backpack to open. right click to obtain:Gravitational Consideration,Gravitational Truth,Gravitational Guide,Gravitational Trace,and Gravitational Outer Space
+  jpn: /c$2%s/c*
+ITEM.XML 8637 說明定義
+  eng: Open it to get one of the following things randomly: Scorching Racing Crash Helmet, Scorching Racing Uniform, Scorching Racing Gloves, Scorching Racing Boots, Wing-footed Racing Crash Helmet, Wing-footed Racing Uniform, Wing-footed Racing Gloves, Wing-footed Racing Boots, Off-road Racing Crash Helmet, Off-road Racing Uniform, Off-road Racing Gloves, Off-road Racing Boots, Cherry Parasol, Ice Blue Parasol, Orange Parasol, Crystal-clear Champagne, Glaring Champagne or Riedel Grape Champagne
+  jpn: /c$2%s/c*
+ITEM.XML 8639 說明定義
+  eng: 背包須有4格以上空間才能容納開啟的禮物，打開後可獲得:越野賽車安全帽、越野賽車裝、越野賽車手套、越野賽車鞋
+  jpn: /c$2%s/c*
+ITEM.XML 8640 說明定義
+  eng: 背包須有4格以上空間才能容納開啟的禮物，打開後可獲得:甜橘賽車女郎墨鏡、甜橘賽車女郎辣裝、甜橘賽車女郎手環、甜橘賽車女郎皮靴
+  jpn: /c$2%s/c*
+ITEM.XML 8904 說明定義
+  eng: Requires 5 free slots in your backpack. Open it to get: Morquri's Sigh, Morquri's Symbol, Morquri's Optimism, Morquri's Travel, or Morquri's Handbarrow
+  jpn: /c$2%s/c*
+ｾｯﾄ効果(2点)：防御 + 180
+ｾｯﾄ効果(3点)：HP最大値 + 600
+ｾｯﾄ効果(4点)：最大重量 + 5000
+ｾｯﾄ効果(5点)：移動速度 + 20%、採集速度 + 10%、生産速度 + 10%
+ITEM.XML 8905 說明定義
+  eng: /c$2%s/c*
+  jpn: 背包須有4格以上空間才能容納開啟的禮物，打開後可獲得：神殿軍團之盔、神殿軍團手甲、神殿軍團鎧甲、神殿軍團戰靴。
+ITEM.XML 8906 說明定義
+  eng: /c$2%s/c*
+  jpn: 背包須有4格以上空間才能容納開啟的禮物，打開後可獲得：幸運黑傑克法冠、幸運黑傑克手環、幸運黑傑克法袍、幸運黑傑克法鞋。
+ITEM.XML 8907 說明定義
+  eng: /c$2%s/c*
+  jpn: 背包須有4格以上空間才能容納開啟的禮物，打開後可獲得：獨行者之盔、獨行者之手、獨行者皮甲、獨行者之靴。
+ITEM.XML 8908 說明定義
+  eng: /c$2%s/c*
+  jpn: 背包須有4格以上空間才能容納開啟的禮物，打開後可獲得：正義信奉者之盔、正義信奉者之手、正義信奉者之鎧、正義信奉者之靴。
+ITEM.XML 8909 說明定義
+  eng: /c$2%s/c*
+  jpn: 背包須有4格以上空間才能容納開啟的禮物，打開後可獲得：神聖泉源之冠、神聖泉源之手、神聖泉源之袍、神聖泉源之靴。
+ITEM.XML 8910 說明定義
+  eng: /c$2%s/c*
+  jpn: 背包須有4格以上空間才能容納開啟的禮物，打開後可獲得：森林獵神之盔、森林獵神之手、森林獵神之皮、森林獵神之靴。
+ITEM.XML 9255 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: 天使學園頒贈予成績傑出校友的禮盒，請按右鍵打開這份專屬於勝利者的殊榮！
+有機會獲得下列其一：封印光芒禮盒、65-套裝扭蛋、褐色硬甲蟲、藍色馬戲大象、[未鑑定的 70 級長劍]、[未鑑定的 70 級戰斧]、[未鑑定的 70 級長槍]、[未鑑定的 70 級巨弓]、[未鑑定的 70 級法杖]、Lv7 盜賊王藏寶圖碎片、橙寶石、紫寶石、四級限時頂級禮盒、7星幸運錘、超空間鐵舖、攻擊捲軸、防禦捲軸、魔攻捲軸、魔防捲軸、天使禮券5萬。
+ITEM.XML 9256 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: 天使學園頒贈予成績傑出校友的禮盒，請按右鍵打開這份專屬於勝利者的殊榮！
+有機會獲得下列其一：速行戒指、神力戒指、保險箱鑰匙(永久)、擺攤金卡(永久)、製作型四級高速齒輪組、採集型四級能量核心、優良駕駛：帽帽小鴨機甲、綠色修蛋小鴨機甲、綠色滴答鱷魚機甲、工匠之魂、扭力燃料(30日)、保險箱鑰匙(30日)、橙寶石、紫寶石、超空間銀行、採集加速卡、製作加速卡、扭力燃料(1日)、怪物氣息(1日)、天使禮券5萬。
+ITEM.XML 9257 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: 天使學園頒贈予成績傑出校友的禮盒，請按右鍵打開這份專屬於勝利者的殊榮！
+有機會獲得下列其一：天使召喚傳呼機、天使飛行定位儀、8星祝福強化錘、藍色貴族大象、褐色聖甲蟲、[未鑑定的 80 級長劍]、[未鑑定的 80 級戰斧]、[未鑑定的 80 級長槍]、[未鑑定的 80 級巨弓]、[未鑑定的 80 級法杖]、潔淨的橙寶石、潔淨的紫寶石、五級限時頂級禮盒、8星幸運錘、高效攻擊捲軸、高效防禦捲軸、高效魔攻捲軸、高效魔防捲軸、緊急逃命藥水、天使禮券10萬。
+ITEM.XML 9258 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows. 
+/c$2%s/c*
+  jpn: 天使學園頒贈予成績傑出校友的禮盒，請按右鍵打開這份專屬於勝利者的殊榮！
+有機會獲得下列其一：神匠戒指、惡魔吉他背包、神力戒指、綠色帽帽小鴨機甲、綠色卡滋鱷魚機甲、製作型五級高速齒輪組、採集型五級能量核心、保險箱鑰匙(永久)、擺攤金卡(永久)、大扭力燃料(30日)、保險箱鑰匙(30日)、8星幸運錘、潔淨寶石禮包、超空間銀行、採集加速卡、製作加速卡、大扭力燃料(1日)、怪物氣息(1日)、擺攤銀卡(1日)、天使禮券10萬。
+ITEM.XML 9270 說明定義
+  eng: Right click to obtain a level 80 superior weapon(Trial) for 7 days.
+  jpn: /c$2%s/c*
+開封すると、7日間使用できるLv80の武器を入手できる。
+ITEM.XML 9407 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：35 級頂級刀劍武器『女神之劍』、酷炫面具福袋、中級血統證明書、寵物經驗加倍卡(30分鐘)、3級祝福坐騎進化飼料、3星祝福強化槌、3星祝福打孔錘、新手經驗加倍卡(30分鐘)、速行捲軸、豪華寵物飼料、聖光城卷軸、鐵輪堡卷軸、永夜城卷軸、和風林卷軸、3星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9408 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：35 級頂級斧錘武器『獸神血斧』、酷炫面具福袋、中級血統證明書、寵物經驗加倍卡(30分鐘)、3級祝福坐騎進化飼料、3星祝福強化槌、3星祝福打孔錘、新手經驗加倍卡(30分鐘)、速行捲軸、豪華寵物飼料、聖光城卷軸、鐵輪堡卷軸、永夜城卷軸、和風林卷軸、3星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9409 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：35 級頂級槍類武器『大地之槍』、酷炫面具福袋、中級血統證明書、寵物經驗加倍卡(30分鐘)、3級祝福坐騎進化飼料、3星祝福強化槌、3星祝福打孔錘、新手經驗加倍卡(30分鐘)、速行捲軸、豪華寵物飼料、聖光城卷軸、鐵輪堡卷軸、永夜城卷軸、和風林卷軸、3星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9410 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：35 級頂級弓箭武器『冰晶彎弓』、酷炫面具福袋、中級血統證明書、寵物經驗加倍卡(30分鐘)、3級祝福坐騎進化飼料、3星祝福強化槌、3星祝福打孔錘、新手經驗加倍卡(30分鐘)、速行捲軸、豪華寵物飼料、聖光城卷軸、鐵輪堡卷軸、永夜城卷軸、和風林卷軸、3星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9411 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：35 級頂級法杖武器『妖貓魔杖』、酷炫面具福袋、中級血統證明書、寵物經驗加倍卡(30分鐘)、3級祝福坐騎進化飼料、3星祝福強化槌、3星祝福打孔錘、新手經驗加倍卡(30分鐘)、速行捲軸、豪華寵物飼料、聖光城卷軸、鐵輪堡卷軸、永夜城卷軸、和風林卷軸、3星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9412 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：45 級極品刀劍武器『極品 - 阿達斯之刀』、45 級頂級刀劍武器『阿達斯之刀』、4級祝福坐騎進化飼料、4星祝福強化槌、4星祝福打孔錘、速攻捲軸、爆擊捲軸、新手經驗加倍卡(30分鐘)、天使護身符、豪華寵物飼料、8克拉經驗彩鑽、攻擊捲軸、防禦捲軸、速行捲軸、4星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9413 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：45 級極品斧錘武器『極品 - 七彩戰斧』、45 級頂級斧錘武器『七彩戰斧』、4級祝福坐騎進化飼料、4星祝福強化槌、4星祝福打孔錘、速攻捲軸、爆擊捲軸、新手經驗加倍卡(30分鐘)、天使護身符、豪華寵物飼料、8克拉經驗彩鑽、攻擊捲軸、防禦捲軸、速行捲軸、4星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9414 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：45 級極品槍類武器『極品 - 魚古之槍』、45 級頂級槍類武器『魚古之槍』、4級祝福坐騎進化飼料、4星祝福強化槌、4星祝福打孔錘、速攻捲軸、爆擊捲軸、新手經驗加倍卡(30分鐘)、天使護身符、豪華寵物飼料、8克拉經驗彩鑽、攻擊捲軸、防禦捲軸、速行捲軸、4星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9415 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：45 級極品弓箭武器『極品 - 閃靈彈弓』、45 級頂級弓箭武器『閃靈彈弓』、4級祝福坐騎進化飼料、4星祝福強化槌、4星祝福打孔錘、速攻捲軸、爆擊捲軸、新手經驗加倍卡(30分鐘)、天使護身符、豪華寵物飼料、8克拉經驗彩鑽、攻擊捲軸、防禦捲軸、速行捲軸、4星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9416 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：45 級極品法杖武器『極品 - 火焰魔杖』、45 級頂級法杖武器『火焰魔杖』、4級祝福坐騎進化飼料、4星祝福強化槌、4星祝福打孔錘、紫寶石、大幸運卡(30分鐘)、新手經驗加倍卡(30分鐘)、天使護身符、豪華寵物飼料、8克拉經驗彩鑽、魔攻捲軸、魔防捲軸、速行捲軸、4星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9417 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：55 級頂級刀劍武器『玫瑰聖劍』、伊甸傳送禮盒、生命加持書、死亡預告書、5級祝福坐騎進化飼料、5星祝福強化槌、5星祝福打孔錘、超級廣播器、寵物經驗加倍卡(30分鐘)、新手經驗加倍卡(30分鐘)、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、5星幸運錘、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9418 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：55 級頂級斧錘武器『刺魚戰斧』、伊甸傳送禮盒、生命加持書、死亡預告書、5級祝福坐騎進化飼料、5星祝福強化槌、5星祝福打孔錘、超級廣播器、寵物經驗加倍卡(30分鐘)、新手經驗加倍卡(30分鐘)、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、5星幸運錘、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9419 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：55 級頂級槍類武器『電鋸長槍』、伊甸傳送禮盒、生命加持書、死亡預告書、5級祝福坐騎進化飼料、5星祝福強化槌、5星祝福打孔錘、超級廣播器、寵物經驗加倍卡(30分鐘)、新手經驗加倍卡(30分鐘)、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、5星幸運錘、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9420 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：55 級頂級弓箭武器『精靈之翼』、伊甸傳送禮盒、生命加持書、死亡預告書、5級祝福坐騎進化飼料、5星祝福強化槌、5星祝福打孔錘、超級廣播器、寵物經驗加倍卡(30分鐘)、新手經驗加倍卡(30分鐘)、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、5星幸運錘、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9421 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：55 級頂級法杖武器『天使祝福』、伊甸傳送禮盒、生命加持書、死亡預告書、5級祝福坐騎進化飼料、5星祝福強化槌、5星祝福打孔錘、超級廣播器、寵物經驗加倍卡(30分鐘)、新手經驗加倍卡(30分鐘)、大幸運卡(30分鐘)、高效魔攻捲軸、高效魔防捲軸、5星幸運錘、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9422 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：60 級頂級刀劍武器『英雄』、變身玩具扭蛋、石榴石、命運加持禮盒、6級祝福坐騎進化飼料、6星祝福強化槌、6星祝福打孔錘、超級廣播器、天使護身符、6星幸運錘、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9423 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：60 級頂級斧錘武器『魔王』、變身玩具扭蛋、石榴石、命運加持禮盒、6級祝福坐騎進化飼料、6星祝福強化槌、6星祝福打孔錘、超級廣播器、天使護身符、6星幸運錘、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9424 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：60 級頂級槍類武器『騎士精神』、變身玩具扭蛋、石榴石、命運加持禮盒、6級祝福坐騎進化飼料、6星祝福強化槌、6星祝福打孔錘、超級廣播器、天使護身符、6星幸運錘、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9425 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：60 級頂級弓箭武器『摘星夢幻』、變身玩具扭蛋、石榴石、命運加持禮盒、6級祝福坐騎進化飼料、6星祝福強化槌、6星祝福打孔錘、超級廣播器、天使護身符、6星幸運錘、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9427 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：70 級頂級刀劍武器『秘傳之劍』、命運加持禮盒、7級祝福坐騎進化飼料、7星祝福強化槌、7星祝福打孔錘、7星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、戰場符石、飆風捲軸、強效紫藥水
+ITEM.XML 9428 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：70 級頂級斧錘武器『天罰之巨斧』、命運加持禮盒、7級祝福坐騎進化飼料、7星祝福強化槌、7星祝福打孔錘、7星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、戰場符石、飆風捲軸、強效紫藥水
+ITEM.XML 9429 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：70 級頂級槍類武器『雷帝』、命運加持禮盒、7級祝福坐騎進化飼料、7星祝福強化槌、7星祝福打孔錘、7星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、戰場符石、飆風捲軸、強效紫藥水
+ITEM.XML 9430 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：70 級頂級弓箭武器『火牙』、命運加持禮盒、7級祝福坐騎進化飼料、7星祝福強化槌、7星祝福打孔錘、7星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、戰場符石、飆風捲軸、強效紫藥水
+ITEM.XML 9431 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：70 級頂級法杖武器『魔術師之杖』、命運加持禮盒、7級祝福坐騎進化飼料、7星祝福強化槌、7星祝福打孔錘、7星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、紫水晶、高效魔攻捲軸、高效魔防捲軸、40克拉經驗彩鑽、戰場符石、飆風捲軸、強效紫藥水
+ITEM.XML 9432 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：35頂級重裝禮盒、酷炫面具福袋、中級血統證明書、寵物經驗加倍卡(30分鐘)、3級祝福坐騎進化飼料、3星祝福強化槌、3星祝福打孔錘、新手經驗加倍卡(30分鐘)、速行捲軸、豪華寵物飼料、聖光城卷軸、鐵輪堡卷軸、永夜城卷軸、和風林卷軸、3星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9433 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：35頂級輕裝禮盒、酷炫面具福袋、中級血統證明書、寵物經驗加倍卡(30分鐘)、3級祝福坐騎進化飼料、3星祝福強化槌、3星祝福打孔錘、新手經驗加倍卡(30分鐘)、速行捲軸、豪華寵物飼料、聖光城卷軸、鐵輪堡卷軸、永夜城卷軸、和風林卷軸、3星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9434 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：35頂級法裝禮盒、酷炫面具福袋、中級血統證明書、寵物經驗加倍卡(30分鐘)、3級祝福坐騎進化飼料、3星祝福強化槌、3星祝福打孔錘、新手經驗加倍卡(30分鐘)、速行捲軸、豪華寵物飼料、聖光城卷軸、鐵輪堡卷軸、永夜城卷軸、和風林卷軸、3星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9435 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：45頂級重裝禮盒、超級廣播器、4級祝福坐騎進化飼料、4星祝福強化槌、4星祝福打孔錘、速攻捲軸、爆擊捲軸、新手經驗加倍卡(30分鐘)、天使護身符、豪華寵物飼料、8克拉經驗彩鑽、攻擊捲軸、防禦捲軸、速行捲軸、4星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9436 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：45頂級輕裝禮盒、超級廣播器、4級祝福坐騎進化飼料、4星祝福強化槌、4星祝福打孔錘、速攻捲軸、爆擊捲軸、新手經驗加倍卡(30分鐘)、天使護身符、豪華寵物飼料、8克拉經驗彩鑽、攻擊捲軸、防禦捲軸、速行捲軸、4星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9437 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：45頂級法裝禮盒、超級廣播器、4級祝福坐騎進化飼料、4星祝福強化槌、4星祝福打孔錘、紫寶石、大幸運卡(30分鐘)、新手經驗加倍卡(30分鐘)、天使護身符、豪華寵物飼料、8克拉經驗彩鑽、魔攻捲軸、魔防捲軸、速行捲軸、4星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9438 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：35級特殊戰鬥系坐騎『黑皮戰鬥蜥蜴』、超級廣播器、4級祝福坐騎進化飼料、酷炫面具福袋、寵物經驗加倍卡(30分鐘)、速攻捲軸、爆擊捲軸、新手經驗加倍卡(30分鐘)、天使護身符、豪華寵物飼料、8克拉經驗彩鑽、攻擊捲軸、防禦捲軸、速行捲軸、4星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9439 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：35級特殊法術系坐騎『海藍魔幻妖貓』、超級廣播器、4級祝福坐騎進化飼料、酷炫面具福袋、寵物經驗加倍卡(30分鐘)、紫寶石、大幸運卡(30分鐘)、新手經驗加倍卡(30分鐘)、天使護身符、豪華寵物飼料、8克拉經驗彩鑽、魔攻捲軸、魔防捲軸、速行捲軸、4星幸運錘、女巫飛行書、女巫召喚書、高效紅藥水、高效藍藥水
+ITEM.XML 9440 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：55級頂級重裝禮盒『聖騎士頂裝禮盒』、伊甸傳送禮盒、生命加持書、死亡預告書、5級祝福坐騎進化飼料、5星祝福強化槌、5星祝福打孔錘、超級廣播器、寵物經驗加倍卡(30分鐘)、新手經驗加倍卡(30分鐘)、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、5星幸運錘、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9441 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：55級頂級輕裝禮盒『飛鱗頂裝禮盒』、伊甸傳送禮盒、生命加持書、死亡預告書、5級祝福坐騎進化飼料、5星祝福強化槌、5星祝福打孔錘、超級廣播器、寵物經驗加倍卡(30分鐘)、新手經驗加倍卡(30分鐘)、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、5星幸運錘、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9442 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：55級頂級法裝禮盒『史萊姆頂裝禮盒』、伊甸傳送禮盒、生命加持書、死亡預告書、5級祝福坐騎進化飼料、5星祝福強化槌、5星祝福打孔錘、超級廣播器、寵物經驗加倍卡(30分鐘)、新手經驗加倍卡(30分鐘)、大幸運卡(30分鐘)、高效魔攻捲軸、高效魔防捲軸、5星幸運錘、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9443 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：50級特殊戰鬥系坐騎『黃金聖蜥』、伊甸傳送禮盒、生命加持書、死亡預告書、5級祝福坐騎進化飼料、5星祝福強化槌、5星祝福打孔錘、超級廣播器、寵物經驗加倍卡(30分鐘)、新手經驗加倍卡(30分鐘)、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、5星幸運錘、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9444 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：50級特殊法術系坐騎『星夜魔貓』、伊甸傳送禮盒、生命加持書、死亡預告書、5級祝福坐騎進化飼料、5星祝福強化槌、5星祝福打孔錘、超級廣播器、寵物經驗加倍卡(30分鐘)、新手經驗加倍卡(30分鐘)、大幸運卡(30分鐘)、高效攻擊捲軸、高效防禦捲軸、5星幸運錘、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9445 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：65級重裝套裝禮盒『休曼之堅實城邦禮盒』、十字背包、石榴石、命運加持禮盒、6級祝福坐騎進化飼料、6星祝福強化槌、6星祝福打孔錘、超級廣播器、天使護身符、6星幸運錘、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9446 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：65級輕裝套裝禮盒『雷汀風暴禮盒』、十字背包、石榴石、命運加持禮盒、6級祝福坐騎進化飼料、6星祝福強化槌、6星祝福打孔錘、超級廣播器、天使護身符、6星幸運錘、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9447 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：65級法袍套裝禮盒『瑪納五重奏禮盒』、十字背包、紫水晶、命運加持禮盒、6級祝福坐騎進化飼料、6星祝福強化槌、6星祝福打孔錘、超級廣播器、天使護身符、6星幸運錘、大幸運卡(30分鐘)、高效魔攻捲軸、高效魔防捲軸、40克拉經驗彩鑽、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9448 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：65級特殊坐騎『獸王』、60級特殊坐騎『飆風速行龜』、十字背包、伊甸傳送禮盒、命運加持禮盒、6級祝福坐騎進化飼料、緊急逃命藥水、超級廣播器、天使護身符、6星幸運錘、超空間服務扭蛋、高效防禦捲軸、高效魔防捲軸、40克拉經驗彩鑽、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9449 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：65級特殊坐騎『獸王』、60級特殊坐騎『鋼鐵陸行鳥』、十字背包、伊甸傳送禮盒、命運加持禮盒、6級祝福坐騎進化飼料、緊急逃命藥水、超級廣播器、天使護身符、6星幸運錘、超空間服務扭蛋、高效防禦捲軸、高效魔防捲軸、40克拉經驗彩鑽、飆風捲軸、強效紅藥水、強效藍藥水
+ITEM.XML 9450 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：70頂級重裝禮盒、俏皮貓耳帽、命運加持禮盒、7級祝福坐騎進化飼料、7星祝福強化槌、7星祝福打孔錘、7星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、戰場符石、飆風捲軸、強效紫藥水
+ITEM.XML 9451 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：70頂級輕裝禮盒、俏皮貓耳帽、命運加持禮盒、7級祝福坐騎進化飼料、7星祝福強化槌、7星祝福打孔錘、7星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、戰場符石、飆風捲軸、強效紫藥水
+ITEM.XML 9452 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：70頂級法袍禮盒、俏皮貓耳帽、命運加持禮盒、7級祝福坐騎進化飼料、7星祝福強化槌、7星祝福打孔錘、7星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、紫水晶、高效魔攻捲軸、高效魔防捲軸、40克拉經驗彩鑽、戰場符石、飆風捲軸、強效紫藥水
+ITEM.XML 9453 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：75級特殊坐騎『閃靈火車』、70級特殊戰鬥系坐騎『紅色馬戲大象』、伊甸傳送禮盒、命運加持禮盒、7級祝福坐騎進化飼料、7星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、戰場符石、飆風捲軸、強效紫藥水
+ITEM.XML 9454 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：75級特殊坐騎『閃靈火車』、70級特殊法術系坐騎『紅色硬甲蟲』、伊甸傳送禮盒、命運加持禮盒、7級祝福坐騎進化飼料、7星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、紫水晶、高效魔攻捲軸、高效魔防捲軸、40克拉經驗彩鑽、戰場符石、飆風捲軸、強效紫藥水
+ITEM.XML 9948 說明定義
+  eng: Open it to get one of them: Builder Cap, Builder Uniform, Builder Gloves, Builder Shoes, Clean Cap, Clean Uniform, Clean Gloves, Clean Shoes, Green Cap, Green Uniform, Green Gloves, Green Shoes, Expert Pick, Yellow Pick or Green Pick.
+  jpn: /c$2%s/c*
+ITEM.XML 9949 說明定義
+  eng: Open it to get one of them: Lovely Craftsman Cap, Lovely Craftsman Uniform, Lovely Craftsman Gloves, Lovely Craftsman Shoes, Pink Cap, Pink Uniform, Pink Gloves, Pink Shoes, Blue Cap, Blue Uniform, Blue Gloves, Blue Shoes, Expert Pick, Yellow Pick or Green Pick.
+  jpn: /c$2%s/c*
+ITEM.XML 9950 說明定義
+  eng: Requires 4 free slots in the backpack to open it and obtain: Green Cap, Green Uniform, Green Gloves and Green Shoes.
+  jpn: /c$2%s/c*
+ITEM.XML 9951 說明定義
+  eng: Requires 4 free slots in the backpack to open it and obtain: Blue Cap, Blue Uniform, Blue Gloves and Blue Shoes.
+  jpn: /c$2%s/c*
+ITEM2.XML 10061 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：我愛你小熊花束、摯愛小熊花束、LOVE小熊花束、親親小熊花束、白玫瑰花束、紅玫瑰花束、粉玫瑰花束、白海芋花束、黃海芋花束、粉海芋花束、濃濃巧克力情人花束、甜甜巧克力情人花束
+ITEM2.XML 10835 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：雛菊盆栽、向日葵盆栽、菊花盆栽、大波斯菊盆栽、繡球花盆栽、蕈菇盆栽、仙人掌花盆栽、金銀花盆栽、桐花盆栽、土黃日式地舖、天藍日式地舖、粉紅日式地舖、素色土黃雙人床、黃色條紋雙人床、天藍圓點雙人床、粉紅條紋單人床、黃色圓點單人床、黃色方格單人床、黃色條紋單人床
+ITEM2.XML 10836 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：日式榻榻米地板、貴族花紋地板、彩色方格地板、高級方格地板、風格碎石地板、古香木質地板、枯木赤色地毯、枯木灰色地毯、枯木皮質地毯、黃金波斯地毯、碧綠波斯地毯、黃花綻放圓地毯、黃色條紋地毯、黃色條紋圓地毯、黃色方格圓地毯、天藍方格大地毯
+ITEM2.XML 10837 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：抱著睡覺熊寶寶、日式素色屏風、蠟燭立燈、棕色兔寶寶、日式粉紅屏風、公園路燈、素色土黃圓墊、溫暖枕頭組、素色桃紅圓墊、熊寶寶弟弟、黃色方格圓墊、黃色條紋圓墊、粉色圓點抱枕、飛舞的蝴蝶、捲軸罐、各式瓶罐組合、儲備糧食袋、葡萄籃、芭樂籃、蕃茄籃
+ITEM2.XML 10838 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：屋外景觀-海灘、屋外景觀-聖光城、屋外景觀-和風林、屋外景觀-鐵輪堡、屋外景觀-草原、屋外景觀-湖、屋外景觀-熔岩地、巫毒頭、飄揚的聖光旗、飄揚的永夜旗、神秘水晶球、石像鬼雕像、看家士兵、巴風特雕像、巫妖狂熱者雕像、無頭盔甲雕像、古樹長老雕像
+ITEM2.XML 10908 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：學校的黑板、黃金波斯掛毯、沉紫波斯掛毯、歐風雙燭壁燈、書本與杖、壁掛式波斯菊、礦坑用壁燈、素色土黃掛毯、壁掛式青色桐花、素色桃紅掛毯、綠葉掛畫(大)、彩葉掛畫(大)、青草掛畫(大)、夏日風情、山中草原、無人沙漠、仕女畫、工匠畫、少年畫、蕨類掛畫
+ITEM2.XML 10909 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：可愛綿羊壁紙、壁紙-土元素在我家、壁紙-火元素在我家、壁紙-水元素在我家、壁紙-風元素在我家、磚瓦複合牆框、歐風牆框、標準牆框(含窗)、大地牆框、標準牆框、木製牆框、碎石底邊、鋼筋牆框、紅磚牆框
+ITEM2.XML 10910 說明定義
+  eng: /c$2%s/c*
+/c$2The monster egg can be hatched in the [Monster Hatching Machine]. (The house Level 6.)
+Each monster egg can be hatched as a monster.
+The monster egg is effective for 4 hours. (It will count down at once when players remove the seal.)/c*
+  jpn: 以下から1つをもらえます：封印されたモンスエッグ - 古の魔樹、封印されたモンスエッグ - 魔唇ジョリー、封印されたモンスエッグ - 魔精クレア、封印されたモンスエッグ - デビルタイフーン、封印されたモンスエッグ - 堕天使長フォル。\n封印を解いたモンスエッグは、戦闘モンスタールームの「モンスターふ化器」でふ化させることができます。（ハウス等級6級以上）\nモンスエッグ1個からモンスターを１匹ふ化させることができます。\nモンスエッグ使用期限：4時間（封印を解いた後から計算）\nモンスター復活時間：4分間
+ITEM2.XML 10911 說明定義
+  eng: /c$2%s/c*
+/c$2The monster egg can be hatched in the [Monster Hatching Machine]. (The house Level 6.)
+Each monster egg can be hatched as a monster.
+The monster egg is effective for 4 hours. (It will count down at once when players remove the seal.)/c*
+  jpn: 以下から1つをもらえます：封印されたモンスエッグ - 魔焔ハル、封印されたモンスエッグ - バフォメット、封印されたモンスエッグ - 魔獄の将軍、封印されたモンスエッグ - 魔徒ファスト、封印されたモンスエッグ - 魔祭司。\n封印を解いたモンスエッグは、戦闘モンスタールームの「モンスターふ化器」でふ化させることができます。（ハウス等級6級以上）\nモンスエッグ1個からモンスターを１匹ふ化させることができます。\nモンスエッグ使用期限：4時間（封印を解いた後から計算）\nモンスター復活時間：4分間
+ITEM2.XML 10912 說明定義
+  eng: /c$2%s/c*
+/c$2The monster egg can be hatched in the [Monster Hatching Machine]. (The house Level 6.)
+Each monster egg can be hatched as a monster.
+The monster egg is effective for 4 hours. (It will count down at once when players remove the seal.)/c*
+  jpn: 以下から1つをもらえます：封印されたモンスエッグ - 魔神領主、封印されたモンスエッグ - 魔魂スラリン、封印されたモンスエッグ - デビルワーカー、封印されたモンスエッグ - 魔鼠モース、封印されたモンスエッグ - 魔神ワット。\n封印を解いたモンスエッグは、戦闘モンスタールームの「モンスターふ化器」でふ化させることができます。（ハウス等級6級以上）\nモンスエッグ1個からモンスターを１匹ふ化させることができます。\nモンスエッグ使用期限：4時間（封印を解いた後から計算）\nモンスター復活時間：4分間
+ITEM2.XML 10913 說明定義
+  eng: /c$2%s/c*
+/c$2The monster egg can be hatched in the [Monster Hatching Machine]. (The house Level 6.)
+Each monster egg can be hatched as a monster.
+The monster egg is effective for 4 hours. (It will count down at once when players remove the seal.)/c*
+  jpn: 以下から1つをもらえます：封印されたモンスエッグ - 魔魅フラワーキング、封印されたモンスエッグ - 魔神モントン、封印されたモンスエッグ - 巫女、封印されたモンスエッグ - 悪魔デイジー、封印されたモンスエッグ - ストーンゲータークォーク。\n封印を解いたモンスエッグは、戦闘モンスタールームの「モンスターふ化器」でふ化させることができます。（ハウス等級6級以上）\nモンスエッグ1個からモンスターを１匹ふ化させることができます。\nモンスエッグ使用期限：4時間（封印を解いた後から計算）\nモンスター復活時間：4分間
+ITEM2.XML 10914 說明定義
+  eng: /c$2%s/c*
+/c$2The monster egg can be hatched in the [Monster Hatching Machine]. (The house Level 6.)
+Each monster egg can be hatched as a monster.
+The monster egg is effective for 4 hours. (It will count down at once when players remove the seal.)/c*
+  jpn: 以下から1つをもらえます：封印されたモンスエッグ - スネーククイーンホワイト、封印されたモンスエッグ - デビルフライ、封印されたモンスエッグ - デビルアイ、封印されたモンスエッグ - 影魔ケダス、封印されたモンスエッグ - クラゲのジェリー、封印されたモンスエッグ - デビルスパイダードーサ。\n封印を解いたモンスエッグは、戦闘モンスタールームの「モンスターふ化器」でふ化させることができます。（ハウス等級6級以上）\nモンスエッグ1個からモンスターを１匹ふ化させることができます。\nモンスエッグ使用期限：4時間（封印を解いた後から計算）\nモンスター復活時間：4分間
+ITEM2.XML 10915 說明定義
+  eng: /c$2%s/c*
+/c$2The monster egg can be hatched in the [Monster Hatching Machine]. (The house Level 6.)
+Each monster egg can be hatched as a monster.
+The monster egg is effective for 4 hours. (It will count down at once when players remove the seal.)/c*
+  jpn: 以下から1つをもらえます：封印されたモンスエッグ - スネーククイーンホワイト、封印されたモンスエッグ - 魔人ネヨ、封印されたモンスエッグ - 邪悪テスター、封印されたモンスエッグ - デニーロ、封印されたモンスエッグ - キャプテン・ハック、封印されたモンスエッグ - デビルマーモン。\n封印を解いたモンスエッグは、戦闘モンスタールームの「モンスターふ化器」でふ化させることができます。（ハウス等級6級以上）\nモンスエッグ1個からモンスターを１匹ふ化させることができます。\nモンスエッグ使用期限：4時間（封印を解いた後から計算）\nモンスター復活時間：4分間
+ITEM2.XML 11069 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：粉紅兔寶寶、粉紅圓點地舖、青色波斯掛毯、木製牆框(含窗)、黃色條紋茶几、粉紅方格茶几、天藍素色軟椅、黃色圓點軟椅、蠟燭立燈、夏日風情(大)、仙人掌盆栽、日光圓形大地毯、紅花綻放圓地毯、萬能工具組合、壁爐、屋外景觀-永夜城、壁掛式雛菊、桃紅方格掛毯、翠綠森林、鋼筋牆框(含窗)
+ITEM2.XML 11095 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：雛菊盆栽、向日葵盆栽、菊花盆栽、大波斯菊盆栽、繡球花盆栽、蕈菇盆栽、仙人掌花盆栽、金銀花盆栽、桐花盆栽、/c$2天藍方格地舖/c*、天藍日式地舖、/c$2黃色條紋地舖/c*、素色土黃雙人床、/c$2黃色方格雙人床/c*、/c$2粉紅方格雙人床/c*、粉紅條紋單人床、黃色圓點單人床、/c$2天藍方格單人床/c*、/c$2天藍條紋單人床/c*
+ITEM2.XML 11096 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：日式榻榻米地板、貴族花紋地板、彩色方格地板、高級方格地板、風格碎石地板、古香木質地板、枯木赤色地毯、枯木灰色地毯、枯木皮質地毯、黃金波斯地毯、/c$2自然波斯大地毯/c*、/c$2沉紫波斯地毯/c*、/c$2天藍條紋圓地毯/c*、/c$2桃紅方格地毯/c*、/c$2天藍條紋地毯/c*、/c$2天藍方格圓地毯/c*
+ITEM2.XML 11097 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：抱著睡覺熊寶寶、日式素色屏風、蠟燭立燈、棕色兔寶寶、/c$2日式素色屏風/c*、公園路燈、/c$2素色土黃圓墊/c*、/c$2素色桃紅圓墊/c*、素色桃紅圓墊、熊寶寶弟弟、/c$2夏日枕頭組/c*、/c$2粉紅條紋圓墊/c*、粉色圓點抱枕、飛舞的蝴蝶、捲軸罐、各式瓶罐組合、儲備糧食袋、/c$2火爐/c*、/c$2大木箱/c*、/c$2海底巨石/c*
+ITEM2.XML 11098 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：學校的黑板、黃金波斯掛毯、沉紫波斯掛毯、/c$2壁掛式金銀花/c*、/c$2盾與劍/c*、/c$2黃色條紋掛毯/c*、礦坑用壁燈、素色土黃掛毯、壁掛式青色桐花、/c$2素色天藍掛毯/c*、綠葉掛畫(大)、/c$2山中草原(大)/c*、/c$2無人沙漠(大)/c*、夏日風情、/c$2隧道迷蹤/c*、/c$2叢林隱流/c*、仕女畫、工匠畫、少年畫、蕨類掛畫
+ITEM2.XML 11569 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：/c$2日式榻榻米地板/c*、/c$2檜木片拼地板/c*、/c$2儉約時尚風地板/c*、/c$2圓點防滑地板/c*、/c$2矢型拼磚地板/c*、/c$2圓石地板/c*、風格碎石地板、古香木質地板、枯木赤色地毯、枯木灰色地毯、枯木皮質地毯、/c$2水藍波斯地毯/c*、/c$2天藍日光圓地毯/c*、沉紫波斯地毯、天藍條紋圓地毯、桃紅方格地毯、/c$2粉紅條紋地毯/c*、/c$2粉紅條紋圓地毯/c*。
+ITEM2.XML 11570 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：抱著睡覺熊寶寶、/c$2陰森青喵立燈/c*、/c$2桃紅熊寶寶/c*、/c$2日式翠綠屏風/c*、日式素色屏風、公園路燈、/c$2土黃條紋屏風/c*、/c$2棕色小兔寶寶/c*、/c$2黃色方格圓墊/c*、/c$2黃色條紋圓墊/c*、夏日枕頭組、粉紅條紋圓墊、/c$2大圓桶/c*、/c$2桃紅小熊寶寶/c*、捲軸罐、各式瓶罐組合、儲備糧食袋、火爐、大木箱、海底巨石
+ITEM2.XML 11571 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：學校的黑板、黃金波斯掛毯、沉紫波斯掛毯、/c$2壁掛式繡球花/c*、/c$2壁掛式菊花/c*、/c$2黃色方格掛毯/c*、/c$2天藍條紋掛毯/c*、素色土黃掛毯、壁掛式青色桐花、素色天藍掛毯、綠葉掛畫(大)、山中草原(大)、無人沙漠(大)、/c$2海底風光/c*、/c$2黃金狗掛畫/c*、/c$2清溪細流/c*、/c$2花朵掛畫/c*、工匠畫、少年畫、蕨類掛畫。
+ITEM2.XML 11572 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：屋外景觀-海灘、/c$2屋外景觀-巨石草原/c*、屋外景觀-聖光城、屋外景觀-和風林、屋外景觀-鐵輪堡、/c$2屋外景觀-沙漠/c*、屋外景觀-草原、屋外景觀-湖、屋外景觀-熔岩地、巫毒頭、飄揚的聖光旗、飄揚的永夜旗、/c$2聖光戰士雕像/c*、/c$2永夜戰士雕像/c*、/c$2和風戰士雕像/c*、/c$2鐵輪戰士雕像/c*、/c$2獨角兔雕像/c*、/c$2飄飄雕像/c*、古樹長老雕像。
+ITEM2.XML 11701 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：屋外景觀-地底謎城、黃色方格軟椅、艷紅方點茶几、粉紅方格小圓桌、屋外景觀-沙都、時尚配色地板、聖光騎士雕像、永夜騎士雕像、和風騎士雕像、鐵輪騎士雕像、粉紅素色屏風、大貝殼、黃金波斯大地毯、鬼娃雕像、藝術方磚地板、赤色波斯地毯、素色土黃坐墊、粉紅方格屏風、屋外景觀-雨林、屋外景觀-無底洞
+ITEM2.XML 12342 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：/c$2小白花盆栽/c*、/c$2小品香菇盆栽/c*、/c$2溼地細蕨盆栽/c*、/c$2低矮羽葉盆栽/c*、/c$2青葉紅果盆栽/c*、/c$2翠綠黃果盆栽/c*、/c$2球型仙人掌盆栽/c*、仙人掌花盆栽、金銀花盆栽、桐花盆栽、天藍方格地舖、/c$2黃色圓點地舖/c*、黃色條紋地舖、/c$2粉紅方格雙人床/c*、/c$2粉紅條紋雙人床/c*、/c$2天藍圓點雙人床/c*、粉紅條紋單人床、黃色圓點單人床、天藍方格單人床、天藍條紋單人床
+ITEM2.XML 12343 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：/c$2碎石網紋地板/c*、檜木片拼地板、/c$2亂數方磚地板/c*、 /c$2歐風方磚地板/c*、矢型拼磚地板、/c$2鐵板紋地板/c*、/c$2石拼版地板/c*、古香木質地板、枯木赤色地毯、枯木灰色地毯、枯木皮質地毯、水藍波斯地毯、/c$2日光圓形大地毯/c*、/c$2青色波斯地毯/c*、/c$2桃紅方格圓地毯/c*、/c$2粉紅方格大地毯/c*、粉紅條紋地毯、粉紅條紋圓地毯
+ITEM2.XML 12344 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：可愛綿羊壁紙、/c$2書本飛舞壁紙/c*、/c$2圓形點畫壁紙/c*、壁紙-土元素在我家、/c$2漸變條紋壁紙/c*、/c$2同心渦旋壁紙/c*、/c$2流絲花紋壁紙/c*、壁紙-水元素在我家、壁紙-風元素在我家、/c$2漸層漸變壁紙/c*、磚瓦複合牆框、歐風牆框、/c$2木製牆框(含窗)/c*、/c$2岩石牆框(含窗)/c*、/c$2鋼筋牆框(含窗)/c*、木製牆框、碎石底邊、鋼筋牆框、紅磚牆框
+ITEM2.XML 12832 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：抱著睡覺熊寶寶、陰森青喵立燈、桃紅熊寶寶、日式翠綠屏風、日式素色屏風、/c$2黃色圓點圓墊/c*、/c$2素色天藍圓墊/c*、/c$2天藍方格坐墊/c*、/c$2天藍條紋圓墊/c*、/c$2天藍圓點圓墊/c*、/c$2素色桃紅坐墊/c*、/c$2土黃素色屏風/c*、/c$2素色天藍坐墊/c*、/c$2粉紅方格坐墊/c*、/c$2桃紅圓點圓墊/c*、各式瓶罐組合、儲備糧食袋、火爐、大木箱、海底巨石
+ITEM2.XML 12833 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：/c$2水生蘆葦盆栽/c*、/c$2溼地圓蕨盆栽/c*、/c$2青葉矮樹盆栽/c*、/c$2黃葉矮樹盆栽/c*、/c$2山芋盆栽/c*、/c$2扁葉仙人掌盆栽/c*、/c$2青綠黃果盆栽/c*、/c$2黃葉紅果盆栽/c*、金銀花盆栽、桐花盆栽、粉紅日式地舖、黃色圓點地舖、黃色條紋地舖、/c$2黃色方格雙人床/c*、粉紅條紋雙人床、天藍圓點雙人床、粉紅條紋單人床、黃色圓點單人床、天藍方格單人床、天藍條紋單人床
+ITEM2.XML 12834 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：/c$2古典花紋壁紙/c*、書本飛舞壁紙、/c$2絲線網格壁紙/c*、/c$2連續花草壁紙/c*、漸變條紋壁紙、同心渦旋壁紙、流絲花紋壁紙、/c$2圓弧絲線壁紙/c*、/c$2曲線連續壁紙/c*、漸層漸變壁紙、標準牆框(含窗)、歐風牆框、木製牆框(含窗)、岩石牆框(含窗)、鋼筋牆框(含窗)、標準牆框、碎石底邊、鋼筋牆框、紅磚牆框
+ITEM2.XML 13409 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: 天使學園頒贈予成績傑出校友的禮盒，請按右鍵打開這份專屬於勝利者的殊榮！
+有機會獲得下列其一：隱身戒指、速行戒指、雷蒙海底戰馬、圓嘟嘟迷你海豹、9星祝福強化錘、9星幸運錘、[未鑑定的 90 級長劍]、[未鑑定的 90 級戰斧]、[未鑑定的 90 級長槍]、[未鑑定的 90 級巨弓]、[未鑑定的 90 級法杖]、完美的紫寶石、完美的橙寶石、五級限時頂級禮盒、高效攻擊捲軸、高效防禦捲軸、高效魔攻捲軸、高效魔防捲軸、8克拉經驗彩鑽、天使禮券20萬
+ITEM2.XML 13410 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: 天使學園頒贈予成績傑出校友的禮盒，請按右鍵打開這份專屬於勝利者的殊榮！
+有機會獲得下列其一：神匠戒指、神力戒指、ARK-黃金聖棺、保險箱鑰匙(永久)、擺攤金卡(永久)、水滴鯊魚機、晶透果凍魚、製作型五級高速齒輪組、採集型五級能量核心、9星幸運錘、大扭力燃料(30日)、保險箱鑰匙(30日)、怪物氣息(1日)、超空間銀行、採集加速卡、製作加速卡、大扭力燃料(1日)、完美寶石禮包、擺攤銀卡(1日)、保險箱鑰匙(1日)
+ITEM2.XML 13411 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: 天使學園頒贈予成績傑出校友的禮盒，請按右鍵打開這份專屬於勝利者的殊榮！
+有機會獲得下列其一：隱身戒指、速行戒指、叢林戰牛、冰晶獵牙豹、10星祝福強化錘、10星幸運錘、[未鑑定的 100 級長劍]、[未鑑定的 100 級戰斧]、[未鑑定的 100 級長槍]、[未鑑定的 100 級巨弓]、[未鑑定的 100 級法杖]、橙光符文碎片、紫光符文碎片、高效攻擊捲軸、高效防禦捲軸、高效魔攻捲軸、高效魔防捲軸、魔法靈、8克拉經驗彩鑽、天使禮券20萬
+ITEM2.XML 13412 說明定義
+  eng: Gift Box presented by the Angel Lyceum for excellent schoolfellows.
+/c$2%s/c*
+  jpn: 天使學園頒贈予成績傑出校友的禮盒，請按右鍵打開這份專屬於勝利者的殊榮！
+有機會獲得下列其一：神匠戒指、神力戒指、ARK-黃金聖棺、保險箱鑰匙(永久)、擺攤金卡(永久)、製作型六級高速齒輪組、採集型六級能量核心、熱帶水果盤、犀鳥一號、10星幸運錘、大扭力燃料(30日)、保險箱鑰匙(30日)、其他傢俱扭蛋、怪物氣息(1日)、採集加速卡、製作加速卡、大扭力燃料(1日)、魔法靈、擺攤銀卡(1日)、保險箱鑰匙(1日)
+ITEM2.XML 14217 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：碎石網紋地板、/c$2設計風格地板/c*、亂數方磚地板、/c$2星位式地板/c*、/c$2微旋粉彩地板/c*、鐵板紋地板、石拼版地板、/c$2灰質毛紋地板/c*、枯木赤色地毯、枯木灰色地毯、/c$2藝術紋樣方毯/c*、/c$2漸層彩色圓毯/c*、/c$2大圓點童趣方毯/c*、青色波斯地毯、桃紅方格圓地毯、粉紅方格大地毯、/c$2粉色條紋大地毯/c*、/c$2長毛方形地毯/c*
+ITEM2.XML 14218 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：學校的黑板、黃金波斯掛毯、沉紫波斯掛毯、壁掛式繡球花、壁掛式菊花、黃色方格掛毯、天藍條紋掛毯、素色土黃掛毯、壁掛式青色桐花、素色天藍掛毯、/c$2水果靜物(大)/c*、山中草原(大)、無人沙漠(大)、/c$2水果靜物/c*、/c$2歷史敘事/c*、/c$2不規則抽象(大)/c*、花朵掛畫、/c$2不規則抽象/c*、少年畫、蕨類掛畫
+ITEM2.XML 14487 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：35 級頂級影刃武器『悼聖逆十字』、酷炫面具福袋、中級血統證明書、寵物經驗加倍卡(30分鐘)、3級祝福坐騎進化飼料、3星祝福強化槌、3星祝福打孔錘、新手經驗加倍卡、豪華寵物飼料、3星幸運錘
+ITEM2.XML 14488 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：45 級頂級影刃武器『穆瓦多之鱗』、4級祝福坐騎進化飼料、4星祝福強化槌、4星祝福打孔錘、新手經驗加倍卡、豪華寵物飼料、8克拉經驗彩鑽、攻擊捲軸、防禦捲軸、4星幸運錘
+ITEM2.XML 14489 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：55 級頂級影刃武器『黑百合之瓣』、5級祝福坐騎進化飼料、5星祝福強化槌、5星祝福打孔錘、寵物經驗加倍卡(30分鐘)、新手經驗加倍卡、高效攻擊捲軸、高效防禦捲軸、5星幸運錘、飆風捲軸
+ITEM2.XML 14502 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：60 級頂級影刃武器『闇皇』、變身玩具扭蛋、石榴石、6級祝福坐騎進化飼料、6星祝福強化槌、6星祝福打孔錘、超級廣播器、天使護身符、6星幸運錘、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、飆風捲軸
+ITEM2.XML 14503 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：70 級頂級影刃武器『生死之宰』、命運加持禮盒、7級祝福坐騎進化飼料、7星祝福強化槌、7星祝福打孔錘、7星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、爆擊捲軸、高效攻擊捲軸、高效防禦捲軸、40克拉經驗彩鑽、戰場符石、飆風捲軸、強效紫藥水
+ITEM2.XML 14545 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：80頂級武器『亞當之力』、命運加持禮盒、8級祝福坐騎進化飼料、8星祝福強化槌、8星祝福打孔錘、8星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的橙寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14546 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：80頂級武器『艾拉爾之葉』、命運加持禮盒、8級祝福坐騎進化飼料、8星祝福強化槌、8星祝福打孔錘、8星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的橙寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14547 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：80頂級武器『雷米勒之魂』、命運加持禮盒、8級祝福坐騎進化飼料、8星祝福強化槌、8星祝福打孔錘、8星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的橙寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14548 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：80頂級武器『嘉百烈之釘』、命運加持禮盒、8級祝福坐騎進化飼料、8星祝福強化槌、8星祝福打孔錘、8星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的橙寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14549 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：80頂級武器『伊比利斯之刑』、命運加持禮盒、8級祝福坐騎進化飼料、8星祝福強化槌、8星祝福打孔錘、8星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的紫寶石、舞會啟動卡、高效魔攻捲軸、高效魔防捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14550 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：80頂級武器『穿心荊棘之刑』、命運加持禮盒、8級祝福坐騎進化飼料、8星祝福強化槌、8星祝福打孔錘、8星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的黃寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14551 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：80級頂級輕裝禮盒、變身起司小米、命運加持禮盒、8級祝福坐騎進化飼料、8星祝福強化槌、8星祝福打孔錘、8星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的橙寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14552 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：80級頂級重裝禮盒、變身起司小米、命運加持禮盒、8級祝福坐騎進化飼料、8星祝福強化槌、8星祝福打孔錘、8星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的橙寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14553 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：80級頂級法袍禮盒、變身起司小米、命運加持禮盒、8級祝福坐騎進化飼料、8星祝福強化槌、8星祝福打孔錘、8星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的紫寶石、舞會啟動卡、高效魔攻捲軸、高效魔防捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14554 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：85座騎『哞哞小牛』、75座騎『紅色貴族大象』、伊甸傳送禮盒、命運加持禮盒、8級祝福坐騎進化飼料、8星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14555 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：85座騎『哞哞小牛』、75座騎『紅色聖甲蟲』、伊甸傳送禮盒、命運加持禮盒、8級祝福坐騎進化飼料、8星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、舞會啟動卡、高效魔攻捲軸、高效魔防捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14556 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：90頂級武器『米納加毒擊者』、命運加持禮盒、9級祝福坐騎進化飼料、9星祝福強化槌、9星祝福打孔錘、9星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的橙寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14557 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：90頂級武器『薩里歐之骸』、命運加持禮盒、9級祝福坐騎進化飼料、9星祝福強化槌、9星祝福打孔錘、9星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的橙寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14558 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：90頂級武器『撒爾法之意志』、命運加持禮盒、9級祝福坐騎進化飼料、9星祝福強化槌、9星祝福打孔錘、9星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的橙寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14559 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：90頂級武器『希利歐斯之魂』、命運加持禮盒、9級祝福坐騎進化飼料、9星祝福強化槌、9星祝福打孔錘、9星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的橙寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14560 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：90頂級武器『瑟里妮之導引』、命運加持禮盒、9級祝福坐騎進化飼料、9星祝福強化槌、9星祝福打孔錘、9星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的紫寶石、舞會啟動卡、高效魔攻捲軸、高效魔防捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14561 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：90頂級武器『葛吉拉的怒爪』、命運加持禮盒、9級祝福坐騎進化飼料、9星祝福強化槌、9星祝福打孔錘、9星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的黃寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14562 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：90頂級輕裝禮盒、變身粉柔小米、命運加持禮盒、9級祝福坐騎進化飼料、9星祝福強化槌、9星祝福打孔錘、9星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的橙寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14563 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：90頂級重裝禮盒、變身粉柔小米、命運加持禮盒、9級祝福坐騎進化飼料、9星祝福強化槌、9星祝福打孔錘、9星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的橙寶石、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14564 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：90頂級法袍禮盒、變身粉柔小米、命運加持禮盒、9級祝福坐騎進化飼料、9星祝福強化槌、9星祝福打孔錘、9星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、完美的紫寶石、舞會啟動卡、高效魔攻捲軸、高效魔防捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14565 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：95座騎『挖土車車』、90座騎『雷蒙海底戰馬』、伊甸傳送禮盒、命運加持禮盒、9級祝福坐騎進化飼料、9星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、舞會啟動卡、高效攻擊捲軸、高效防禦捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14566 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：95座騎『挖土車車』、90座騎『圓嘟嘟迷你海豹』、伊甸傳送禮盒、命運加持禮盒、9級祝福坐騎進化飼料、9星幸運錘、緊急逃命藥水、超級廣播器、天使護身符、驚喜小福袋、舞會啟動卡、高效魔攻捲軸、高效魔防捲軸、80克拉經驗彩鑽、戰場符石、飆風捲軸、強效橘藥水
+ITEM2.XML 14824 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：古典花紋壁紙、書本飛舞壁紙、絲線網格壁紙、連續花草壁紙、漸變條紋壁紙、同心渦旋壁紙、流絲花紋壁紙、圓弧絲線壁紙、曲線連續壁紙、漸層漸變壁紙、/c$2曲形牆框/c*、/c$2橫木牆框(含窗)/c*、/c$2磚瓦複合牆框/c*、/c$2橫木牆框/c*、鋼筋牆框(含窗)、標準牆框、碎石底邊、鋼筋牆框、/c$2白石牆框/c*
+ITEM2.XML 14825 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：/c$2圓圓磨菇盆栽/c*、/c$2小毬花花圃/c*、青葉矮樹盆栽、黃葉矮樹盆栽、/c$2大波斯菊盆栽/c*、/c$2蕈菇盆栽/c*、青綠黃果盆栽、黃葉紅果盆栽、金銀花盆栽、桐花盆栽、粉紅日式地舖、/c$2鵝黃圓點古典雙人床/c*、黃色條紋地舖、黃色方格雙人床、粉紅條紋雙人床、/c$2鵝黃樂活單人床/c*、粉紅條紋單人床、黃色圓點單人床、天藍方格單人床、/c$2淨白條紋古典單人床/c*
+ITEM2.XML 14827 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n（確率:大当たり1%　・　当たり33%　・　その他66%）
+  jpn: トレード・バザー不可。\n（確率：大当たり1%　・　当たり33%　・　その他66%）\n\n/c$2%s/c*
+ITEM2.XML 14963 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n（確率:大当たり1.22%　・　当たり98.78%）
+  jpn: トレード・バザー不可。\n（確率：大当たり1.22%　・　当たり98.78%）\n\n/c$2%s/c*
+ITEM2.XML 14999 說明定義
+  eng: 以下から1つをもらえます:モンスエッグ - マインワーカー、モンスエッグ - ミステリーキング、モンスエッグ - スレイブヘッド、モンスエッグ - 守護者ワッツ、モンスエッグ - ブラッドドレイン（大当り）。
+封印を解いたモンスエッグは、モンスターハウスの「モンスタースタンド」で召喚することができます。（モンスターハウスはゴージャスハウス使用時ハウスレベル6以上で使用可能です。）
+モンスエッグ1個からモンスターを１匹召喚することができます。
+モンスエッグ使用期限:2時間（封印を解いた後から計算）モンスター復活時間:20分間\n（確率:大当たり5%　・　当たり95%）
+  jpn: 以下から1つをもらえます：モンスエッグ - マインワーカー、モンスエッグ - ミステリーキング、モンスエッグ - スレイブヘッド、モンスエッグ - 守護者ワッツ、モンスエッグ - ブラッドドレイン（大当り）。
+封印を解いたモンスエッグは、モンスターハウスの「モンスタースタンド」で召喚することができます。（モンスターハウスはゴージャスハウス使用時ハウスレベル6以上で使用可能です。）
+モンスエッグ1個からモンスターを１匹召喚することができます。
+モンスエッグ使用期限：2時間（封印を解いた後から計算）モンスター復活時間：20分間\n（確率：大当たり5%　・　当たり95%）\n\n/c$2%s/c*
+ITEM2.XML 15075 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n大当たりは以下のアイテムからランダムで獲得\n四畳半\n聖光カーペット\n風香カーペット\n永夜カーペット\n鉄機カーペット\nカーズドールの彫像\nダリアの鉢植え\n書斎机\n宮廷Wベッド (白)\n博士の本棚\n
+\n（確率:大当たり10%　・　当たり30.2%　・　その他59.8%）
+  jpn: トレード・バザー不可。\n大当たりは以下のアイテムからランダムで獲得\n四畳半\n聖光カーペット\n風香カーペット\n永夜カーペット\n鉄機カーペット\nカーズドールの彫像\nダリアの鉢植え\n書斎机\n宮廷Wベッド (白)\n博士の本棚\n（確率：大当たり10%　・　当たり30.2%　・　その他59.8%）\n\n/c$2%s/c*
+ITEM2.XML 15076 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n（確率:大当たり1%　・　当たり33%　・　その他66%）
+  jpn: トレード・バザー不可。\n（確率：大当たり1%　・　当たり33%　・　その他66%）\n\n/c$2%s/c*
+ITEM2.XML 15202 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：/c$2飛標靶/c*、黃金波斯掛毯、沉紫波斯掛毯、/c$2聖光瓷盤/c*、/c$2永夜瓷盤/c*、/c$2和風瓷盤/c*、/c$2鐵輪瓷盤/c*、素色土黃掛毯、/c$2壁掛式小白花/c*、素色天藍掛毯、/c$2米迦勒肖像/c*、山中草原(大)、無人沙漠(大)、水果靜物、歷史敘事、夏日風情、山中草原、不規則抽象、少年畫、蕨類掛畫。
+ITEM2.XML 15351 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n大当たりは以下のアイテムからランダムで獲得\nひまわりの鉢植え\nペルシャ小ソファ (赤)\nエンジェルラブ金屏風\n壁紙-エアエレメント\n熊の敷物\n大きな本棚 (赤)\n聖光城旗\n永夜宮旗\n鉄機塞旗\n風香林旗\n（確率:大当たり10%　・　当たり30.2%　・　その他59.8%）
+  jpn: トレード・バザー不可。\n大当たりは以下のアイテムからランダムで獲得\nひまわりの鉢植え\nペルシャ小ソファ (赤)\nエンジェルラブ金屏風\n壁紙-エアエレメント\n熊の敷物\n大きな本棚 (赤)\n聖光城旗\n永夜宮旗\n鉄機塞旗\n風香林旗\n（確率：大当たり10%　・　当たり30.2%　・　その他59.8%）\n\n/c$2%s/c*
+ITEM2.XML 15667 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n（確率:大当たり1%　・　当たり33%　・　その他66%）
+  jpn: トレード・バザー不可。\n（確率：大当たり1%　・　当たり33%　・　その他66%）\n\n/c$2%s/c*
+ITEM2.XML 16068 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：飛標靶、黃金波斯掛毯、/c$2掛鐘/c*、聖光瓷盤、永夜瓷盤、和風瓷盤、鐵輪瓷盤、壁掛式青色桐花、壁掛式小白花、素色天藍掛毯、米迦勒肖像、/c$2歷史敘事(大)/c*、無人沙漠(大)、花草掛畫、/c$2壁掛式金仙花/c*、夏日風情、叢林隱流、不規則抽象、仕女畫、蕨類掛畫。
+ITEM2.XML 16069 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：抱著睡覺兔寶寶、陰森青喵立燈、桃紅熊寶寶、日式翠綠屏風、日式素色屏風、/c$2天藍素色屏風/c*、素色天藍圓墊、萬能工具組合、/c$2粉紅方格坐墊/c*、/c$2粉紅條紋坐墊/c*、素色桃紅坐墊、大貝殼、粉紅條紋屏風、粉紅方格坐墊、桃紅圓點圓墊、飛舞的蝴蝶、儲備糧食袋、火爐、大木箱、海底巨石。
+ITEM2.XML 17507 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：屋外景觀-沙都、屋外景觀-天使學園、屋外景觀-無底洞、屋外景觀-雨林、屋外景觀-沙漠、屋外景觀-草原、屋外景觀-湖、屋外景觀-熔岩地、/c$2溫馨小築風車/c*、/c$2木造風車/c*、飄揚的鋼鐵旗、飄揚的和風旗、聖光戰士雕像、永夜戰士雕像、和風戰士雕像、鐵輪戰士雕像、獨角兔雕像、飄飄雕像、古樹長老雕像。
+ITEM2.XML 17508 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：/c$2蔚藍星空地板/c*、設計風格地板、亂數方磚地板、/c$2翡翠大理石地板/c*、藝術方磚地板、鐵板紋地板、石拼版地板、灰質毛紋地板、/c$2亮晶晶圓地毯/c*、/c$2黃金大道地毯/c*、藝術紋樣方毯、漸層彩色圓毯、/c$2百合紋方形地毯/c*、青色波斯地毯、桃紅方格圓地毯、粉紅方格大地毯、粉紅條紋圓地毯、天藍方格大地毯。
+ITEM2.XML 17509 說明定義
+  eng: /c$2%s/c*
+  jpn: 有機會獲得下列其一：/c$2小型水族箱/c*、陰森青喵立燈、桃紅熊寶寶、/c$2咕咚企鵝娃娃/c*、日式素色屏風、天藍素色屏風、素色天藍圓墊、萬能工具組合、粉紅方格坐墊、粉紅條紋坐墊、壁爐、素色桃紅坐墊、粉紅條紋屏風、/c$2芋香蛋糕椅墊/c*、/c$2精美花瓶/c*、飛舞的蝴蝶、粉色圓點抱枕、火爐、大木箱、海底巨石。
+ITEM2.XML 17511 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n大当たりは以下のアイテムからランダムで獲得\nレザーチェア (黄)\n水玉小ソファ (黄)\nフィーゲルの模型\n貴婦人の長椅子 (橙)\n永夜様式の青猫ランプ\nエアキングの彫像\n壁用の鉄補強 (窓付)\n縞の壁掛 (青)\n屋外景観-聖光城\n壁紙-四季・冬\n（確率:大当たり10%　・　当たり30.2%　・　その他59.8%）
+  jpn: トレード・バザー不可。\n大当たりは以下のアイテムからランダムで獲得\nレザーチェア (黄)\n水玉小ソファ (黄)\nフィーゲルの模型\n貴婦人の長椅子 (橙)\n永夜様式の青猫ランプ\nエアキングの彫像\n壁用の鉄補強 (窓付)\n縞の壁掛 (青)\n屋外景観-聖光城\n壁紙-四季・冬\n（確率：大当たり10%　・　当たり30.2%　・　その他59.8%）\n\n/c$2%s/c*
+ITEM2.XML 17567 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n（確率:大当たり1%　・　当たり33%　・　その他66%）
+  jpn: トレード・バザー不可。\n（確率：大当たり1%　・　当たり33%　・　その他66%）\n\n/c$2%s/c*
+ITEM2.XML 17568 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n（確率:大当たり1%　・　当たり33%　・　その他66%）
+  jpn: トレード・バザー不可。\n（確率：大当たり1%　・　当たり33%　・　その他66%）\n\n/c$2%s/c*
+ITEM2.XML 17569 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n（確率:大当たり1%　・　当たり33%　・　その他66%）
+  jpn: トレード・バザー不可。\n（確率：大当たり1%　・　当たり33%　・　その他66%）\n\n/c$2%s/c*
+ITEM2.XML 18749 說明定義
+  eng: 以下から1つをもらえます:モンスエッグ - 鉄鋏のガチャ、モンスエッグ - セクシージュリー、モンスエッグ - 地底の魔樹、モンスエッグ - 堕天使長フォル、モンスエッグ - スティンクフライ（大当り）。
+封印を解いたモンスエッグは、モンスターハウスの「モンスタースタンド」で召喚することができます。（モンスターハウスはゴージャスハウス使用時ハウスレベル6以上で使用可能です。）
+モンスエッグ1個からモンスターを１匹召喚することができます。
+モンスエッグ使用期限:2時間（封印を解いた後から計算）モンスター復活時間:20分間\n（確率:大当たり5%　・　当たり95%）
+  jpn: 以下から1つをもらえます：モンスエッグ - 鉄鋏のガチャ、モンスエッグ - セクシージュリー、モンスエッグ - 地底の魔樹、モンスエッグ - 堕天使長フォル、モンスエッグ - スティンクフライ（大当り）。
+封印を解いたモンスエッグは、モンスターハウスの「モンスタースタンド」で召喚することができます。（モンスターハウスはゴージャスハウス使用時ハウスレベル6以上で使用可能です。）
+モンスエッグ1個からモンスターを１匹召喚することができます。
+モンスエッグ使用期限：2時間（封印を解いた後から計算）モンスター復活時間：20分間\n（確率：大当たり5%　・　当たり95%）\n\n/c$2%s/c*
+ITEM2.XML 18750 說明定義
+  eng: 以下から1つをもらえます:モンスエッグ - 黒樹、モンスエッグ - バフォメットロズ、モンスエッグ - 蛮族兵長、モンスエッグ - 蛮族の主アーブ、モンスエッグ - 神殿の守護者（大当り）。
+封印を解いたモンスエッグは、モンスターハウスの「モンスタースタンド」で召喚することができます。（モンスターハウスはゴージャスハウス使用時ハウスレベル6以上で使用可能です。）
+モンスエッグ1個からモンスターを１匹召喚することができます。
+モンスエッグ使用期限:2時間（封印を解いた後から計算）モンスター復活時間:20分間\n（確率:大当たり5%　・　当たり95%）
+  jpn: 以下から1つをもらえます：モンスエッグ - 黒樹、モンスエッグ - バフォメットロズ、モンスエッグ - 蛮族兵長、モンスエッグ - 蛮族の主アーブ、モンスエッグ - 神殿の守護者（大当り）。
+封印を解いたモンスエッグは、モンスターハウスの「モンスタースタンド」で召喚することができます。（モンスターハウスはゴージャスハウス使用時ハウスレベル6以上で使用可能です。）
+モンスエッグ1個からモンスターを１匹召喚することができます。
+モンスエッグ使用期限：2時間（封印を解いた後から計算）モンスター復活時間：20分間\n（確率：大当たり5%　・　当たり95%）\n\n/c$2%s/c*
+ITEM2.XML 18751 說明定義
+  eng: 以下から1つをもらえます:モンスエッグ - 死司のハリケーン、モンスエッグ - 大水精ナリース、モンスエッグ - ロストマインド、モンスエッグ - 闇炎ハル、モンスエッグ - 大司祭フルル（大当り）。
+封印を解いたモンスエッグは、モンスターハウスの「モンスタースタンド」で召喚することができます。（モンスターハウスはゴージャスハウス使用時ハウスレベル6以上で使用可能です。）
+モンスエッグ1個からモンスターを１匹召喚することができます。
+モンスエッグ使用期限:2時間（封印を解いた後から計算）モンスター復活時間:20分間\n（確率:大当たり5%　・　当たり95%）
+  jpn: 以下から1つをもらえます：モンスエッグ - 死司のハリケーン、モンスエッグ - 大水精ナリース、モンスエッグ - ロストマインド、モンスエッグ - 闇炎ハル、モンスエッグ - 大司祭フルル（大当り）。
+封印を解いたモンスエッグは、モンスターハウスの「モンスタースタンド」で召喚することができます。（モンスターハウスはゴージャスハウス使用時ハウスレベル6以上で使用可能です。）
+モンスエッグ1個からモンスターを１匹召喚することができます。
+モンスエッグ使用期限：2時間（封印を解いた後から計算）モンスター復活時間：20分間\n（確率：大当たり5%　・　当たり95%）\n\n/c$2%s/c*
+ITEM2.XML 18752 說明定義
+  eng: 以下から1つをもらえます:モンスエッグ - 名も無き英雄、モンスエッグ - 大風精クレーア、モンスエッグ - フレイムウィスプ、モンスエッグ - 死神ヴァイ、モンスエッグ - 神殿の祭司（大当り）。
+封印を解いたモンスエッグは、モンスターハウスの「モンスタースタンド」で召喚することができます。（モンスターハウスはゴージャスハウス使用時ハウスレベル6以上で使用可能です。）
+モンスエッグ1個からモンスターを１匹召喚することができます。
+モンスエッグ使用期限:2時間（封印を解いた後から計算）モンスター復活時間:20分間\n（確率:大当たり5%　・　当たり95%）
+  jpn: 以下から1つをもらえます：モンスエッグ - 名も無き英雄、モンスエッグ - 大風精クレーア、モンスエッグ - フレイムウィスプ、モンスエッグ - 死神ヴァイ、モンスエッグ - 神殿の祭司（大当り）。
+封印を解いたモンスエッグは、モンスターハウスの「モンスタースタンド」で召喚することができます。（モンスターハウスはゴージャスハウス使用時ハウスレベル6以上で使用可能です。）
+モンスエッグ1個からモンスターを１匹召喚することができます。
+モンスエッグ使用期限：2時間（封印を解いた後から計算）モンスター復活時間：20分間\n（確率：大当たり5%　・　当たり95%）\n\n/c$2%s/c*
+ITEM2.XML 18753 說明定義
+  eng: 以下から1つをもらえます:モンスエッグ - 煉獄将軍、モンスエッグ - ソウルウィッチ、モンスエッグ - 呪炎ファラオ、モンスエッグ - ワーカーヘッド、モンスエッグ - ギガントフライ（大当り）。
+封印を解いたモンスエッグは、モンスターハウスの「モンスタースタンド」で召喚することができます。（モンスターハウスはゴージャスハウス使用時ハウスレベル6以上で使用可能です。）
+モンスエッグ1個からモンスターを１匹召喚することができます。
+モンスエッグ使用期限:2時間（封印を解いた後から計算）モンスター復活時間:20分間\n（確率:大当たり5%　・　当たり95%）
+  jpn: 以下から1つをもらえます：モンスエッグ - 煉獄将軍、モンスエッグ - ソウルウィッチ、モンスエッグ - 呪炎ファラオ、モンスエッグ - ワーカーヘッド、モンスエッグ - ギガントフライ（大当り）。
+封印を解いたモンスエッグは、モンスターハウスの「モンスタースタンド」で召喚することができます。（モンスターハウスはゴージャスハウス使用時ハウスレベル6以上で使用可能です。）
+モンスエッグ1個からモンスターを１匹召喚することができます。
+モンスエッグ使用期限：2時間（封印を解いた後から計算）モンスター復活時間：20分間\n（確率：大当たり5%　・　当たり95%）\n\n/c$2%s/c*
+ITEM2.XML 18803 說明定義
+  eng: 有機會獲得下列其一:亮麗朝鮮頭飾、亮麗朝鮮衣裝、亮麗朝鮮手套、亮麗朝鮮鞋子、蔚藍朝鮮頭飾、蔚藍朝鮮衣裝、蔚藍朝鮮手套、蔚藍朝鮮鞋子、冷酷朝鮮頭飾、冷酷朝鮮衣裝、冷酷朝鮮手套、冷酷朝鮮鞋子。
+  jpn: /c$2%s/c*
+ITEM2.XML 18804 說明定義
+  eng: 有機會獲得下列其一:粉嫩朝鮮頭飾、粉嫩朝鮮裙裝、粉嫩朝鮮手套、粉嫩朝鮮鞋子、茄紫朝鮮頭飾、茄紫朝鮮裙裝、茄紫朝鮮手套、茄紫朝鮮鞋子、翠綠朝鮮頭飾、翠綠朝鮮裙裝、翠綠朝鮮手套、翠綠朝鮮鞋子。
+  jpn: /c$2%s/c*
+ITEM2.XML 18805 說明定義
+  eng: 背包須有4格以上空間才能容納開啟的禮物，打開後可獲得:冷酷朝鮮頭飾、冷酷朝鮮衣裝、冷酷朝鮮手套、冷酷朝鮮鞋子。
+  jpn: /c$2%s/c*
+ITEM2.XML 18806 說明定義
+  eng: 背包須有4格以上空間才能容納開啟的禮物，打開後可獲得:翠綠朝鮮頭飾、翠綠朝鮮裙裝、翠綠朝鮮手套、翠綠朝鮮鞋子。
+  jpn: /c$2%s/c*
+ITEM2.XML 19222 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n（確率:大当たり1%　・　当たり33%　・　その他66%）
+  jpn: トレード・バザー不可。\n（確率：大当たり1%　・　当たり33%　・　その他66%）\n\n/c$2%s/c*
+ITEM2.XML 19276 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n大当たりは以下のアイテムからランダムで獲得\n壁紙-青葉\n虎の敷物\nペルシャ大絨毯 （赤）\n菊花の鉢植え\n縞小ソファ (黄)\nコットン丸テーブル (黄)\n貴婦人の長椅子 (紫))\nアルミラージの彫像\n（確率:大当たり10%　・　当たり30.2%　・　その他59.8%）
+  jpn: トレード・バザー不可。\n大当たりは以下のアイテムからランダムで獲得\n壁紙-青葉\n虎の敷物\nペルシャ大絨毯 （赤）\n菊花の鉢植え\n縞小ソファ (黄)\nコットン丸テーブル (黄)\n貴婦人の長椅子 (紫))\nアルミラージの彫像\n（確率：大当たり10%　・　当たり30.2%　・　その他59.8%）\n\n/c$2%s/c*
+ITEM2.XML 19366 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n（確率:大当たり10%　・　当たり28.5%　・　その他68.5%）
+  jpn: トレード・バザー不可。\n（確率：大当たり10%　・　当たり21.5%　・　その他68.5%）\n\n/c$2%s/c*
+ITEM2.XML 19367 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n（確率:大当たり10%　・　当たり28%　・　その他62%）
+  jpn: トレード・バザー不可。\n（確率：大当たり10%　・　当たり28%　・　その他62%）\n\n/c$2%s/c*
+ITEM2.XML 19589 說明定義
+  eng: Drive away %d / 100 Jumpy Lizard Dragon.
+  jpn: ジャンプリザードを1匹追い払った！
+ITEM2.XML 19968 說明定義
+  eng: /c$2%s/c*
+Equip two to get: Max Weight +5000
+Equip three to get: Max Weight +5000, Max HP +2000
+Equip four to get: Max Weight +5000, Manufacture Speed +14%
+Equip five to get: Max Weight +5000, Collection Speed +14%, Movement Speed +30
+  jpn: リュックに5マス以上の空きスペースが必要、開けると以下の品々が獲得できる：
+ハウフェイストスの誇り
+ハウフェイストスのこだわり
+ハウフェイストスの器用な手
+ハウフェイストスの円熟
+ハウフェイストスの責任
+ITEM3.XML 26472 說明定義
+  eng: You've obtained %c / 100 pieces of Polar Hide. 
+  jpn: 極上毛皮を %d / 100 枚手に入れた。
+ITEM3.XML 28073 說明定義
+  eng: You now have a package.
+  jpn: プチタルを%d/ 1 個集めた。
+ITEM4.XML 30566 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n大当たりは強化カナヅチの成功確率を増加する女神の祝福\n（確率：大当たり10%　・　当たり27%　・　その他63%）
+  jpn: トレード・バザー不可。\n大当たりは強化カナヅチの成功確率を増加する女神の祝福\n（確率：大当たり10%　・　当たり27%　・　その他63%）\n\n/c$2%s/c*
+ITEM4.XML 30639 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n（確率：大当たり24%　・　当たり26%　・　その他50%）
+  jpn: トレード・バザー不可。\n（確率：大当たり24%　・　当たり26%　・　その他50%）\n\n/c$2%s/c*
+ITEM4.XML 30666 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\nトレード・バザー不可\n大当たりは以下のアイテムからランダムで獲得\n・魔龍の卵\n・飛鷹の卵\n（確率：大当たり3%　・　当たり27%　・　その他70%）
+  jpn: トレード・バザー不可\n大当たりは以下のアイテムからランダムで獲得\n・魔龍の卵\n・飛鷹の卵\n（確率：大当たり3%　・　当たり27%　・　その他70%）\n\n/c$2%s/c*
+ITEM4.XML 30810 說明定義
+  eng: ランダムでスキル書が獲得できる
+  jpn: ランダムでスキル書が獲得できる\n\n/c$2%s/c*
+ITEM4.XML 31549 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりは原始人PD(白)もしくは黒龍骨PDの各部位です。\n大当たりのPDにはステータスが付いています\n男性専用\n（確率：大当り10%　・　当たり36%　・　その他54%）\nトレード・バザー不可
+  jpn: 大当たりは原始人PD(白)もしくは黒龍骨PDの各部位です。\n※大当たりのPDにはステータスが付いています\n男性専用\n（確率：大当り10%　・　当たり36%　・　その他54%）\nトレード・バザー不可\n\n/c$2%s/c*
+ITEM4.XML 31550 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりは原始人PD(白)もしくは黒龍骨PDの各部位です。\n大当たりのPDにはステータスが付いています\n女性専用\n（確率：大当り10%　・　当たり36%　・　その他54%）\nトレード・バザー不可
+  jpn: 大当たりは原始人PD(白)もしくは黒龍骨PDの各部位です。\n※大当たりのPDにはステータスが付いています\n女性専用\n（確率：大当り10%　・　当たり36%　・　その他54%）\nトレード・バザー不可\n\n/c$2%s/c*
+ITEM4.XML 31747 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n大当たりは以下のアイテムからランダムで獲得\n洋風トイレ\n和風トイレ\nシャワー\nシステムキッチン\nキッチン棚\n洗面台（大）\nプラスチックラック\nAngel時計\nウォーターサーバー\n缶ジュース型冷蔵庫\nタオル掛け\n（確率：大当たり10%　・　当たり32%　・　その他58%）
+  jpn: トレード・バザー不可。\n大当たりは以下のアイテムからランダムで獲得\n洋風トイレ\n和風トイレ\nシャワー\nシステムキッチン\nキッチン棚\n洗面台（大）\nプラスチックラック\nAngel時計\nウォーターサーバー\n缶ジュース型冷蔵庫\nタオル掛け\n（確率：大当たり10%　・　当たり32%　・　その他58%）\n\n/c$2%s/c*
+ITEM4.XML 32325 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりは乗り物の融合に便利な融合魔人。レベル150からレベル170の乗り物に融合可能です。\nトレード・バザー不可\n（確率：大当たり5%　・　当たり51%　・　その他44%）
+  jpn: 大当たりは乗り物の融合に便利な融合魔人。レベル150からレベル170の乗り物に融合可能です。\nトレード・バザー不可\n（確率：大当たり5%　・　当たり51%　・　その他44%）\n\n/c$2%s/c*
+ITEM4.XML 32331 說明定義
+  eng: 背包須有5格以上空間才能容納開啟的組合包，打開後可獲得：
+社團農場-施肥車
+社團農場-加速肥料
+社團農場-撒水器
+社團農場-驅蟲劑
+社團農場-採收機
+  jpn: /c$2%s/c*
+ITEM4.XML 32422 說明定義
+  eng: ランダムでスキル書が獲得できる
+  jpn: ランダムでスキル書が獲得できる\n\n/c$2%s/c*
+ITEM4.XML 32839 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりはステータスがついたPDアイテムです。\n（確率：大当り10%（大当りは道化の服シリーズ羽衣、UFOリュックのうちいずれか一つが当たります。道化の服シリーズはセットではなくランダムで1部位が当選します。装備前のみトレードバザー可）・　当たり50%　・　その他40%）。\nトレード・バザー不可。
+  jpn: ※大当たりはステータスがついたPDアイテムです。\n（確率：大当り10%（大当りは道化の服シリーズ羽衣、UFOリュックのうちいずれか一つが当たります。※道化の服シリーズはセットではなくランダムで1部位が当選します。装備前のみトレードバザー可）・　当たり50%　・　その他40%）。\nトレード・バザー不可。\n\n/c$2%s/c*
+ITEM4.XML 32866 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりはステータスがついたPDアイテムです。\n（確率：大当り10%（大当りは影の装束シリーズ、羽衣、白虎のマントのうちいずれか一つが当たります。影の装束シリーズはセットではなくランダムで1部位が当選します。装備前のみトレードバザー可）・　当たり50%　・　その他40%）。\nトレード・バザー不可。
+  jpn: ※大当たりはステータスがついたPDアイテムです。\n（確率：大当り10%（大当りは影の装束シリーズ、羽衣、白虎のマントのうちいずれか一つが当たります。※影の装束シリーズはセットではなくランダムで1部位が当選します。装備前のみトレードバザー可）・　当たり50%　・　その他40%）。\nトレード・バザー不可。\n\n/c$2%s/c*
+ITEM4.XML 32867 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりはステータスがついたPDアイテムです。\n（確率：大当り10%（大当りは白虎シリーズ、白虎のマント、UFOリュックのうちいずれか一つが当たります。白虎シリーズはセットではなくランダムで1部位が当選します。装備前のみトレードバザー可）・　当たり50%　・　その他40%）。\nトレード・バザー不可。
+  jpn: ※大当たりはステータスがついたPDアイテムです。\n（確率：大当り10%（大当りは白虎シリーズ、白虎のマント、UFOリュックのうちいずれか一つが当たります。※白虎シリーズはセットではなくランダムで1部位が当選します。装備前のみトレードバザー可）・　当たり50%　・　その他40%）。\nトレード・バザー不可。\n\n/c$2%s/c*
+ITEM4.XML 32898 說明定義
+  eng: ランダムにアイテムを入手することができる。\nトレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・割れたレッドクロスルーン\n・割れたオレンジクロスルーン\n・割れたイエロークロスルーン\n（確率：大当たり11%　・　当たり35%　・　その他54%）
+  jpn: トレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・割れたレッドクロスルーン\n・割れたオレンジクロスルーン\n・割れたイエロークロスルーン\n（確率：大当たり11%　・　当たり35%　・　その他54%）\n\n/c$2%s/c*
+ITEM4.XML 32899 說明定義
+  eng: ランダムにアイテムを入手することができる。\nトレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・割れたエメラルドクロスルーン\n・割れたブルークロスルーン\n・割れたパープルクロスルーン（確率：大当たり11%　・　当たり35%　・　その他54%）
+  jpn: トレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・割れたエメラルドクロスルーン\n・割れたブルークロスルーン\n・割れたパープルクロスルーン（確率：大当たり11%　・　当たり35%　・　その他54%）\n\n/c$2%s/c*
+ITEM4.XML 32900 說明定義
+  eng: ランダムにアイテムを入手することができる。\nトレード不可・バザー不可\n大当たり当選すれば生産向け宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・制作の石\n・採集の石\n・浮遊石（確率：大当たり15%　・　当たり31%　・　その他54%）
+  jpn: トレード不可・バザー不可\n大当たり当選すれば生産向け宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・制作の石\n・採集の石\n・浮遊石（確率：大当たり15%　・　当たり31%　・　その他54%）\n\n/c$2%s/c*
+ITEM4.XML 32901 說明定義
+  eng: ランダムにアイテムを入手することができる。\nトレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・レッドクロスピース\n・オレンジクロスピース\n・イエロークロスピース\n（確率：大当たり12%　・　当たり34%　・　その他54%）
+  jpn: トレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・レッドクロスピース\n・オレンジクロスピース\n・イエロークロスピース\n（確率：大当たり12%　・　当たり34%　・　その他54%）\n\n/c$2%s/c*
+ITEM4.XML 32902 說明定義
+  eng: ランダムにアイテムを入手することができる。\nトレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・エメラルドクロスピース\n・ブルークロスピース\n・パープルクロスピース\n（確率：大当たり12%　・　当たり34%　・　その他54%）
+  jpn: トレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・エメラルドクロスピース\n・ブルークロスピース\n・パープルクロスピース\n（確率：大当たり12%　・　当たり34%　・　その他54%）\n\n/c$2%s/c*
+ITEM4.XML 32903 說明定義
+  eng: ランダムにアイテムを入手することができる。\nトレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・赤呪石\n・橙呪石\n・黄呪石\n（確率：大当たり13%　・　当たり34%　・　その他53%）
+  jpn: トレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・赤呪石\n・橙呪石\n・黄呪石\n（確率：大当たり13%　・　当たり34%　・　その他53%）\n\n/c$2%s/c*
+ITEM4.XML 32904 說明定義
+  eng: ランダムにアイテムを入手することができる。\nトレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・碧呪石\n・青呪石\n・紫呪石\n（確率：大当たり13%　・　当たり34%　・　その他53%）
+  jpn: トレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・碧呪石\n・青呪石\n・紫呪石\n（確率：大当たり13%　・　当たり34%　・　その他53%）\n\n/c$2%s/c*
+ITEM4.XML 32911 說明定義
+  eng: ランダムにアイテムを入手することができる。\nトレード不可・バザー不可\n大当たり当選すれば特殊な宝石6種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・火の宝珠(140)\n・氷の宝珠(140)\n・光の宝珠(140)\n・樹の宝珠(140)\n・雷の宝珠(140)\n・闇の宝珠(140)\n（確率：大当たり10%　・　当たり36%　・　その他54%）
+  jpn: トレード不可・バザー不可\n大当たり当選すれば特殊な宝石6種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・火の宝珠(140)\n・氷の宝珠(140)\n・光の宝珠(140)\n・樹の宝珠(140)\n・雷の宝珠(140)\n・闇の宝珠(140)\n（確率：大当たり10%　・　当たり36%　・　その他54%）\n\n/c$2%s/c*
+ITEM4.XML 33899 說明定義
+  eng: 初心者用の防具が入ったBOX。開封すると守護神の兜、守護神の籠手、守護神の鎧、守護神のブーツを獲得できる。\n開封にはアイテムバックに4つ以上の空きが必要です。
+  jpn: 初心者用の防具が入ったBOX。開封すると守護神の兜、守護神の籠手、守護神の鎧、守護神のブーツを獲得できる。\n\n/c$2%s/c*
+ITEM4.XML 33900 說明定義
+  eng: 初心者用の防具が入ったBOX。開封するとディオネの頭飾り、ディオネの籠手、ディオネの胴、ディオネの靴を獲得できる。\n開封にはアイテムバックに4つ以上の空きが必要です。
+  jpn: 初心者用の防具が入ったBOX。開封するとディオネの頭飾り、ディオネの籠手、ディオネの胴、ディオネの靴を獲得できる。\n\n/c$2%s/c*
+ITEM4.XML 33901 說明定義
+  eng: 初心者用の防具が入ったBOX。開封するとアナンケの帽子、アナンケの籠手、アナンケの法衣、アナンケの靴を獲得できる。\n開封にはアイテムバックに4つ以上の空きが必要です。
+  jpn: 初心者用の防具が入ったBOX。開封するとアナンケの帽子、アナンケの籠手、アナンケの法衣、アナンケの靴を獲得できる。\n\n/c$2%s/c*
+ITEM4.XML 35172 說明定義
+  eng: ランダムにPDアイテムを手に入れることができる。\nトレード・バザー不可。\n男性専用
+  jpn: ランダムにPDアイテムを手に入れることができる。\nトレード・バザー不可。\n男性専用\n\n/c$2%s/c*
+ITEM4.XML 35173 說明定義
+  eng: ランダムにPDアイテムを手に入れることができる。\nトレード・バザー不可。\n女性専用
+  jpn: ランダムにPDアイテムを手に入れることができる。\nトレード・バザー不可。\n女性専用\n\n/c$2%s/c*
+ITEM4.XML 35528 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\nトレード・バザー不可\n大当たりは以下のアイテムからランダムで獲得\n・化猫の卵\n・トナカイの卵\n（確率：大当たり3%　・　当たり27%　・　その他70%）
+  jpn: トレード・バザー不可\n大当たりは以下のアイテムからランダムで獲得\n・化猫の卵\n・トナカイの卵\n（確率：大当たり3%　・　当たり27%　・　その他70%）\n\n/c$2%s/c*
+ITEM4.XML 35789 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当りは装備Lv92の乗り物アイテムです。\n★大当たりアイテム★\n・シャープトゥース号\n・AL-O1 クルセイダー\n・シードラゴン\nトレード・バザー不可\n（確率：大当たり5%　・　当たり35%　・　その他60%）
+  jpn: 大当りは装備Lv92の乗り物アイテムです。\n★大当たりアイテム★\n・シャープトゥース号\n・AL-O1 クルセイダー\n・シードラゴン\nトレード・バザー不可\n（確率：大当たり5%　・　当たり35%　・　その他60%）\n\n/c$2%s/c*
+ITEM4.XML 35790 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当りは装備Lv85の乗り物アイテムです。\n★大当たりアイテム★\n・スピードデーモン\n・モンキーサーファー\n・蒸気特急\n・ファイティングミルク\nトレード・バザー不可\n（確率：大当たり10%　・　その他90%）
+  jpn: 大当りは装備Lv85の乗り物アイテムです。\n★大当たりアイテム★\n・スピードデーモン\n・モンキーサーファー\n・蒸気特急\n・ファイティングミルク\nトレード・バザー不可\n（確率：大当たり10%　・　その他90%）\n\n/c$2%s/c*
+ITEM4.XML 35795 說明定義
+  eng: ランダムでスキル書が獲得できる
+  jpn: ランダムでスキル書が獲得できる\n\n/c$2%s/c*
+ITEM4.XML 36271 說明定義
+  eng: ランダムにPDアイテムを手に入れることができる。\nトレード・バザー不可。\n男性専用
+  jpn: ランダムにPDアイテムを手に入れることができる。\nトレード・バザー不可。\n男性専用\n\n/c$2%s/c*
+ITEM4.XML 36272 說明定義
+  eng: ランダムにPDアイテムを手に入れることができる。\nトレード・バザー不可。\女性専用
+  jpn: ランダムにPDアイテムを手に入れることができる。\nトレード・バザー不可。\女性専用\n\n/c$2%s/c*
+ITEM4.XML 36313 說明定義
+  eng: ランダムにアイテムを入手することができる。\nトレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・レッドクロスルーン\n・オレンジクロスルーン\n・イエロークロスルーン\n（確率：大当たり10%　・　当たり36%　・　その他54%）
+  jpn: トレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・レッドクロスルーン\n・オレンジクロスルーン\n・イエロークロスルーン\n（確率：大当たり10%　・　当たり36%　・　その他54%）\n\n/c$2%s/c*
+ITEM4.XML 36314 說明定義
+  eng: ランダムにアイテムを入手することができる。\nトレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・エメラルドクロスルーン\n・ブルークロスルーン\n・パープルクロスルーン（確率：大当たり10%　・　当たり36%　・　その他54%）
+  jpn: トレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・エメラルドクロスルーン\n・ブルークロスルーン\n・パープルクロスルーン（確率：大当たり10%　・　当たり36%　・　その他54%）\n\n/c$2%s/c*
+ITEM4.XML 36328 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n（確率：大当たり23%　・　当たり29%　・　その他48%）
+  jpn: トレード・バザー不可。\n（確率：大当たり23%　・　当たり29%　・　その他48%）\n\n/c$2%s/c*
+ITEM4.XML 36699 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりは動物型の乗り物が獲得できるBOXアイテムです。装備する際にLv160以上が必要です。\nトレード・バザー不可\n（確率：大当り1%　・　当たり26%　・　その他73%）
+  jpn: 大当たりは動物型の乗り物が獲得できるBOXアイテムです。装備する際にLv160以上が必要です。\nトレード・バザー不可\n（確率：大当り1%　・　当たり26%　・　その他73%）\n\n/c$2%s/c*
+ITEM4.XML 36701 說明定義
+  eng: ランダムにメインハンドや背中用のPDアイテムが入った小道具BOXを手に入れることができる。\nトレード・バザー不可。
+  jpn: ランダムにメインハンドや背中用のPDアイテムが入った小道具BOXを手に入れることができる。\nトレード・バザー不可。\n\n/c$2%s/c*
+ITEM4.XML 36781 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりは160レベルの機甲が獲得できるホエールBOXもしくは100レベルの機甲です。装備するには装備可能レベルを満たしている必要があります。\nトレード・バザー不可\n（確率：大当たり5%　・　当たり27%　・　その他68%）
+  jpn: 大当たりは160レベルの機甲が獲得できるホエールBOXもしくは100レベルの機甲です。装備するには装備可能レベルを満たしている必要があります。\nトレード・バザー不可\n（確率：大当たり5%　・　当たり27%　・　その他68%）\n\n/c$2%s/c*
+ITEM4.XML 36994 說明定義
+  eng: Driven off 1 Flame Hunter Syber.
+  jpn: 血狩獣サイボルを %d / 1 匹倒した。
+ITEM4.XML 37028 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりは黄色文字のアクセサリーアイテムです。\n装備にはレベル150が必要です。\n（確率：大当たり2%・　当たり43%　・　その他55%）。\nトレード・バザー不可。
+  jpn: ※大当たりは黄色文字のアクセサリーアイテムです。\n装備にはレベル150が必要です。\n（確率：大当たり2%・　当たり43%　・　その他55%）。\nトレード・バザー不可。\n\n/c$2%s/c*
+ITEM4.XML 37029 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりは黄色文字のアクセサリーアイテムです。\n装備にはレベル170が必要です。\n（確率：大当たり2%・　当たり43%　・　その他55%）。\nトレード・バザー不可。
+  jpn: ※大当たりは黄色文字のアクセサリーアイテムです。\n装備にはレベル170が必要です。\n（確率：大当たり2%・　当たり43%　・　その他55%）。\nトレード・バザー不可。\n\n/c$2%s/c*
+ITEM4.XML 37030 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりは黄色文字のアクセサリーアイテムです。\n装備にはレベル200が必要です。\n（確率：大当たり2%・　当たり43%　・　その他55%）。\nトレード・バザー不可。
+  jpn: ※大当たりは黄色文字のアクセサリーアイテムです。\n装備にはレベル200が必要です。\n（確率：大当たり2%・　当たり43%　・　その他55%）。\nトレード・バザー不可。\n\n/c$2%s/c*
+ITEM4.XML 38111 說明定義
+  eng: ランダムにアイテムを手に入れることができる。トレード・バザー不可。\n（確率：大当たり22%　・　当たり30%　・　その他48%）
+  jpn: トレード・バザー不可。\n（確率：大当たり22%　・　当たり30%　・　その他48%）\n\n/c$2%s/c*
+ITEM4.XML 38292 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりは忍猫タイプの乗り物アイテムです。装備するにはLv170以上が必要です。\nトレード・バザー不可\n（確率：大当たり1%　・　当たり25%　・　その他74%）
+  jpn: 大当たりは忍猫タイプの乗り物アイテムです。装備するにはLv170以上が必要です。\nトレード・バザー不可\n（確率：大当たり1%　・　当たり25%　・　その他74%）\n\n/c$2%s/c*
+ITEM4.XML 38407 說明定義
+  eng: ランダムにアイテムを入手することができる。\nトレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・無垢のレッドクロスルーン\n・無垢のオレンジクロスルーン\n・無垢のイエロークロスルーン\n（確率：大当たり9%　・　当たり36%　・　その他55%）
+  jpn: トレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・無垢のレッドクロスルーン\n・無垢のオレンジクロスルーン\n・無垢のイエロークロスルーン\n（確率：大当たり9%　・　当たり36%　・　その他55%）\n\n/c$2%s/c*
+ITEM4.XML 38408 說明定義
+  eng: ランダムにアイテムを入手することができる。\nトレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・無垢のエメラルドクロスルーン\n・無垢のブルークロスルーン\n・無垢のパープルクロスルーン\n（確率：大当たり9%　・　当たり36%　・　その他55%）
+  jpn: トレード不可・バザー不可\n大当たり当選すれば強力な宝石3種のうちいずれか1種が入手できる。\n≪大当たりアイテム（以下宝石のどれか1個）≫\n・無垢のエメラルドクロスルーン\n・無垢のブルークロスルーン\n・無垢のパープルクロスルーン\n（確率：大当たり9%　・　当たり36%　・　その他55%）\n\n/c$2%s/c*
+ITEM4.XML 38620 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりは以下の二つのアイテム内、いずれか一つが当選します。\n製作型ギア9(生産速度+20%、使用レベル110)\n製作型ギア10(生産速度+22%、使用レベル120)\n大当たりは機甲アイテムを強化するアイテムです。\nトレード・バザー不可\n（確率：大当たり3%　・　当たり33%　・　その他64%）
+  jpn: 大当たりは以下の二つのアイテム内、いずれか一つが当選します。\n製作型ギア9(生産速度+20%、使用レベル110)\n製作型ギア10(生産速度+22%、使用レベル120)\n大当たりは機甲アイテムを強化するアイテムです。\nトレード・バザー不可\n（確率：大当たり3%　・　当たり33%　・　その他64%）\n\n/c$2%s/c*
+ITEM4.XML 38621 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりは以下の二つのアイテム内、いずれか一つが当選します。\n採集型コア9(採集速度+20%、使用レベル110)\n採集型コア10(採集速度+22%、使用レベル120)\n大当たりは機甲アイテムを強化するアイテムです。\nトレード・バザー不可\n（確率：大当たり3%　・　当たり33%　・　その他64%）
+  jpn: 大当たりは以下の二つのアイテム内、いずれか一つが当選します。\n採集型コア9(採集速度+20%、使用レベル110)\n採集型コア10(採集速度+22%、使用レベル120)\n大当たりは機甲アイテムを強化するアイテムです。\nトレード・バザー不可\n（確率：大当たり3%　・　当たり33%　・　その他64%）\n\n/c$2%s/c*
+ITEM4.XML 38622 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりはビール型の機甲です。装備にはレベル130が必要となります。\nトレード・バザー不可\n（確率：大当たり3%　・　当たり27%　・　その他70%）
+  jpn: 大当たりはビール型の機甲です。装備にはレベル130が必要となります。\nトレード・バザー不可\n（確率：大当たり3%　・　当たり27%　・　その他70%）\n\n/c$2%s/c*
+ITEM4.XML 38623 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当りはバスタブ型の機甲です。装備にはレベル80が必要となります。\nトレード不可、バザー不可\n（確率：大当たり5%　・　当たり27%　・　その他68%）
+  jpn: 大当りはバスタブ型の機甲です。装備にはレベル80が必要となります。\nトレード不可、バザー不可\n（確率：大当たり5%　・　当たり27%　・　その他68%）\n\n/c$2%s/c*
+ITEM4.XML 38635 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりはステータスがついたPDアイテムです。\n（確率：大当り10%（大当りはキョンシーシリーズの男性用と、片手・両手用メインハンドPDアイテムです。キョンシーシリーズはセットではなくランダムで1部位が当選します。装備前のみトレードバザー可）・　当たり50%　・　その他40%）。\nトレード・バザー不可。
+  jpn: ※大当たりはステータスがついたPDアイテムです。\n（確率：大当り10%（大当りはキョンシーシリーズの男性用と、片手・両手用メインハンドPDアイテムです。※キョンシーシリーズはセットではなくランダムで1部位が当選します。装備前のみトレードバザー可）・　当たり50%　・　その他40%）。\nトレード・バザー不可。\n\n/c$2%s/c*
+ITEM4.XML 38636 說明定義
+  eng: ランダムにアイテムを手に入れることができる。\n大当たりはステータスがついたPDアイテムです。\n（確率：大当り10%（大当りはキョンシーシリーズの女性用と、片手・両手用メインハンドPDアイテムです。キョンシーシリーズはセットではなくランダムで1部位が当選します。装備前のみトレードバザー可）・　当たり50%　・　その他40%）。\nトレード・バザー不可。
+  jpn: ※大当たりはステータスがついたPDアイテムです。\n（確率：大当り10%（大当りはキョンシーシリーズの女性用と、片手・両手用メインハンドPDアイテムです。※キョンシーシリーズはセットではなくランダムで1部位が当選します。装備前のみトレードバザー可）・　当たり50%　・　その他40%）。\nトレード・バザー不可。\n\n/c$2%s/c*
+ITEM4.XML 38733 說明定義
+  eng: ペット育成に役立つアイテムが入ったBOX。開封すると以下のアイテムを獲得できます。\n・1000万ペットEXPカード\n・エクストラミール\n・マスターペット経験ボール\n開封にはアイテムバックに3つ以上の空きが必要です。\n1000万ペットEXPカードは使用後にペットが自分のキャラクターレベルを超える場合、使用できません。
+  jpn: ペット育成に役立つアイテムが入ったBOX。\n\n/c$2%s/c*\n※開封にはアイテムバックに3つ以上の空きが必要です。\n※1000万ペットEXPカードは使用後にペットが自分のキャラクターレベルを超える場合、使用できません。
+ITEM4.XML 38734 說明定義
+  eng: ペット育成に役立つアイテムが入ったBOX。開封すると以下のアイテムを獲得できます。\n・1000万ペットEXPカード\n・エクストラミール\n・祝福ペットレボミール　2個\n開封にはアイテムバックに3つ以上の空きが必要です。\n1000万ペットEXPカードは使用後にペットが自分のキャラクターレベルを超える場合、使用できません。
+  jpn: ペット育成に役立つアイテムが入ったBOX。\n\n/c$2%s/c*\n※開封にはアイテムバックに3つ以上の空きが必要です。\n※1000万ペットEXPカードは使用後にペットが自分のキャラクターレベルを超える場合、使用できません。
+ITEM4.XML 38735 說明定義
+  eng: ペット捕獲・育成に役立つアイテムが入ったBOX。開封すると以下のアイテムを獲得できます。\n・マスターマジックエッグ　20個\n・エクストラミール　1個\n・1000万ペットEXPカード　1個\n開封にはアイテムバックに3つ以上の空きが必要です。\n1000万ペットEXPカードは使用後にペットが自分のキャラクターレベルを超える場合、使用できません。
+  jpn: ペット捕獲・育成に役立つアイテムが入ったBOX。\n\n/c$2%s/c*\n※開封にはアイテムバックに3つ以上の空きが必要です。\n※1000万ペットEXPカードは使用後にペットが自分のキャラクターレベルを超える場合、使用できません。
+ITEM4.XML 38736 說明定義
+  eng: ペット融合に役立つアイテムが入ったBOX。開封すると以下のアイテムを獲得できます。\n・1000万ペットEXPカード\n・祝福融合安定剤\n・メタモル剤\n・ペット融合予言巻物 3個\n開封にはアイテムバックに4つ以上の空きが必要です。\n1000万ペットEXPカードは使用後にペットが自分のキャラクターレベルを超える場合、使用できません。
+  jpn: ペット融合に役立つアイテムが入ったBOX。\n\n/c$2%s/c*\n※開封にはアイテムバックに4つ以上の空きが必要です。\n※1000万ペットEXPカードは使用後にペットが自分のキャラクターレベルを超える場合、使用できません。
+ITEM4.XML 38962 說明定義
+  eng: ランダムでスキル書が獲得できる
+  jpn: ランダムでスキル書が獲得できる\n\n/c$2%s/c*
+ITEM5.XML 47419 說明定義
+  eng: You've obtained %d / 1 Steel Pipe from Steelhedge!
+  jpn: 鋼角猛獣ヴァルトから鋼角の支柱を手に入れました！
+ITEM5.XML 47420 說明定義
+  eng: You've obtained %d / 1 Lavender Heart from Peavender!
+  jpn: 紫薫葉精ブッツェから紫薫のロックコアを手に入れました！
+ITEM5.XML 47421 說明定義
+  eng: You've obtained %d / 1 Sunset Chain from Strawflora!
+  jpn: 夕日妖精シャピナから夕焼けのハンマーチェーンを手に入れました！
+ITEM7.XML 60709 說明定義
+  eng: Requires 8 slots in your bag to open. Open to get: 
+House Style: Blue Jack-'O-Lantern (Permanent) *1
+Halloween Magic Circle *1
+Owl Totem Pillar *1
+Forbidden Tomes *1
+Halloween Fence *1
+Halloween Pot *1
+Owl Pendant Lamp *1
+Obsidian Carpet *1
+  jpn: /c$2%s/c*
+ITEM7.XML 63687 說明定義
+  eng: Defeated %d / 200 Lair Watcher(s) to the north!
+  jpn: 北の魔獣-海牢の守護者ボンドを排除した！
+ITEM7.XML 68245 說明定義
+  eng: /c$2%s/c*
+Equip to obtain boosts.
+/c$2Head, Hand, Feet: Increases EXP gained by 35% and Melee DMG Reduction and Spell DMG Reduction by 5%.
+Body: Increases EXP gained by 45% and Melee DMG Reduction and Spell DMG Reduction by 5%./c*
+Equip the full set to get the following boosts:
+HP: 36100
+MP: 32150
+ATK: 19000
+DEF: 8765
+MDEF: 2287
+Thunder DEF: 5%
+Fire DEF: 5%
+Ice DEF: 5%
+Corrosion DEF: 5%
+  jpn: バックパックには、開封したギフトを収納できるスペースが 4 つ以上必要です。開くと、次のものが得られます。
+ファンタジー アンバー - 隠しパス アドベンチャー フード
+Huanpo-Youjingxunqi ウインドブレーカー
+ファントムアンバー - パスファインディンググローブ
+Huanpo - Youjingxunqi レザーブーツ
+装備するとバフ効果が得られる
+/c$2 頭、手、足: モンスター殺害経験値の 35%、物理ダメージの 5% オフセット、呪文ダメージの 5% オフセット
+身体部位: モンスター殺害経験値の 45%、物理ダメージ オフセットの 5%、呪文ダメージ オフセットの 5%/c*
+フル装備後の追加
+HP：36100
+MP：32150
+攻撃力：19000
+防御力：8765
+魔法防御力：2287
+雷防御5%
+防火 5%
+氷防御力5%
+腐食防御力 5%
+ITEM7.XML 68246 說明定義
+  eng: /c$2%s/c*
+Equip to obtain boosts.
+/c$2Head, Hand, Feet: Increases EXP gained by 35% and Melee DMG Reduction and Spell DMG Reduction by 5%.
+Body: Increases EXP gained by 45% and Melee DMG Reduction and Spell DMG Reduction by 5%./c*
+Equip the full set to get the following boosts:
+HP: 36100
+MP: 32150
+ATK: 19000
+DEF: 9504
+MDEF: 2171
+Thunder DEF: 5%
+Fire DEF: 5%
+Ice DEF: 5%
+Corrosion DEF: 5%
+  jpn: バックパックには、開封したギフトを収納できるスペースが 5 つ以上必要です。開くと、次のものが得られます。
+環坡千里騎兵用ヘルメット
+Huanpo-千マイルの鉄騎兵の鎧
+環坡千里アイアンライダーアーマー
+環坡千里騎兵ブーツ
+ファンタジーアンバー - エメラルドの花の盾
+装備するとバフ効果が得られる
+/c$2 頭、手、足: モンスター殺害経験値の 35%、物理ダメージの 5% オフセット、呪文ダメージの 5% オフセット
+身体部位: モンスター殺害経験値の 45%、物理ダメージ オフセットの 5%、呪文ダメージ オフセットの 5%/c*
+フル装備後の追加（シールドを除く）
+HP：36100
+MP：32150
+攻撃力：19000
+防御力：9504
+魔法防御力：2171
+雷防御5%
+防火 5%
+氷防御力5%
+腐食防御力 5%
+ITEM7.XML 68247 說明定義
+  eng: /c$2%s/c*
+Equip to obtain boosts.
+/c$2Head, Hand, Feet: Increases EXP gained by 35% and Melee DMG Reduction and Spell DMG Reduction by 5%.
+Body: Increases EXP gained by 45% and Melee DMG Reduction and Spell DMG Reduction by 5%./c*
+Equip the full set to get the following boosts:
+HP: 36100
+MP: 32150
+DEF: 7804
+MATK: 15200
+MDEF: 2699
+Thunder DEF: 5%
+Fire DEF: 5%
+Ice DEF: 5%
+Corrosion DEF: 5%
+  jpn: バックパックには、開封したギフトを収納できるスペースが 4 つ以上必要です。開くと、次のものが得られます。
+ファンタジーアンバー-ユーリンシークレットブレスハット
+ファンタジーアンバー-ユーリンシークレットブレスローブ
+ファントム・アンバー・ユーリングのシークレットブレスグローブ
+Huanpo-Youling シークレットブレスライトブーツ
+装備するとバフ効果が得られる
+/c$2 頭、手、足: モンスター殺害経験値の 35%、物理ダメージの 5% オフセット、呪文ダメージの 5% オフセット
+身体部位: モンスター殺害経験値の 45%、物理ダメージ オフセットの 5%、呪文ダメージ オフセットの 5%/c*
+フル装備後の追加
+HP：36100
+MP：32150
+防御力：7804
+魔法攻撃力：15200
+魔法防御力：2699
+雷防御5%
+防火 5%
+氷防御力5%
+腐食防御力 5%
+ITEM8.XML 70372 說明定義
+  eng: This ticket is useless now….
+  jpn: バトルアントを %d / 150 体倒した！
+ITEM8.XML 72455 說明定義
+  eng: Requires at least 5 empty slots to open. Open to get:
+Enchanted-Summer Beach Goggles
+Enchanted-Summer Beach Swimming Trunk
+Enchanted-Summer Beach Watch
+Enchanted-Summer Beach Flippers
+Enchanted-Custom Ice Harpoon
+  jpn: /c$2%s/c*
+ITEM8.XML 72462 說明定義
+  eng: Requires at least 5 empty slots to open. Open to get:
+Enchanted-Summer Beach Starfish
+Enchanted-Summer Beach Bikini
+Enchanted-Summer Beach Shell Bracelet
+Enchanted-Summer Beach Slipper
+Enchanted-Stylish Sling Bag
+  jpn: /c$2%s/c*
+ITEM9.XML 83266 說明定義
+  eng: Right click to use and automatically promote your character's Rank by +1 level.
+  jpn: /c$2%s/c*
+ACHIEVEMENT.XML 112 說明
+  eng: Hold a party in your house and welcome 10 participants to your party.
+  jpn: 自分のハウスでダンスパーティーを開催し、1回の参加人数が10を突破
+ACHIEVEMENT.XML 113 說明
+  eng: Hold a party in your house and welcome 15 participants to your party.
+  jpn: 自分のハウスでダンスパーティーを開催し、1回の参加人数が15を突破
+ACHIEVEMENT.XML 114 說明
+  eng: Hold a party in your house and welcome 20 participants to your party.
+  jpn: 自分のハウスでダンスパーティーを開催し、1回の参加人数が20を突破
+ACHIEVEMENT.XML 115 說明
+  eng: Hold a party in your house and welcome 24 participants to your party.
+  jpn: 自分のハウスでダンスパーティーを開催し、1回の参加人数が24を突破
+ACHIEVEMENT.XML 116 說明
+  eng: Hold a party in your house and welcome 28 participants to your party.
+  jpn: 自分のハウスでダンスパーティーを開催し、1回の参加人数が28を突破
+ACHIEVEMENT.XML 137 說明
+  eng: Participate in the Holy Battlefield and earn at least 10 scores in a single round.
+  jpn: 聖域戦場の1回の試合で、獲得した個人ポイントが10を突破
+ACHIEVEMENT.XML 138 說明
+  eng: Participate in the Holy Battlefield and earn at least 20 scores in a single round.
+  jpn: 聖域戦場の1回の試合で、獲得した個人ポイントが20を突破
+ACHIEVEMENT.XML 139 說明
+  eng: Participate in the Holy Battlefield and earn at least 50 scores in a single round.
+  jpn: 聖域戦場の1回の試合で、獲得した個人ポイントが50を突破
+ACHIEVEMENT.XML 140 說明
+  eng: Participate in the Holy Battlefield and earn at least 100 scores in a single round.
+  jpn: 聖域戦場の1回の試合で、獲得した個人ポイントが100を突破
+ACHIEVEMENT.XML 141 說明
+  eng: Participate in the Holy Battlefield and earn at least 200 scores in a single round.
+  jpn: 聖域戦場の1回の試合で、獲得した個人ポイントが200を突破
+ACHIEVEMENT.XML 142 說明
+  eng: Participate in the Holy Battlefield and earn at least 500 scores in a single round.
+  jpn: 聖域戦場の1回の試合で、獲得した個人ポイントが500を突破
+ACHIEVEMENT.XML 143 說明
+  eng: Participate in the Holy Battlefield and earn at least 1,000 scores in a single round.
+  jpn: 聖域戦場の1回の試合で、獲得した個人ポイントが1000を突破
+ACHIEVEMENT.XML 144 說明
+  eng: Participate in the Holy Battlefield and earn at least 2,000 scores in a single round.
+  jpn: 聖域戦場の1回の試合で、獲得した個人ポイントが2000を突破
+ACHIEVEMENT.XML 145 說明
+  eng: Participate in the Holy Battlefield and earn at least 5,000 scores in a single round.
+  jpn: 聖域戦場の1回の試合で、獲得した個人ポイントが5000を突破
+ACHIEVEMENT.XML 146 說明
+  eng: Participate in the Holy Battlefield and earn at least 8,000 scores in a single round.
+  jpn: 聖域戦場の1回の試合で、獲得した個人ポイントが8000を突破
+ACHIEVEMENT.XML 147 說明
+  eng: Participate in the Holy Battlefield and earn at least 10,000 scores in a single round.
+  jpn: 聖域戦場の1回の試合で、獲得した個人ポイントが10000を突破
+ACHIEVEMENT.XML 160 說明
+  eng: Participate in the Holy Battlefield and help carry the crystal to your army's base at least 1 time in a single round.
+  jpn: 聖域戦場の1回の試合で、クリスタルを本陣に1回運び込みます
+ACHIEVEMENT.XML 161 說明
+  eng: Participate in the Holy Battlefield and help carry the crystal to your army's base at least 4 times in a single round.
+  jpn: 聖域戦場の1回の試合で、クリスタルを本陣に4回運び込みます
+ACHIEVEMENT.XML 162 說明
+  eng: Participate in the Holy Battlefield and help carry the crystal to your army's base at least 8 times in a single round.
+  jpn: 聖域戦場の1回の試合で、クリスタルを本陣に8回運び込みます
+ACHIEVEMENT.XML 163 說明
+  eng: Participate in the Holy Battlefield and help carry the crystal to your army's base at least 12 times in a single round.
+  jpn: 聖域戦場の1回の試合で、クリスタルを本陣に12回運び込みます
+ACHIEVEMENT.XML 171 說明
+  eng: Participate in the Holy Battlefield and destroy at least 2 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、城門を2回破壊します
+ACHIEVEMENT.XML 172 說明
+  eng: Participate in the Holy Battlefield and destroy at least 5 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、城門を5回破壊します
+ACHIEVEMENT.XML 173 說明
+  eng: Participate in the Holy Battlefield and destroy at least 10 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、城門を10回破壊します
+ACHIEVEMENT.XML 174 說明
+  eng: Participate in the Holy Battlefield and destroy at least 20 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、城門を20回破壊します
+ACHIEVEMENT.XML 175 說明
+  eng: Participate in the Holy Battlefield and destroy at least 50 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、城門を50回破壊します
+ACHIEVEMENT.XML 176 說明
+  eng: Participate in the Holy Battlefield and destroy at least 100 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、城門を100回破壊します
+ACHIEVEMENT.XML 177 說明
+  eng: Participate in the Holy Battlefield and destroy at least 200 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、城門を200回破壊します
+ACHIEVEMENT.XML 178 說明
+  eng: Participate in the Holy Battlefield and destroy at least 500 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、城門を500回破壊します
+ACHIEVEMENT.XML 189 說明
+  eng: Participate in the Holy Battlefield and destroy at least 5 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、彫像を5回破壊します
+ACHIEVEMENT.XML 190 說明
+  eng: Participate in the Holy Battlefield and destroy at least 10 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、彫像を10回破壊します
+ACHIEVEMENT.XML 191 說明
+  eng: Participate in the Holy Battlefield and destroy at least 20 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、彫像を20回破壊します
+ACHIEVEMENT.XML 192 說明
+  eng: Participate in the Holy Battlefield and destroy at least 50 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、彫像を50回破壊します
+ACHIEVEMENT.XML 193 說明
+  eng: Participate in the Holy Battlefield and destroy at least 100 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、彫像を100回破壊します
+ACHIEVEMENT.XML 194 說明
+  eng: Participate in the Holy Battlefield and destroy at least 200 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、彫像を200回破壊します
+ACHIEVEMENT.XML 195 說明
+  eng: Participate in the Holy Battlefield and destroy at least 500 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、彫像を500回破壊します
+ACHIEVEMENT.XML 196 說明
+  eng: Participate in the Holy Battlefield and destroy at least 1,000 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、彫像を1000回破壊します
+ACHIEVEMENT.XML 207 說明
+  eng: Participate in the Holy Battlefield and build at least 2 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、築造した城門の数が2を突破
+ACHIEVEMENT.XML 208 說明
+  eng: Participate in the Holy Battlefield and build at least 5 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、築造した城門の数が5を突破
+ACHIEVEMENT.XML 209 說明
+  eng: Participate in the Holy Battlefield and build at least 10 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、築造した城門の数が10を突破
+ACHIEVEMENT.XML 210 說明
+  eng: Participate in the Holy Battlefield and build at least 20 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、築造した城門の数が20を突破
+ACHIEVEMENT.XML 211 說明
+  eng: Participate in the Holy Battlefield and build at least 50 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、築造した城門の数が50を突破
+ACHIEVEMENT.XML 212 說明
+  eng: Participate in the Holy Battlefield and build at least 100 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、築造した城門の数が100を突破
+ACHIEVEMENT.XML 213 說明
+  eng: Participate in the Holy Battlefield and build at least 200 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、築造した城門の数が200を突破
+ACHIEVEMENT.XML 214 說明
+  eng: Participate in the Holy Battlefield and build at least 500 gates in a single round.
+  jpn: 聖域戦場の1回の試合で、築造した城門の数が500を突破
+ACHIEVEMENT.XML 225 說明
+  eng: Participate in the Holy Battlefield and build at least 5 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、建てた彫像の数が5を突破
+ACHIEVEMENT.XML 226 說明
+  eng: Participate in the Holy Battlefield and build at least 10 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、建てた彫像の数が10を突破
+ACHIEVEMENT.XML 227 說明
+  eng: Participate in the Holy Battlefield and build at least 20 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、建てた彫像の数が20を突破
+ACHIEVEMENT.XML 228 說明
+  eng: Participate in the Holy Battlefield and build at least 50 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、建てた彫像の数が50を突破
+ACHIEVEMENT.XML 229 說明
+  eng: Participate in the Holy Battlefield and build at least 100 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、建てた彫像の数が100を突破
+ACHIEVEMENT.XML 230 說明
+  eng: Participate in the Holy Battlefield and build at least 200 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、建てた彫像の数が200を突破
+ACHIEVEMENT.XML 231 說明
+  eng: Participate in the Holy Battlefield and build at least 500 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、建てた彫像の数が500を突破
+ACHIEVEMENT.XML 232 說明
+  eng: Participate in the Holy Battlefield and build at least 1,000 statues in a single round.
+  jpn: 聖域戦場の1回の試合で、建てた彫像の数が1000を突破
+ACHIEVEMENT.XML 254 說明
+  eng: Participate in the Angel Arena and win the 1st place at least 1 time.
+  jpn: コロシアムに参戦して、1回優勝します
+ACHIEVEMENT.XML 255 說明
+  eng: Participate in the Angel Arena and win the 1st place at least 2 times.
+  jpn: コロシアムに参戦して、2回優勝します
+ACHIEVEMENT.XML 256 說明
+  eng: Participate in the Angel Arena and win the 1st place at least 5 times.
+  jpn: コロシアムに参戦して、5回優勝します
+ACHIEVEMENT.XML 257 說明
+  eng: Participate in the Angel Arena and win the 1st place at least 10 times.
+  jpn: コロシアムに参戦して、10回優勝します
+ACHIEVEMENT.XML 258 說明
+  eng: Participate in the Angel Arena and win the 1st place at least 15 times.
+  jpn: コロシアムに参戦して、15回優勝します
+ACHIEVEMENT.XML 259 說明
+  eng: Participate in the Angel Arena and win the 1st place at least 30 times.
+  jpn: コロシアムに参戦して、20回優勝します
+ACHIEVEMENT.XML 260 說明
+  eng: Participate in the Angel Arena and win the 1st place at least 50 times.
+  jpn: コロシアムに参戦して、30回優勝します
+ACHIEVEMENT.XML 278 說明
+  eng: Earn at least 500 points of Honor in a single round of the Totem Battle.
+  jpn: エンブレムウォーの1回の試合で、獲得した功勲値が500を突破
+ACHIEVEMENT.XML 279 說明
+  eng: Earn at least 1,000 points of Honor in a single round of the Totem Battle.
+  jpn: エンブレムウォーの1回の試合で、獲得した功勲値が1000を突破
+ACHIEVEMENT.XML 280 說明
+  eng: Earn at least 2,000 points of Honor in a single round of the Totem Battle.
+  jpn: エンブレムウォーの1回の試合で、獲得した功勲値が2000を突破
+ACHIEVEMENT.XML 281 說明
+  eng: Earn at least 5,000 points of Honor in a single round of the Totem Battle.
+  jpn: エンブレムウォーの1回の試合で、獲得した功勲値が5000を突破
+ACHIEVEMENT.XML 282 說明
+  eng: Earn at least 10,000 points of Honor in a single round of the Totem Battle.
+  jpn: エンブレムウォーの1回の試合で、獲得した功勲値が10000を突破
+ACHIEVEMENT.XML 283 說明
+  eng: Earn at least 20,000 points of Honor in a single round of the Totem Battle.
+  jpn: エンブレムウォーの1回の試合で、獲得した功勲値が20000を突破
+ACHIEVEMENT.XML 284 說明
+  eng: Earn at least 40,000 points of Honor in a single round of the Totem Battle.
+  jpn: エンブレムウォーの1回の試合で、獲得した功勲値が40000を突破
+ACHIEVEMENT.XML 285 說明
+  eng: Earn at least 60,000 points of Honor in a single round of the Totem Battle.
+  jpn: エンブレムウォーの1回の試合で、獲得した功勲値が60000を突破
+ACHIEVEMENT.XML 286 說明
+  eng: Earn at least 100,000 points of Honor in a single round of the Totem Battle.
+  jpn: エンブレムウォーの1回の試合で、獲得した功勲値が100000を突破
+ACHIEVEMENT.XML 321 說明
+  eng: Play Big-2 with other players and win at least 5 times.
+  jpn: ミニゲームの『大富豪』で、累積勝利回数が5回を突破
+ACHIEVEMENT.XML 322 說明
+  eng: Play Big-2 with other players and win at least 10 times.
+  jpn: ミニゲームの『大富豪』で、累積勝利回数が10回を突破
+ACHIEVEMENT.XML 323 說明
+  eng: Play Big-2 with other players and win at least 20 times.
+  jpn: ミニゲームの『大富豪』で、累積勝利回数が20回を突破
+ACHIEVEMENT.XML 324 說明
+  eng: Play Big-2 with other players and win at least 50 times.
+  jpn: ミニゲームの『大富豪』で、累積勝利回数が50回を突破
+ACHIEVEMENT.XML 325 說明
+  eng: Play Big-2 with other players and win at least 100 times.
+  jpn: ミニゲームの『大富豪』で、累積勝利回数が100回を突破
+ACHIEVEMENT.XML 326 說明
+  eng: Play Big-2 with other players and win at least 200 times.
+  jpn: ミニゲームの『大富豪』で、累積勝利回数が200回を突破
+ACHIEVEMENT.XML 327 說明
+  eng: Play Big-2 with other players and win at least 500 times.
+  jpn: ミニゲームの『大富豪』で、累積勝利回数が500回を突破
+ACHIEVEMENT.XML 328 說明
+  eng: Play Big-2 with other players and win at least 1,000 times.
+  jpn: ミニゲームの『大富豪』で、累積勝利回数が1000回を突破
+ACHIEVEMENT.XML 551 說明
+  eng: Use Poke Egg to capture 2.000 Common pets.
+  jpn: 「マジックエッグ」を使って、名前が「普：」で始まるペットを2000匹捕獲します
+ACHIEVEMENT.XML 552 說明
+  eng: Use Poke Egg to capture 1.600 Good pets.
+  jpn: 「マジックエッグ」を使って、名前が「上：」で始まるペットを1600匹捕獲します
+ACHIEVEMENT.XML 553 說明
+  eng: Use Poke Egg to capture 1.200 Rare pets.
+  jpn: 「マジックエッグ」を使って、名前が「特：」で始まるペットを1200匹捕獲します
+ACHIEVEMENT.XML 657 說明
+  eng: All of your 6 skills reach Level 20.
+  jpn: 習得している技法のレベルが全部Lv20に到達します
+ACHIEVEMENT.XML 658 說明
+  eng: All of your 6 skills reach Level 40.
+  jpn: 習得している技法のレベルが全部Lv40に到達します
+ACHIEVEMENT.XML 659 說明
+  eng: All of your 6 skills reach Level 60.
+  jpn: 習得している技法のレベルが全部Lv60に到達します
+ACHIEVEMENT.XML 660 說明
+  eng: All of your 6 skills reach Level 80.
+  jpn: 習得している技法のレベルが全部Lv80に到達します
+ACHIEVEMENT.XML 661 說明
+  eng: All of your 6 skills reach Level 90.
+  jpn: 習得している技法のレベルが全部Lv90に到達します
+ACHIEVEMENT.XML 662 說明
+  eng: All of your 6 skills reach Level 100.
+  jpn: 習得している技法のレベルが全部Lv100に到達します
+ACHIEVEMENT.XML 663 說明
+  eng: All of your 6 skills reach Level 110.
+  jpn: 習得している技法のレベルが全部Lv110に到達します
+ACHIEVEMENT.XML 664 說明
+  eng: All of your 6 skills reach Level 120.
+  jpn: 習得している技法のレベルが全部Lv120に到達します
+ACHIEVEMENT.XML 665 說明
+  eng: All of your 6 skills reach Level 130.
+  jpn: 習得している技法のレベルが全部Lv130に到達します
+ACHIEVEMENT.XML 666 說明
+  eng: All of your 6 skills reach Level 140.
+  jpn: 習得している技法のレベルが全部Lv140に到達します
+ACHIEVEMENT.XML 667 說明
+  eng: All of your 6 skills reach Level 150.
+  jpn: 習得している技法のレベルが全部Lv150に到達します
+ACHIEVEMENT.XML 668 說明
+  eng: All of your 6 skills reach Level 160.
+  jpn: 習得している技法のレベルが全部Lv160に到達します
+ACHIEVEMENT.XML 688 說明
+  eng: Your character has 500,000 Coins.
+  jpn: 所持金が50万を超えます
+ACHIEVEMENT.XML 689 說明
+  eng: Your character has 1 million Coins.
+  jpn: 所持金が100万を超えます
+ACHIEVEMENT.XML 690 說明
+  eng: Your character has 2 million Coins.
+  jpn: 所持金が200万を超えます
+ACHIEVEMENT.XML 691 說明
+  eng: Your character has 5 million Coins.
+  jpn: 所持金が500万を超えます
+ACHIEVEMENT.XML 692 說明
+  eng: Your character has 10 million Coins.
+  jpn: 所持金が1000万を超えます
+ACHIEVEMENT.XML 693 說明
+  eng: Your character has 20million Coins.
+  jpn: 所持金が2000万を超えます
+ACHIEVEMENT.XML 694 說明
+  eng: Your character has 50 million Coins.
+  jpn: 所持金が5000万を超えます
+ACHIEVEMENT.XML 695 說明
+  eng: Your character has 100 million Coins.
+  jpn: 所持金が1億を超えます
+ACHIEVEMENT.XML 696 說明
+  eng: Your character has 200 million Coins.
+  jpn: 所持金が2億を超えます
+ACHIEVEMENT.XML 697 說明
+  eng: Your character has 500 million Coins.
+  jpn: 所持金が5億を超えます
+ACHIEVEMENT.XML 698 說明
+  eng: Your character has 1 billion Coins.
+  jpn: 所持金が10億を超えます
+ACHIEVEMENT.XML 699 說明
+  eng: Your character has 2 billion Coins.
+  jpn: 所持金が20億を超えます
+ACHIEVEMENT.XML 719 說明
+  eng: You have learnt at least 1 kind of Level 5 Spell or Level 5 Stance.
+  jpn: 習得した『魔術V』や『スキルV』の数が1個を突破
+ACHIEVEMENT.XML 720 說明
+  eng: You have learnt at least 2 kinds of Level 5 Spell or Level 5 Stance.
+  jpn: 習得した『魔術V』や『スキルV』の数が2個を突破
+ACHIEVEMENT.XML 721 說明
+  eng: You have learnt at least 5 kinds of Level 5 Spell or Level 5 Stance.
+  jpn: 習得した『魔術V』や『スキルV』の数が5個を突破
+ACHIEVEMENT.XML 722 說明
+  eng: You have learnt at least 8 kinds of Level 5 Spell or Level 5 Stance.
+  jpn: 習得した『魔術V』や『スキルV』の数が8個を突破
+ACHIEVEMENT.XML 723 說明
+  eng: You have learnt at least 10 kinds of Level 5 Spell or Level 5 Stance.
+  jpn: 習得した『魔術V』や『スキルV』の数が10個を突破
+ACHIEVEMENT.XML 724 說明
+  eng: You have learnt at least 20 kinds of Level 5 Spell or Level 5 Stance.
+  jpn: 習得した『魔術V』や『スキルV』の数が20個を突破
+ACHIEVEMENT.XML 725 說明
+  eng: You have learnt at least 50 kinds of Level 5 Spell or Level 5 Stance.
+  jpn: 習得した『魔術V』や『スキルV』の数が50個を突破
+ACHIEVEMENT.XML 726 說明
+  eng: You have learnt at least 80 kinds of Level 5 Spell or Level 5 Stance.
+  jpn: 習得した『魔術V』や『スキルV』の数が80個を突破
+ACHIEVEMENT.XML 727 說明
+  eng: You have learnt at least 100 kinds of Level 5 Spell or Level 5 Stance.
+  jpn: 習得した『魔術V』や『スキルV』の数が100個を突破
+ACHIEVEMENT.XML 728 說明
+  eng: You have learnt at least 150 kinds of Level 5 Spell or Level 5 Stance.
+  jpn: 習得した『魔術V』や『スキルV』の数が150個を突破
+ACHIEVEMENT.XML 761 說明
+  eng: Your character's max Spell Attack of your character reaches 200.
+  jpn: キャラクターの『魔攻』が500を突破
+ACHIEVEMENT.XML 762 說明
+  eng: Your character's max Spell Attack of your character reaches 500.
+  jpn: キャラクターの『魔攻』が1000を突破
+ACHIEVEMENT.XML 763 說明
+  eng: Your character's max Spell Attack of your character reaches 1,000.
+  jpn: キャラクターの『魔攻』が2000を突破
+ACHIEVEMENT.XML 764 說明
+  eng: Your character's max Spell Attack of your character reaches 2,000.
+  jpn: キャラクターの『魔攻』が5000を突破
+ACHIEVEMENT.XML 765 說明
+  eng: Your character's max Spell Attack of your character reaches 5,000.
+  jpn: キャラクターの『魔攻』が10000を突破
+ACHIEVEMENT.XML 766 說明
+  eng: Your character's max Spell Attack of your character reaches 7,000.
+  jpn: キャラクターの『魔攻』が20000を突破
+ACHIEVEMENT.XML 767 說明
+  eng: Your character's max Spell Attack of your character reaches 10,000.
+  jpn: キャラクターの『魔攻』が25000を突破
+ACHIEVEMENT.XML 768 說明
+  eng: Your character's max Spell Attack of your character reaches 15,000.
+  jpn: キャラクターの『魔攻』が30000を突破
+ACHIEVEMENT.XML 769 說明
+  eng: Your character's max Spell Defense reaches 200.
+  jpn: キャラクターの『魔防』が500を突破
+ACHIEVEMENT.XML 770 說明
+  eng: Your character's max Spell Defense reaches 500.
+  jpn: キャラクターの『魔防』が1000を突破
+ACHIEVEMENT.XML 771 說明
+  eng: Your character's max Spell Defense reaches 1,000.
+  jpn: キャラクターの『魔防』が2000を突破
+ACHIEVEMENT.XML 772 說明
+  eng: Your character's max Spell Defense reaches 2,000.
+  jpn: キャラクターの『魔防』が5000を突破
+ACHIEVEMENT.XML 773 說明
+  eng: Your character's max Spell Defense reaches 4,000.
+  jpn: キャラクターの『魔防』が10000を突破
+ACHIEVEMENT.XML 774 說明
+  eng: Your character's max Spell Defense reaches 6,000.
+  jpn: キャラクターの『魔防』が20000を突破
+ACHIEVEMENT.XML 775 說明
+  eng: Your character's max Spell Defense reaches 8,000.
+  jpn: キャラクターの『魔防』が30000を突破
+ACHIEVEMENT.XML 776 說明
+  eng: Your character's max Spell Defense reaches 10,000.
+  jpn: キャラクターの『魔防』が40000を突破
+ACHIEVEMENT.XML 777 說明
+  eng: Your character's max Spell Defense reaches 15,000.
+  jpn: キャラクターの『魔防』が50000を突破
+ACHIEVEMENT.XML 927 說明
+  eng: Go to [Lost Region] to defeat [Hicalu] at least 10 times.
+  jpn: インスタンス「忘却の場所」のボス「フィーゲル01」を10回倒します
+ACHIEVEMENT.XML 928 說明
+  eng: Go to [Horrible Lost Region] to defeat [Hicalu] at least 10 times.
+  jpn: インスタンス「エキスパート級忘却の場所」のボス「フィーゲル01」を10回倒します
+ACHIEVEMENT.XML 938 說明
+  eng: Go to [Lost Region] to defeat [Hicalu] at least 50 times.
+  jpn: インスタンス「忘却の場所」のボス「フィーゲル01」を50回倒します
+ACHIEVEMENT.XML 939 說明
+  eng: Go to [Horrible Lost Region] to defeat [Hicalu] at least 50 times.
+  jpn: インスタンス「エキスパート級忘却の場所」のボス「フィーゲル01」を50回倒します
+ACHIEVEMENT.XML 949 說明
+  eng: Go to [Lost Region] to defeat [Hicalu] at least 200 times.
+  jpn: インスタンス「忘却の場所」のボス「フィーゲル01」を200回倒します
+ACHIEVEMENT.XML 950 說明
+  eng: Go to [Horrible Lost Region] to defeat [Hicalu] at least 200 times.
+  jpn: インスタンス「エキスパート級忘却の場所」のボス「フィーゲル01」を200回倒します
+ACHIEVEMENT.XML 1039 說明
+  eng: Equip the following appointed yellow attribute equipment, including main hand weapon (Level 40-45), armor (trinkets, mantle, shoes, gloves, headwear and Level 40-44 clothes) and mount/robot ( Level 30-35). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV40-45)、防具(LV40-44ｱｸｾｻﾘ、ﾏﾝﾄ、靴、手袋、頭、服)、乗り物や機甲(LV40-45)。
+ACHIEVEMENT.XML 1040 說明
+  eng: Equip the following appointed yellow attribute equipment, including main hand weapon (Level 60), armor (trinkets, Level 60 mantle, shoes, gloves, headwear and Level 56-59 clothes) and mount/robot ( Level 50-60). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV60)、防具(LV60ｱｸｾｻﾘ、ﾏﾝﾄ、LV56-59靴、手袋、頭、服)、乗り物や機甲(LV50-60)。
+ACHIEVEMENT.XML 1041 說明
+  eng: Equip the following appointed yellow attribute equipment, including main hand weapon (Level 80), armor (trinkets, Level 80 mantle, shoes, gloves, headwear and Level 76-79 clothes) and mount/robot ( Level 75). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV80)、防具(LV80ｱｸｾｻﾘ、ﾏﾝﾄ、LV76-79靴、手袋、頭、服)、乗り物や機甲(LV75)。
+ACHIEVEMENT.XML 1042 說明
+  eng: Equip the following appointed yellow attribute equipment, including main hand weapon (Level 100), armor (trinkets, Level 100 mantle, shoes, gloves, headwear and Level 100 clothes) and mount/robot ( Level 100). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV100)、防具(LV100ｱｸｾｻﾘ、ﾏﾝﾄ、靴、手袋、頭、服)、乗り物や機甲(LV100)。
+ACHIEVEMENT.XML 1043 說明
+  eng: Equip the following appointed yellow attribute equipment, including main hand weapon (Level 120), armor (trinkets, Level 120 mantle, shoes, gloves, headwear and Level 120 clothes) and mount/robot ( Level 120). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV120)、防具(LV120ｱｸｾｻﾘ、ﾏﾝﾄ、靴、手袋、頭、服)、乗り物や機甲(LV120)。
+ACHIEVEMENT.XML 1044 說明
+  eng: Equip the following appointed yellow attribute equipment, including main hand weapon (Level 130), armor (trinkets, Level 130 mantle, shoes, gloves, headwear and Level 130 clothes) and mount/robot ( Level 130). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV130)、防具(LV130ｱｸｾｻﾘ、ﾏﾝﾄ、靴、手袋、頭、服)、乗り物や機甲(LV130)。
+ACHIEVEMENT.XML 1045 說明
+  eng: Equip the following appointed yellow attribute equipment, including main hand weapon (Level 140), armor (trinkets, Level 140 mantle, shoes, gloves, headwear and Level 140 clothes) and mount/robot ( Level 140). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV140)、防具(LV140ｱｸｾｻﾘ、ﾏﾝﾄ、靴、手袋、頭、服)、乗り物や機甲(LV140)。
+ACHIEVEMENT.XML 1046 說明
+  eng: Equip the following appointed yellow attribute equipment, including main hand weapon (Level 150), armor (trinkets, Level 150 mantle, shoes, gloves, headwear and Level 150 clothes) and mount/robot ( Level 150). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV150)、防具(LV150ｱｸｾｻﾘ、ﾏﾝﾄ、靴、手袋、頭、服)、乗り物や機甲(LV150)。
+ACHIEVEMENT.XML 1047 說明
+  eng: Equip the following appointed yellow attribute equipment, including main hand weapon (Level 160), armor (trinkets, Level 160 mantle, shoes, gloves, headwear and Level 160 clothes) and mount/robot ( Level 160). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV160)、防具(LV160ｱｸｾｻﾘ、ﾏﾝﾄ、靴、手袋、頭、服)、乗り物や機甲(LV160)。
+ACHIEVEMENT.XML 1048 說明
+  eng: Equip the following appointed yellow attribute equipment which have been successfully enhanced 12 times and pierced 5 times, including main hand weapon (Level 60) and armor (shoes, gloves, headwear and Level 56-59 clothes). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備（強化回数12、穴5）を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV60)、防具(LV56-59靴、手袋、頭、服)。
+ACHIEVEMENT.XML 1049 說明
+  eng: Equip the following appointed yellow attribute equipment which have been successfully enhanced 12 times and pierced 5 times, including main hand weapon (Level 100) and armor (shoes, gloves, headwear and Level 100 clothes). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備（強化回数12、穴5）を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV100)、防具(LV100靴、手袋、頭、服)。
+ACHIEVEMENT.XML 1050 說明
+  eng: Equip the following appointed yellow attribute equipment which have been successfully enhanced 12 times and pierced 5 times, including main hand weapon (Level 120) and armor (shoes, gloves, headwear and Level 120 clothes). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備（強化回数12、穴5）を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV120)、防具(LV120靴、手袋、頭、服)。
+ACHIEVEMENT.XML 1051 說明
+  eng: Equip the following appointed yellow attribute equipment which have been successfully enhanced 12 times and pierced 5 times, including main hand weapon (Level 140) and armor (shoes, gloves, headwear and Level 140 clothes). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備（強化回数12、穴5）を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV140)、防具(LV140靴、手袋、頭、服)。
+ACHIEVEMENT.XML 1052 說明
+  eng: Equip the following appointed yellow attribute equipment which have been successfully enhanced 12 times and pierced 5 times, including main hand weapon (Level 160) and armor (shoes, gloves, headwear and Level 160 clothes). Go to find [Angel of Achievements] in the 4 main cities when you are qualified.
+  jpn: 黄色装備（強化回数12、穴5）を着て、各国の「ﾄﾛﾌｨｰ鑑定天使」にて鑑定。武器(LV160)、防具(LV160靴、手袋、頭、服)。
+ACHIEVEMENT.XML 1125 說明
+  eng: The sum of business reaches 500,000 Coins by setting a stall to sell items in a single time.
+  jpn: 1回のバザーで、売り上げが50万を突破
+ACHIEVEMENT.XML 1126 說明
+  eng: The sum of business reaches 1 million Coins by setting a stall to sell items in a single time.
+  jpn: 1回のバザーで、売り上げが100万を突破
+ACHIEVEMENT.XML 1127 說明
+  eng: The sum of business reaches 2 million Coins by setting a stall to sell items in a single time.
+  jpn: 1回のバザーで、売り上げが200万を突破
+ACHIEVEMENT.XML 1128 說明
+  eng: The sum of business reaches 5 million Coins by setting a stall to sell items in a single time.
+  jpn: 1回のバザーで、売り上げが500万を突破
+ACHIEVEMENT.XML 1129 說明
+  eng: The sum of business reaches 10 million Coins by setting a stall to sell items in a single time.
+  jpn: 1回のバザーで、売り上げが1000万を突破
+ACHIEVEMENT.XML 1130 說明
+  eng: The sum of business reaches 20 million Coins by setting a stall to sell items in a single time.
+  jpn: 1回のバザーで、売り上げが2000万を突破
+ACHIEVEMENT.XML 1131 說明
+  eng: The sum of business reaches 50 million Coins by setting a stall to sell items in a single time.
+  jpn: 1回のバザーで、売り上げが5000万を突破
+ACHIEVEMENT.XML 1132 說明
+  eng: The sum of business reaches 100 million Coins by setting a stall to sell items in a single time.
+  jpn: 1回のバザーで、売り上げが1億を突破
+ACHIEVEMENT.XML 1133 說明
+  eng: The sum of business reaches 200 million Coins by setting a stall to sell items in a single time.
+  jpn: 1回のバザーで、売り上げが2億を突破
+ACHIEVEMENT.XML 1134 說明
+  eng: The sum of business reaches 500 million Coins by setting a stall to sell items in a single time.
+  jpn: 1回のバザーで、売り上げが5億を突破
+ACHIEVEMENT.XML 1135 說明
+  eng: The sum of business reaches 1 billion Coins by setting a stall to sell items in a single time.
+  jpn: 1回のバザーで、売り上げが10億を突破
+ACHIEVEMENT.XML 1136 說明
+  eng: The sum of business reaches 2 billion Coins by setting a stall to sell items in a single time.
+  jpn: 1回のバザーでに、売り上げが20億を突破
+ACHIEVEMENT.XML 1137 說明
+  eng: The sum of business reaches 500,000 Coins by setting a stall to purchase items in a single time.
+  jpn: 1回のバザーで、買い取りにかかったお金が50万を突破
+ACHIEVEMENT.XML 1138 說明
+  eng: The sum of business reaches 1 million Coins by setting a stall to purchase items in a single time.
+  jpn: 1回のバザーで、買い取りにかかったお金が100万を突破
+ACHIEVEMENT.XML 1139 說明
+  eng: The sum of business reaches 2 million Coins by setting a stall to purchase items in a single time.
+  jpn: 1回のバザーで、買い取りにかかったお金が200万を突破
+ACHIEVEMENT.XML 1140 說明
+  eng: The sum of business reaches 5 million Coins by setting a stall to purchase items in a single time.
+  jpn: 1回のバザーで、買い取りにかかったお金が500万を突破
+ACHIEVEMENT.XML 1141 說明
+  eng: The sum of business reaches 10 million Coins by setting a stall to purchase items in a single time.
+  jpn: 1回のバザーで、買い取りにかかったお金が1000万を突破
+ACHIEVEMENT.XML 1142 說明
+  eng: The sum of business reaches 20 million Coins by setting a stall to purchase items in a single time.
+  jpn: 1回のバザーで、買い取りにかかったお金が2000万を突破
+ACHIEVEMENT.XML 1143 說明
+  eng: The sum of business reaches 50 million Coins by setting a stall to purchase items in a single time.
+  jpn: 1回のバザーで、買い取りにかかったお金が5000万を突破
+ACHIEVEMENT.XML 1144 說明
+  eng: The sum of business reaches 100 million Coins by setting a stall to purchase items in a single time.
+  jpn: 1回のバザーで、買い取りにかかったお金が1億を突破
+ACHIEVEMENT.XML 1145 說明
+  eng: The sum of business reaches 200 million Coins by setting a stall to purchase items in a single time.
+  jpn: 1回のバザーで、買い取りにかかったお金が2億を突破
+ACHIEVEMENT.XML 1146 說明
+  eng: The sum of business reaches 500 million Coins by setting a stall to purchase items in a single time.
+  jpn: 1回のバザーで、買い取りにかかったお金が5億を突破
+ACHIEVEMENT.XML 1147 說明
+  eng: The sum of business reaches 1 billion Coins by setting a stall to purchase items in a single time.
+  jpn: 1回のバザーで、買い取りにかかったお金が10億を突破
+ACHIEVEMENT.XML 1148 說明
+  eng: The sum of business reaches 2 billion Coins by setting a stall to purchase items in a single time.
+  jpn: 1回のバザーで、買い取りにかかったお金が20億を突破
+ACHIEVEMENT.XML 1149 說明
+  eng: Set a stall to sell at least 20 items in a single time.
+  jpn: 1回のバザーで、売れたアイテムの数が20個を突破
+ACHIEVEMENT.XML 1150 說明
+  eng: Set a stall to sell at least 50 items in a single time.
+  jpn: 1回のバザーで、売れたアイテムの数が50個を突破
+ACHIEVEMENT.XML 1151 說明
+  eng: Set a stall to sell at least 100 items in a single time.
+  jpn: 1回のバザーで、売れたアイテムの数が100個を突破
+ACHIEVEMENT.XML 1152 說明
+  eng: Set a stall to sell at least 200 items in a single time.
+  jpn: 1回のバザーで、売れたアイテムの数が200個を突破
+ACHIEVEMENT.XML 1153 說明
+  eng: Set a stall to sell at least 500 items in a single time.
+  jpn: 1回のバザーで、売れたアイテムの数が500個を突破
+ACHIEVEMENT.XML 1154 說明
+  eng: Set a stall to sell at least 1,000 items in a single time.
+  jpn: 1回のバザーで、売れたアイテムの数が1000個を突破
+ACHIEVEMENT.XML 1155 說明
+  eng: Set a stall to sell at least 2,000 items in a single time.
+  jpn: 1回のバザーで、売れたアイテムの数が2000個を突破
+ACHIEVEMENT.XML 1156 說明
+  eng: Set a stall to sell at least 4,000 items in a single time.
+  jpn: 1回のバザーで、売れたアイテムの数が4000個を突破
+ACHIEVEMENT.XML 1157 說明
+  eng: Set a stall to sell at least 6,000 items in a single time.
+  jpn: 1回のバザーで、売れたアイテムの数が6000個を突破
+ACHIEVEMENT.XML 1158 說明
+  eng: Set a stall to purchase at least 20 items in a single time.
+  jpn: 1回のバザーで、買い取れたアイテムの数が20個を突破
+ACHIEVEMENT.XML 1159 說明
+  eng: Set a stall to purchase at least 50 items in a single time.
+  jpn: 1回のバザーで、買い取れたアイテムの数が50個を突破
+ACHIEVEMENT.XML 1160 說明
+  eng: Set a stall to purchase at least 100 items in a single time.
+  jpn: 1回のバザーで、買い取れたアイテムの数が100個を突破
+ACHIEVEMENT.XML 1161 說明
+  eng: Set a stall to purchase at least 200 items in a single time.
+  jpn: 1回のバザーで、買い取れたアイテムの数が200個を突破
+ACHIEVEMENT.XML 1162 說明
+  eng: Set a stall to purchase at least 500 items in a single time.
+  jpn: 1回のバザーで、買い取れたアイテムの数が500個を突破
+ACHIEVEMENT.XML 1163 說明
+  eng: Set a stall to purchase at least 1,000 items in a single time.
+  jpn: 1回のバザーで、買い取れたアイテムの数が1000個を突破
+ACHIEVEMENT.XML 1164 說明
+  eng: Set a stall to purchase at least 2,000 items in a single time.
+  jpn: 1回のバザーで、買い取れたアイテムの数が2000個を突破
+ACHIEVEMENT.XML 1165 說明
+  eng: Set a stall to purchase at least 4,000 items in a single time.
+  jpn: 1回のバザーで、買い取れたアイテムの数が4000個を突破
+ACHIEVEMENT.XML 1166 說明
+  eng: Set a stall to purchase at least 6,000 items in a single time.
+  jpn: 1回のバザーで、買い取れたアイテムの数が6000個を突破
+ACHIEVEMENT.XML 1225 說明
+  eng: Manufacture all of the required items on the Order and submit them with the order together to Suft. You have submitted at least 5.000 Orders in total.
+  jpn: ソフット商会依頼書を5000枚納品します。
+ACHIEVEMENT.XML 1246 說明
+  eng: The max weight you can load reaches 10,000.
+  jpn: 『最大荷重』が1万を突破します
+ACHIEVEMENT.XML 1247 說明
+  eng: The max weight you can load reaches 20,000.
+  jpn: 『最大荷重』が2万を突破します
+ACHIEVEMENT.XML 1248 說明
+  eng: The max weight you can load reaches 30,000.
+  jpn: 『最大荷重』が3万を突破します
+ACHIEVEMENT.XML 1249 說明
+  eng: The max weight you can load reaches 50,000.
+  jpn: 『最大荷重』が5万を突破します
+ACHIEVEMENT.XML 1250 說明
+  eng: The max weight you can load reaches 70,000.
+  jpn: 『最大荷重』が7万を突破します
+ACHIEVEMENT.XML 1251 說明
+  eng: The max weight you can load reaches 100,000.
+  jpn: 『最大荷重』が10万を突破します
+ACHIEVEMENT.XML 1252 說明
+  eng: The max weight you can load reaches 150,000.
+  jpn: 『最大荷重』が15万を突破します
+ACHIEVEMENT.XML 1870 說明
+  eng: There are 3 characters in an account.
+  jpn: アカウント内に三つのキャラクターを所持します
+ACHIEVEMENT.XML 1949 說明
+  eng: The sum of your character's death reaches at least 10,000 times.
+  jpn: キャラクターの戦闘不能回数が1万回を突破
+ACHIEVEMENT.XML 1950 說明
+  eng: The sum of your character's death reaches at least 20,000 times.
+  jpn: キャラクターの戦闘不能回数が2万回を突破
+ACHIEVEMENT.XML 1951 說明
+  eng: The sum of your character's death reaches at least 50,000 times.
+  jpn: キャラクターの戦闘不能回数が5万回を突破
+ACHIEVEMENT.XML 1952 說明
+  eng: The sum of your character's death reaches at least 80,000 times.
+  jpn: キャラクターの戦闘不能回数が8万回を突破
+ACHIEVEMENT.XML 1953 說明
+  eng: The sum of your character's death reaches at least 100,000 times.
+  jpn: キャラクターの戦闘不能回数が10万回を突破
+ACHIEVEMENT.XML 1954 說明
+  eng: The sum of your character's death reaches at least 150,000 times.
+  jpn: キャラクターの戦闘不能回数が15万回を突破
+ACHIEVEMENT.XML 1998 說明
+  eng: You have been defeated by other players 20 times in total when you played mini games (Bingo, Gomoku, Othello and Big-2 included) with them.
+  jpn: ミニゲーム（『ビンゴ』、『リバーシ』、『五目並べ』、『大富豪』）で20回敗北します。
+ACHIEVEMENT.XML 1999 說明
+  eng: You have been defeated by other players 50 times in total when you played mini games (Bingo, Gomoku, Othello and Big-2 included) with them.
+  jpn: ミニゲーム（『ビンゴ』、『リバーシ』、『五目並べ』、『大富豪』）で50回敗北します。
+ACHIEVEMENT.XML 2000 說明
+  eng: You have been defeated by other players 100 times in total when you played mini games (Bingo, Gomoku, Othello and Big-2 included) with them.
+  jpn: ミニゲーム（『ビンゴ』、『リバーシ』、『五目並べ』、『大富豪』）で100回敗北します。
+ACHIEVEMENT.XML 2001 說明
+  eng: You have been defeated by other players 200 times in total when you played mini games (Bingo, Gomoku, Othello and Big-2 included) with them.
+  jpn: ミニゲーム（『ビンゴ』、『リバーシ』、『五目並べ』、『大富豪』）で200回敗北します。
+ACHIEVEMENT.XML 2002 說明
+  eng: You have been defeated by other players 500 times in total when you played mini games (Bingo, Gomoku, Othello and Big-2 included) with them.
+  jpn: ミニゲーム（『ビンゴ』、『リバーシ』、『五目並べ』、『大富豪』）で500回敗北します。
+ACHIEVEMENT.XML 2003 說明
+  eng: You have been defeated by other players 1,000 times in total when you played mini games (Bingo, Gomoku, Othello and Big-2 included) with them.
+  jpn: ミニゲーム（『ビンゴ』、『リバーシ』、『五目並べ』、『大富豪』）で1000回敗北します。
+ACHIEVEMENT.XML 2004 說明
+  eng: You have been defeated by other players 2,000 times in total when you played mini games (Bingo, Gomoku, Othello and Big-2 included) with them.
+  jpn: ミニゲーム（『ビンゴ』、『リバーシ』、『五目並べ』、『大富豪』）で2000回敗北します。
+ACHIEVEMENT.XML 2005 說明
+  eng: You have been defeated by other players 5,000 times in total when you played mini games (Bingo, Gomoku, Othello and Big-2 included) with them.
+  jpn: ミニゲーム（『ビンゴ』、『リバーシ』、『五目並べ』、『大富豪』）で5000回敗北します。
+ACHIEVEMENT.XML 2068 說明
+  eng: Participate in the Holy Battlefield and help carry the crystal to your army's base at least 16 times in a single round.
+  jpn: 聖域戦場の1回の試合で、クリスタルを本陣に16回運び込みます
+ACHIEVEMENT.XML 2069 說明
+  eng: Participate in the Holy Battlefield and help carry the crystal to your army's base at least 20 times in a single round.
+  jpn: 聖域戦場の1回の試合で、クリスタルを本陣に20回運び込みます
+ACHIEVEMENT.XML 2079 說明
+  eng: Play Big-2 with other players and win at least 2,500 times.
+  jpn: ミニゲームの『大富豪』で、累積勝利回数が2500回を突破
+ACHIEVEMENT.XML 2080 說明
+  eng: Play Big-2 with other players and win at least 5,000 times.
+  jpn: ミニゲームの『大富豪』で、累積勝利回数が5000回を突破
+ACHIEVEMENT.XML 2083 說明
+  eng: You have been defeated by other players 10,000 times in total when you played mini games (Bingo, Gomoku, Othello and Big-2 included) with them.
+  jpn: ミニゲーム（『ビンゴ』、『リバーシ』、『五目並べ』、『大富豪』）で10000回敗北します。
+ACHIEVEMENT.XML 2084 說明
+  eng: You have been defeated by other players 20,000 times in total when you played mini games (Bingo, Gomoku, Othello and Big-2 included) with them.
+  jpn: ミニゲーム（『ビンゴ』、『リバーシ』、『五目並べ』、『大富豪』）で20000回敗北します。
+ACHIEVEMENT.XML 2207 說明
+  eng: Your character's max Spell Attack of your character reaches 20,000.
+  jpn: キャラクターの『魔攻』が35000を突破
+ACHIEVEMENT.XML 2208 說明
+  eng: Your character's max Spell Attack of your character reaches 25,000.
+  jpn: キャラクターの『魔攻』が40000を突破
+ACHIEVEMENT.XML 2209 說明
+  eng: Your character's max Spell Attack of your character reaches 30,000.
+  jpn: キャラクターの『魔攻』が45000を突破
+ACHIEVEMENT.XML 2210 說明
+  eng: Your character's max Spell Defense reaches 20,000.
+  jpn: キャラクターの『防御』が50000を突破
+ACHIEVEMENT.XML 2211 說明
+  eng: Your character's max Spell Defense reaches 25,000.
+  jpn: キャラクターの『防御』が60000を突破
+ACHIEVEMENT.XML 2212 說明
+  eng: Your character's max Spell Defense reaches 30,000.
+  jpn: キャラクターの『魔防』が60000を突破
+COLLECTION.XML 1 說明
+  eng: ATK+140, MATK+70
+  jpn: 攻擊+140,魔攻+140
+COLLECTION.XML 3 說明
+  eng: DEF+140, MDEF+70
+  jpn: 防御+140,魔防+140
+COLLECTION.XML 10 說明
+  eng: ATK+160, MATK+80
+  jpn: 攻擊+160,魔攻+160
+COLLECTION.XML 12 說明
+  eng: DEF+160, MDEF+80
+  jpn: 防御+160,魔防+160
+COLLECTION.XML 19 說明
+  eng: ATK+180, MATK+90
+  jpn: 攻擊+180,魔攻+180
+COLLECTION.XML 21 說明
+  eng: DEF+180, MDEF+90
+  jpn: 防御+180,魔防+180
+COLLECTION.XML 28 說明
+  eng: ATK+200, MATK+100
+  jpn: 攻擊+200,魔攻+200
+COLLECTION.XML 30 說明
+  eng: DEF+200, MDEF+100
+  jpn: 防御+200,魔防+200
+COLLECTION.XML 37 說明
+  eng: ATK+240, MATK+120
+  jpn: 攻擊+240,魔攻+240
+COLLECTION.XML 39 說明
+  eng: DEF+240, MDEF+120
+  jpn: 防御+240,魔防+240
+COLLECTION.XML 46 說明
+  eng: ATK+280, MATK+140
+  jpn: 攻擊+280,魔攻+280
+COLLECTION.XML 48 說明
+  eng: DEF+280, MDEF+140
+  jpn: 防御+280,魔防+280
+COLLECTION.XML 55 說明
+  eng: ATK+320, MATK+160
+  jpn: 攻擊+320,魔攻+320
+COLLECTION.XML 57 說明
+  eng: DEF+320, MDEF+160
+  jpn: 防御+320,魔防+320
+COLLECTION.XML 64 說明
+  eng: ATK+360, MATK+180
+  jpn: 攻擊+360,魔攻+360
+COLLECTION.XML 66 說明
+  eng: DEF+360, MDEF+180
+  jpn: 防御+360,魔防+360
+COLLECTION.XML 73 說明
+  eng: ATK+400, MATK+200
+  jpn: 攻擊+400,魔攻+400
+COLLECTION.XML 75 說明
+  eng: DEF+400, MDEF+200
+  jpn: 防御+400,魔防+400
+COLLECTION.XML 82 說明
+  eng: ATK+460, MATK+230
+  jpn: 攻擊+460,魔攻+460
+COLLECTION.XML 84 說明
+  eng: DEF+460, MDEF+230
+  jpn: 防御+460,魔防+460

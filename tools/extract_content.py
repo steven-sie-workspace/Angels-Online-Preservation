@@ -57,7 +57,11 @@ def parse_xml(path):
     que rompen el parser estricto, se cae al parser por regex, que solo lee
     atributos pero nunca falla.
     """
-    txt = path.read_text(encoding='utf-8', errors='replace')
+    return parse_texto(path.read_text(encoding='utf-8', errors='replace'))
+
+
+def parse_texto(txt):
+    """Lo mismo que parse_xml, pero con el texto ya leido (p.ej. de un .pak)."""
     try:
         root = ET.fromstring(txt)
         out, tag = [], None

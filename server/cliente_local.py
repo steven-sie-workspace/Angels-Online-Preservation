@@ -619,6 +619,14 @@ def aplicar_modo_estacion(modo: str = None) -> str:
                                      r'SETTING\ENG\STAGE.XML')
     if raw_stage:
         reemplazos[r'SETTING\ENG\STAGE.XML'] = _parchear_stage_xml(raw_stage, modo_Norm)
+    # Las copias por idioma de tools/idioma_cliente.py (language.ini), si estan.
+    # Se parchean sobre si mismas: _parchear_stage_xml quita el decorado previo
+    # de cada escena antes de poner el nuevo, asi que repetirlo no acumula.
+    for idioma in ('CHT', 'CHS', 'JPN'):
+        ruta_idioma = rf'SETTING\{idioma}\STAGE.XML'
+        raw_idioma = _extraer_archivo_pak(pak26, ruta_idioma)
+        if raw_idioma:
+            reemplazos[ruta_idioma] = _parchear_stage_xml(raw_idioma, modo_Norm)
 
     # Los mapas de decoracion van sueltos en map\, que el cliente lee antes que los paks
     dir_map = ruta_cli / 'map'

@@ -183,4 +183,6 @@ Slot Range     Usage (EN)                           Uso (ES)
    When in doubt about a packet layout, inspect real captured client sessions in `logs/sesiones/*.jsonl` or `logs/proxy/*.jsonl`.
 4. **Use Atomic Transactions:**
    Any script editing character data must use `server/cuentas.py` functions or explicit SQLite transactions and call `cuentas._notificar_cambio(inmediato=True)`.
+5. **Keep Client and Server in Sync / Cliente y servidor sincronizados:**
+   After editing any client `.pak` (or `corpus/content.db`), run `python tools/comprobar_sincronia.py`. It reads the client paks directly and compares every table with `content.db` and `client_tables.json`; exit code 1 means drift. Add `--detalle` to list the ids, `--tabla item9` for one table. The server's own deliberate patches (bound-gear sell price = price/2, seasonal stage decorations) are reported as "expected", not as errors. It only understands the IGG pak layout; the Global client (`SETTING\BASE` + `STRING\STR_*.XML`) is refused with a message.
 

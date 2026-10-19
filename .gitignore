@@ -53,3 +53,6 @@ data/cuentas.bak
 # (tools/npcs_del_cliente.py, tools/objetos_de_mision.py). El historial de
 # git ya guarda la version anterior: subirlos solo es ruido.
 *.antes_*.bak
+
+# Ficheros del cliente que genera tools/idioma_cliente.py (contenido de IGG).
+tools/idioma/salida/
