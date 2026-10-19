@@ -2234,6 +2234,11 @@ RANGO_PERDER_AGRO = 18
 # Oro base que suelta un monstruo, antes del multiplicador del servidor.
 TASA_ORO_BASE = 5
 
+# Swiftness Spell I..V (混亂技能, formula 7, objetivo 地面): salto del jugador
+# a la casilla elegida. No confundir con Swiftness Song (602...), que es el
+# buff de velocidad de ataque de espada.
+SWIFTNESS_SPELL = frozenset((210, 225, 242, 259, 276))
+
 # Lo que aporta cada fuente de velocidad de ataque, en tanto por uno.
 # El valor de Swiftness Song sale de 攻擊速度 en magic.xml: la I trae 5 y la
 # V trae 15, que es el 15% que se midio. Finesse aporta un 10% fijo por

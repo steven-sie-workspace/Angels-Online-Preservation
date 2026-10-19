@@ -9644,6 +9644,17 @@ class Servidor:
                             _cb.cierre_de_dano(yo, yo, ataque=_sub_id, efecto=_ef_ds, es_magia=True),
                         )
 
+                    # Swiftness Spell I..V (formula 7, objetivo 地面): "Moves to the
+                    # appointed place". Mismo salto que Dimension Shift pero sin
+                    # explosion. Antes caia como AOE generico y el jugador no se movia.
+                    if tipo in _cb.SWIFTNESS_SPELL and cx > 0 and cy > 0 and ses.personaje:
+                        ses.personaje.tile_x, ses.personaje.tile_y = cx, cy
+                        MOVE_P = Msg.registry[(0x0005, 's2c', '*')]
+                        ses.enviar_inmediato(
+                            struct.pack('<HIII', 0x0003, yo, cx, cy),
+                            MOVE_P.build(entity_id=yo, cur_x=cx * 32, cur_y=cy * 32, dst_x=cx * 32, dst_y=cy * 32, speed=1000),
+                        )
+
                     blancos = [b for b in bichos.values() if b.vivo and max(abs(b.tile_x - cx), abs(b.tile_y - cy)) <= area]
 
                     if blancos:
