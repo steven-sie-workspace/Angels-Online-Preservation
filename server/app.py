@@ -610,6 +610,36 @@ def _cantidades(ses) -> dict:
     return c
 
 
+# RATON SOSTENIDO. Con el boton apretado el cliente anda hacia el cursor y
+# manda un 0x0004 cada ~250 ms; si en ese rato el cursor pasa por encima de
+# un bicho, el propio cliente lo toma por un clic (0x0016 accion 0x0c y
+# 0x0005) y el personaje se ponia a pegarle sin querer. Medido en
+# 127_0_0_1_16769_20261019_210320, t=38.6: cuatro 0x0004 en 1,2 s y en medio
+# el 0x0016 sobre un Evil Fish a 5 casillas. Los ataques de verdad casi
+# nunca llegan asi: 82 de 106 objetivos nuevos no tenian ni un 0x0004 en el
+# 1,2 s anterior. Mientras dure esa rafaga no se cambia de objetivo; el
+# bicho con el que ya se esta peleando si se sigue atacando (andar pegando,
+# o perseguir a uno que se mueve, tambien llega como rafaga de 0x0004).
+RAFAGA_MOVS = 3
+RAFAGA_SEG = 1.2
+
+
+def _anotar_movimiento(ses, ahora=None):
+    t = getattr(ses, '_movs_recientes', None)
+    if t is None:
+        t = ses._movs_recientes = collections.deque(maxlen=RAFAGA_MOVS)
+    t.append(time.time() if ahora is None else ahora)
+
+
+def _raton_sostenido(ses, ahora=None) -> bool:
+    """True si el jugador esta andando con el boton apretado."""
+    t = getattr(ses, '_movs_recientes', None)
+    if not t or len(t) < RAFAGA_MOVS:
+        return False
+    ahora = time.time() if ahora is None else ahora
+    return ahora - t[0] <= RAFAGA_SEG
+
+
 def _cant_de(ses, ranura: int) -> int:
     return max(1, int(_cantidades(ses).get(int(ranura), 1)))
 
@@ -14840,6 +14870,13 @@ class Servidor:
                 # golpe salga enseguida. Si no, el clic cae dentro de la
                 # cadencia del objetivo anterior y el personaje "lo piensa"
                 # antes de empezar a pegar.
+                if (ent != getattr(ses, 'objetivo_actual', None)
+                        and _raton_sostenido(ses)):
+                    # Solo la vida, como seleccion: ni objetivo ni golpe.
+                    ses.enviar(_cb0.atributo(ent, _m.porcentaje if getattr(_m, 'vivo', False) else 0))
+                    log.info(f"[{addr}] clic en {ent} ignorado: anda con el "
+                             f"raton apretado")
+                    return
                 if getattr(ses, 'objetivo_actual', None) != ent:
                     ses.objetivo_actual = ent
                 if not getattr(_m, 'encantado', False):
@@ -16151,6 +16188,11 @@ class Servidor:
                 # habilidad ni espera a que se le conteste un clic: manda este
                 # 0x0016 y lo repite solo cada ~1,5 s mientras dure el combate.
                 # Medido en Celestia, mundo_201655_173169 t=40.4.
+                if (parametro != getattr(ses, 'objetivo_actual', None)
+                        and _raton_sostenido(ses)):
+                    log.info(f"[{addr}] ataque a {parametro} ignorado: anda "
+                             f"con el raton apretado y el cursor paso por encima")
+                    return
                 import combate as _cb5
                 self.manejar(ses, 0x0006, m, d, addr,
                              struct.pack('<HI', _cb5.ATAQUE_NORMAL, parametro))
@@ -16266,6 +16308,7 @@ class Servidor:
 
         if opcode == 0x0004 and d:
             ses.ultimo_movimiento = time.time()
+            _anotar_movimiento(ses, ses.ultimo_movimiento)
             if getattr(ses, 'puesto', None):
                 ACK = Msg.registry[(0x006D, 's2c', '*')]
                 MOVE = Msg.registry[(0x0005, 's2c', '*')]
@@ -16419,7 +16462,9 @@ class Servidor:
                             ses.objetivo_actual = None
                             log.info(f"[{addr}] objetivo soltado: te alejaste a "
                                      f"{_dist_ahora} casillas del {_bi.nombre}")
-                        elif _dist_ahora <= _alc + 1 and getattr(_bi, 'vivo', False) and not getattr(ses, 'muerto', False):
+                        elif (_dist_ahora <= _alc + 1 and getattr(_bi, 'vivo', False)
+                              and not getattr(ses, 'muerto', False)
+                              and not _raton_sostenido(ses)):
                             import combate as _cb_mv
                             self.manejar(ses, 0x0006, m, d, addr,
                                          struct.pack('<HI', _cb_mv.ATAQUE_NORMAL, _obj))
