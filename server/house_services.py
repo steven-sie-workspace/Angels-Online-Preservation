@@ -39,7 +39,12 @@ RESOURCES = {
 @functools.lru_cache(maxsize=None)
 def xml_rows(name):
     candidates = []
-    for folder in (ROOT / 'extracted_paks').iterdir():
+    paks = ROOT / 'extracted_paks'
+    if not paks.is_dir():
+        # Without the extracted client paks there is no house XML; callers
+        # treat an empty table as "nothing here" instead of crashing.
+        return {}
+    for folder in paks.iterdir():
         low = folder.name.lower()
         match = re.fullmatch(r'update(\d*)', low)
         if low != 'data1' and not match:
