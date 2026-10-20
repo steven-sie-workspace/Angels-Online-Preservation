@@ -56,3 +56,6 @@ data/cuentas.bak
 
 # Ficheros del cliente que genera tools/idioma_cliente.py (contenido de IGG).
 tools/idioma/salida/
+
+# Salida de tools/build_guide.py (12 MB): se genera, no se guarda
+/guide.html
