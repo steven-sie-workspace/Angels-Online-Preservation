@@ -1637,9 +1637,11 @@ def _probar_gm(ses, cuerpo, addr) -> bool:
             _p.album[_args[0]] = int(_args[1])
         _res = _alb.resumen(_p.album)
         _bon = _alb.bonos(_p.album)
+        import misiones as _mis_lg
         _nuevos = _lg.comprobar(_p, getattr(_p, 'logros', None) or [],
-                                stats={'hp_max': getattr(_p, 'hp_max', 0),
-                                       'mp_max': getattr(_p, 'mp_max', 0)})
+                                muertos=_lg.muertos_de(_p),
+                                stats=_lg.stats_de_0042(_stats_ses(ses)),
+                                quest_hecha=lambda q: _mis_lg.mision_completada(_p, q))
         lineas = [
             'Album: total %d (nv %d), bonos %s'
             % (_res['total']['valor'], _res['total']['nivel'],
@@ -1670,12 +1672,9 @@ def _probar_gm(ses, cuerpo, addr) -> bool:
                 cuentas.guardar_casa(ses.usuario, _p.char_id, _c_rb)
             ses.enviar(_cl.aviso("House ball cooldown has been reset! You can host a ball now.", tipo=7, msg_id=_cl.MSG_TEXTO))
             return True
-        if _que == 'logros' and _nuevos:
-            for _l in _nuevos:
-                _lg.otorgar(getattr(_p, 'logros', None) or [], _l)
-            lineas.append('Reclamados %d logros.' % len(_nuevos))
-            if getattr(ses, 'usuario', None):
-                cuentas.guardar_sistemas(ses.usuario, _p.char_id, _p)
+        if _que == 'logros':
+            _reclamados = _refrescar_logros(ses, forzar=True)
+            lineas.append('Reclamados %d logros.' % len(_reclamados))
         ses.enviar(*[_cl.aviso(x, tipo=0) for x in lineas])
         log.info('[%s] /%s -> %s' % (addr, _que, ' | '.join(lineas)))
         return True
@@ -3091,6 +3090,11 @@ def _procesar_muerte_monstruo(ses, m, yo, addr, espera=0.0):
             cuentas.guardar_inventario(ses.usuario, cid, bolsa, _cantidades(ses))
 
         log.info(f"[{addr}] mato un {m.nombre} (entidad {objetivo}); +{exp_ganada} exp, +{oro} oro, {len(drops)} items")
+        if ses.personaje:
+            import logros as _lg_k
+            if _lg_k.cuenta_muerte(ses.personaje, getattr(m, 'npc_type', 0)) and getattr(ses, 'usuario', None):
+                cuentas.guardar_sistemas(ses.usuario, ses.personaje.char_id, ses.personaje)
+            _refrescar_logros(ses)
 
     for _s_pr, _fr_pr, _bot_pr in _repartir_muerte(ses, m):
         try:
@@ -6824,6 +6828,59 @@ def _stats_ses(ses):
                      mejoras=getattr(p, 'mejoras', None) if p else None)
 
 
+def _refrescar_logros(ses, forzar=False):
+    """Vuelve a medir los logros y, si algo cambio, manda el 0x0155 entero.
+
+    El cliente no calcula nada: la ventana Ctrl+A pinta lo ultimo que le
+    llego en el 0x0155 (ver logros.py). Se llama tras matar, subir de nivel
+    y con /logros. Devuelve los ids nuevos."""
+    p = getattr(ses, 'personaje', None)
+    if p is None:
+        return []
+    # Medir cuesta unas decenas de ms: matando en area no se hace en cada
+    # muerte, se agrupa en una pasada cada pocos segundos.
+    ahora = time.time()
+    if not forzar and ahora - getattr(ses, '_logros_t', 0) < 3:
+        if not getattr(ses, '_logros_pendiente', False):
+            ses._logros_pendiente = True
+
+            def _luego(ses=ses):
+                ses._logros_pendiente = False
+                if getattr(ses, 'personaje', None) is not None:
+                    _refrescar_logros(ses)
+            try:
+                asyncio.get_event_loop().call_later(3, _luego)
+            except Exception:
+                ses._logros_pendiente = False
+        return []
+    ses._logros_t = ahora
+    import logros as _lg, clases as _cl, cuentas
+    try:
+        stats = _lg.stats_de_0042(_stats_ses(ses))
+        pkt, nuevos = _lg.actualizar(p, getattr(ses, 'inventario', None), stats=stats)
+    except Exception:
+        log.exception('no se pudieron medir los logros')
+        return []
+    if forzar or nuevos or pkt != getattr(ses, '_ultimo_0155', None):
+        ses._ultimo_0155 = pkt
+        salida = [pkt]
+        for lid in nuevos[:10]:
+            f = _lg.de_id(lid) or {}
+            salida.append(_cl.aviso('Achievement unlocked: %s (+%d pts)'
+                                    % (f.get('nombre') or lid, _lg._num(f.get('puntos'))),
+                                    tipo=7, msg_id=_cl.MSG_TEXTO))
+        if len(nuevos) > 10:
+            salida.append(_cl.aviso('... and %d more achievements.' % (len(nuevos) - 10),
+                                    tipo=7, msg_id=_cl.MSG_TEXTO))
+        ses.enviar(*salida)
+    if getattr(p, '_logros_sin_guardar', False) and getattr(ses, 'usuario', None):
+        cuentas.guardar_sistemas(ses.usuario, p.char_id, p)
+        p._logros_sin_guardar = False
+    if nuevos:
+        log.info('logros nuevos para %s: %s', getattr(p, 'nombre', '?'), nuevos)
+    return nuevos
+
+
 def _otorgar_skill_exp(ses, p, yo, arma_puesta=0, magic_id=0, accion=None):
     """Otorga Skill EXP en cada impacto de ataque o uso de habilidad activa (buff/cura/spell)."""
     if not p or not getattr(p, 'habilidades', None):
@@ -8380,6 +8437,7 @@ class Servidor:
 
         if opcode == 0x0002 and not ses.entity_id:
             # El cliente se autentico. Entra al mundo.
+            ses._t_entrada = time.time()
             # No se validan credenciales: el bloque de 16 B no esta descifrado.
             # Se guarda el AUTH crudo para poder deducir su formato despues.
             if d and d.get('credenciales'):
@@ -9691,7 +9749,8 @@ class Servidor:
                 ses.ia_task.cancel()
             ses.ia_task = asyncio.create_task(_ia_monstruos())
             log.info(f"[{addr}] entro al mundo: '{p.nombre}' entidad={p.entity_id} "
-                     f"char_id={p.char_id} tile=({p.tile_x},{p.tile_y})")
+                     f"char_id={p.char_id} tile=({p.tile_x},{p.tile_y}) "
+                     f"en {time.time() - getattr(ses, '_t_entrada', time.time()):.1f}s")
             log.info(f"[{addr}] (credenciales NO validadas: formato aun sin descifrar)")
             return
 
@@ -15578,6 +15637,7 @@ class Servidor:
                                              p.hp, p.mp, p.habilidades,
                                              hp_max=p.hp_max, mp_max=p.mp_max, sp=getattr(ses, "sp", None), buffs=getattr(ses.personaje, "buffs", None) if ses.personaje else None)
                     cuentas.guardar_inventario(ses.usuario, cid, bolsa, _cantidades(ses))
+                _refrescar_logros(ses)
                 log.info(f"[{addr}] {p.nombre} uso Advancement Stone {item_id} -> SUBIO A NIVEL {p.nivel}!")
                 return
 
@@ -17817,11 +17877,51 @@ class Servidor:
         except Exception as _e_loc:
             log.warning(f"no se pudo sincronizar cliente local: {_e_loc}")
 
+        # Las tablas que el primer login carga de golpe (misiones, items,
+        # bonos de equipo, logros...) se cargan ya, en otro hilo, para que el
+        # primer jugador no espere: en frio entrar al mundo tardaba ~1 min.
+        import threading as _th_pre
+        _th_pre.Thread(target=_precalentar, name='precalentar', daemon=True).start()
+
         # El GM: por consola si se arranco desde una terminal, y por
         # data/gm.txt siempre.
         tareas.append(self._consola_gm())
         tareas.append(self._cola_gm())
         await asyncio.gather(*tareas)
+
+
+def _precalentar():
+    """Arma un login de prueba con un personaje guardado, sin enviarlo ni
+    guardarlo, para que todas las cachés queden cargadas."""
+    t0 = time.time()
+    try:
+        import misiones as _mis, inventario as _inv, logros as _lg
+        _mis._cargar_db()
+        _inv._items_en_memoria()
+        _lg.tabla()
+        import combate as _cb_pre, skills as _sk_pre
+        _cb_pre._datos(0)
+        _sk_pre.nivel_de_magia(1)
+        p = None
+        for cta in (cuentas.cargar().get('cuentas') or {}).values():
+            for pj in cta.get('personajes') or []:
+                p = cuentas.personaje_de(cta, pj.get('ranura', 0))
+                if p is not None:
+                    break
+            if p is not None:
+                break
+        if p is not None:
+            secuencia(p)
+            _inv.stats(p.inventario, p.habilidades, hp=p.hp, hp_max=p.hp_max,
+                       mp=p.mp, mp_max=p.mp_max)
+            try:
+                import clases as _cl_pre
+                _cl_pre.arbol(p.habilidades, banco=getattr(p, 'banco_habilidades', None))
+            except Exception:
+                pass
+        log.info('tablas precargadas en %.1fs', time.time() - t0)
+    except Exception:
+        log.exception('no se pudieron precargar las tablas')
 
 
 def main():

@@ -106,6 +106,7 @@ class Personaje:
     expiracion_puesto: float = 0.0                      # timestamp expiracion tarjeta de puesto (0 = permanente)
     emotes: set = field(default_factory=set)            # {emote_id, ...} adquiridos mediante tarjetas
     quick_emotes: dict = field(default_factory=lambda: {0: -1, 1: -1, 2: -1, 3: -1})  # {slot 0..3: emote_id o -1}
+    contadores: dict = field(default_factory=dict)      # {'mata:<npc_type>': n} para los logros
 
 
 def _cargar_secuencia():
@@ -284,6 +285,15 @@ def secuencia(p: Personaje):
                 elif ent == 21:
                     struct.pack_into('<II', b, 8, 252, 27)
             salida.append(struct.pack('<H', 0x0008) + bytes(b))
+        elif op == 0x0155:
+            # Los logros (ventana Ctrl+A): conseguidos, progreso y puntos.
+            # Ver logros.py; antes se mandaba la plantilla de otro jugador.
+            import logros as _lg
+            try:
+                salida.append(_lg.actualizar(p)[0])
+            except Exception:
+                log.exception('no se pudo armar el 0x0155')
+                salida.append(struct.pack('<H', op) + base)
         elif op == 0x005C:
             import presencia as _pr
             salida.append(_pr.paquete_emotes_desbloqueados(getattr(p, 'emotes', None) or set()))

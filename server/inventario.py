@@ -34,6 +34,7 @@ import pathlib
 import re
 import sqlite3
 import struct
+import threading
 import mascotas as _ms
 import time
 
@@ -1231,6 +1232,49 @@ _SLOT_CACHE = None
 _PET_SPRITE_CACHE = {}
 _PET_DATOS = {}
 
+_ITEMS_MEM = None
+_ITEMS_MEM_LOCK = threading.Lock()
+
+
+def _items_en_memoria():
+    """Una copia en memoria de las tablas de items de content.db, con indice.
+
+    content.db sale sin ningun indice, asi que cada fila_item recorria hasta
+    nueve tablas enteras (item tiene 30.000 filas): unos 50 ms por consulta.
+    Cargar las misiones hace ~680 consultas y el primer login tras arrancar
+    el servidor tardaba mas de medio minuto solo en eso. La copia se hace una
+    vez por proceso (~0,3 s) y no toca el fichero, que esta en git."""
+    global _ITEMS_MEM
+    if _ITEMS_MEM is not None:
+        return _ITEMS_MEM
+    import sqlite3
+    with _ITEMS_MEM_LOCK:
+        if _ITEMS_MEM is None:
+            db = pathlib.Path(__file__).parent.parent / 'corpus' / 'content.db'
+            mem = sqlite3.connect(':memory:', check_same_thread=False)
+            src = sqlite3.connect('file:%s?mode=ro' % db.as_posix(), uri=True)
+            try:
+                src.backup(mem)         # copia por paginas: ~0,2 s los 57 MB
+            finally:
+                src.close()
+            for tabla in TABLAS_ITEM:
+                try:
+                    mem.execute('create index ix_%s_id on %s(id)' % (tabla, tabla))
+                except Exception:
+                    pass
+            mem.commit()
+            _ITEMS_MEM = mem
+    return _ITEMS_MEM
+
+
+def olvidar_items_en_memoria():
+    """Para quien escriba en las tablas de items de content.db: la proxima
+    consulta vuelve a copiarlas."""
+    global _ITEMS_MEM
+    with _ITEMS_MEM_LOCK:
+        _ITEMS_MEM = None
+
+
 def fila_item(con, columnas: str, item_id: int):
     """Busca un item en TODAS las tablas de items, no solo en la primera.
 
@@ -1238,6 +1282,10 @@ def fila_item(con, columnas: str, item_id: int):
     Consultando solo `item`, cualquier cosa de un update posterior quedaba
     como si no existiera: sin ranura, sin peso y sin bonos.
     """
+    try:
+        con = _items_en_memoria()
+    except Exception:
+        pass        # sin copia en memoria, la conexion del llamador
     for tabla in TABLAS_ITEM:
         try:
             fila = con.execute(

@@ -484,19 +484,32 @@ def nivel_de_magia(magic_id: int) -> int:
     if not magic_id:
         return 1
     mid = int(magic_id)
-    if mid in _MAGIC_LV_CACHE:
-        return _MAGIC_LV_CACHE[mid]
+    if not _MAGIC_LV_CACHE:
+        _cargar_niveles_de_magia()
+    return _MAGIC_LV_CACHE.get(mid, 1)
+
+
+def _cargar_niveles_de_magia():
+    """Todos los 法術等級 de magic.xml de una vez. Antes era una consulta por
+    hechizo, sin indice, abriendo content.db cada vez: ~16 ms cada una, y
+    otorgar_hechizos pregunta por todos los que sabe el personaje (mas de
+    mil a nivel alto), asi que entrar al mundo tardaba unos 18 s."""
     if not DB_PATH.exists():
-        return 1
+        _MAGIC_LV_CACHE[0] = 1
+        return
     try:
         con = sqlite3.connect(DB_PATH)
-        row = con.execute('SELECT "法術等級" FROM magic WHERE id = ?', (str(mid),)).fetchone()
-        con.close()
-        lv = int(float(row[0])) if row and row[0] else 1
-        _MAGIC_LV_CACHE[mid] = lv
-        return lv
+        try:
+            for i, v in con.execute('SELECT id, "法術等級" FROM magic'):
+                try:
+                    _MAGIC_LV_CACHE[int(i)] = int(float(v)) if v else 1
+                except (TypeError, ValueError):
+                    continue
+        finally:
+            con.close()
     except Exception:
-        return 1
+        pass
+    _MAGIC_LV_CACHE.setdefault(0, 1)
 
 
 # ------------------------------------------------- nombres de rama en comandos

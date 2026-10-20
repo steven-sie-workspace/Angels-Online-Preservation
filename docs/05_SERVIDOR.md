@@ -110,7 +110,7 @@ C -> S  0x0004 MOVE_REQ          ya es juego normal
 | 2 | `0x0014` | 7 | sin identificar |
 | 3 | `0x0002` | **4118** | **ficha del personaje** |
 | 4 | `0x001E` | 4 | sin identificar |
-| 5 | `0x0155` | **7204** | **tablas de probabilidad** |
+| 5 | `0x0155` | **7204** | **logros** (conseguidos, progreso, puntos) |
 | 6 | `0x0156` | 40 | sin identificar |
 | 7 | `0x012A` | 21 | sin identificar |
 | 8 | `0x005C` | 37 | 37 bytes en cero, siempre |
@@ -216,7 +216,23 @@ Todas de espada y cuerpo a cuerpo, **coherente con el personaje de `0x0002`**
 (espada 38, hacha 37). Dos mensajes independientes describiendo al mismo
 guerrero.
 
-## `0x0155` RATE_TABLES  [RESUELTO]
+## `0x0155` LOGROS  [RESUELTO 20/10/2026]
+
+**Corregido: no son tablas de probabilidad, son los logros** (ventana
+Ctrl+A). Las "curvas" eran el progreso de series como "nivel 20, 40, 60..."
+visto con el personaje a nivel 38:
+
+```
++0     800 B   bitset de conseguidos (bit id)
++800  6400 B   progreso 0..100, un byte por logro en 800+id
++7200  U32     puntos de logro
+```
+
+Verificado contra las dos capturas (bits = los que estan al 100, cola = suma
+de puntos) y reconstruido byte a byte. Lo arma `server/logros.py`
+(`paquete`, `actualizar`). Lo de abajo es el analisis viejo, equivocado.
+
+### Analisis anterior (equivocado)
 
 7204 bytes fijos. **No es el inventario**, como suponia el proyecto anterior.
 

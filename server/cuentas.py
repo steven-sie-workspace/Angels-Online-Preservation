@@ -713,6 +713,7 @@ def personaje_de(cuenta, ranura=0):
         expiracion_puesto=_exp_puesto,
         emotes={int(x) for x in (p.get('emotes') or [])},
         quick_emotes={int(k): int(v) for k, v in (p.get('quick_emotes') or {0: -1, 1: -1, 2: -1, 3: -1}).items()},
+        contadores={str(k): int(v) for k, v in (p.get('contadores') or {}).items()},
     )
 
 
@@ -961,6 +962,7 @@ def guardar_sistemas(usuario: str, char_id: int, p):
         fila['album'] = {str(k): int(v)
                          for k, v in (getattr(p, 'album', None) or {}).items()}
         fila['logros'] = sorted({int(x) for x in (getattr(p, 'logros', None) or [])})
+        fila['contadores'] = {str(k): int(v) for k, v in (getattr(p, 'contadores', None) or {}).items()}
         fila['cartas'] = sorted({int(x) for x in (getattr(p, 'cartas', None) or [])})
         fila['permisos'] = sorted({str(x) for x in (getattr(p, 'permisos', None) or [])})
         fila['estrellas'] = [list(x) for x in (getattr(p, 'estrellas', None) or [])]

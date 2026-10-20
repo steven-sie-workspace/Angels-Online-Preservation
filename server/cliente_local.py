@@ -408,6 +408,8 @@ def registrar_medalla_en_servidor():
                 )
                 con.commit()
                 log.info("Item 83266 (Rank Promotion Medal) registrado en corpus/content.db")
+                import inventario as _inv_mem
+                _inv_mem.olvidar_items_en_memoria()
             con.close()
         except Exception as e:
             log.warning(f"No se pudo registrar 83266 en content.db: {e}")

@@ -218,6 +218,7 @@ def poner_nivel(ses, n: int) -> str:
         if added:
             cuentas.guardar_clase(ses.usuario, cid, p.class_id)
             cuentas.guardar_banco_habilidades(ses.usuario, cid, p.banco_habilidades)
+    a._refrescar_logros(ses)
     extra = f", {len(added)} extra skill slot(s)" if added else ""
     return f"level {p.nivel}{extra}"
 
@@ -263,6 +264,7 @@ def poner_skills(ses, n: int) -> str:
                                  hp_max=p.hp_max, mp_max=p.mp_max)
         if getattr(p, 'banco_habilidades', None):
             cuentas.guardar_banco_habilidades(ses.usuario, cid, p.banco_habilidades)
+    a._refrescar_logros(ses)
     return f"skills {n} ({len(p.habilidades)} current)"
 
 
