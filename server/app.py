@@ -1564,7 +1564,7 @@ def _probar_gm(ses, cuerpo, addr) -> bool:
     if leido[0] == 'help':
         ses.enviar(_cl.aviso(
             'GM: /item <id> [qty] | /level <n> | /levelall <n> | /skills [lv] | /skillsall [lv] | /skills5 | /clearskills | '
-            '/pet level|exp|path|evolve | /rango [1..20] | '
+            '/pet level|exp|path|evolve|star | /rango [1..20] | '
             '/estacion <normal|navidad|halloween|sakura|verano> | /emote <0..36> | /emote unlock <id> | /emote unlockall | /emote list',
             tipo=0, msg_id=_cl.MSG_TEXTO))
         log.info('[%s] GM help' % (addr,))

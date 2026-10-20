@@ -603,6 +603,24 @@ def subir_estrella(ficha: dict, cantidad: int = 1) -> int:
     return nuevo
 
 
+def poner_estrella(ficha: dict, nivel: int) -> int:
+    """Pone la mascota en un nivel de estrella exacto (1..80), para el GM.
+    Sortea cada bono verde dentro de la franja de pet_star.xml de ese nivel,
+    igual que subir_estrella, asi los bonos cuadran con la estrella."""
+    import random
+    nivel = max(1, min(80, int(nivel)))
+    sp = int(ficha.get('sprite') or 0)
+    tabla = cargar_pet_star()
+    bonos = {}
+    for k in rangos_bonos_de(sp):
+        req_lo = (tabla.get(nivel) or {}).get(k, 1)
+        req_hi = (tabla.get(nivel + 1) or {}).get(k, req_lo + 5) if nivel < 80 else req_lo + 1
+        bonos[k] = random.randint(req_lo, req_hi - 1) if req_hi > req_lo + 1 else req_lo
+    ficha['bonos'] = bonos
+    ficha['estrellas'] = nivel
+    return nivel
+
+
 def mejorar_mascota(ficha: dict) -> tuple:
     """Aplica un Improved Pet Feed (寵物強化): sube el contador de intensificacion (+1..+15,
     que el cliente muestra como 'has been intensified ( N ) times' en e[83] y +N en defensas

@@ -60,7 +60,7 @@ MALL = (
 
 AYUDA = ("GM: /item <id> [qty]  /gold <amount>  /mall [no] [qty]  /level <n>  /levelall <n>  /guildlevel <1..10>  /guildrep <n>  "
          "/skills [lv]  /skillsall [lv]  /skills5  /clearskills  "
-         "/pet level|exp|path|evolve  /ball reset  /quest <id> <step>  "
+         "/pet level|exp|path|evolve|star  /ball reset  /quest <id> <step>  "
          "/rango [1..20]  /estacion <normal|navidad|halloween|sakura|verano>  /farm enter  /plant <id>")
 
 
@@ -373,9 +373,9 @@ def _ficha_pet(ses):
 
 
 def _pet(ses, args) -> tuple:
-    """/pet level <n> [exp] | /pet exp <n> | /pet path 1|2 | /pet evolve 1|2."""
+    """/pet level <n> [exp] | /pet exp <n> | /pet path 1|2 | /pet evolve 1|2 | /pet star <x>."""
     import mascotas as _ms
-    uso = 'usage: /pet level <n> [exp] | /pet exp <n> | /pet path 1|2 | /pet evolve 1|2'
+    uso = 'usage: /pet level <n> [exp] | /pet exp <n> | /pet path 1|2 | /pet evolve 1|2 | /pet star <0.1..8.0>'
     if not args:
         return uso, []
     sub = str(args[0]).lower()
@@ -413,6 +413,39 @@ def _pet(ses, args) -> tuple:
             return 'usage: /pet path 1|2', []
         f['rama'] = ramas[str(args[1]).lower()]
         msg = f'pet path {f["rama"]}'
+    elif sub in ('star', 'stars', 'estrella', 'estrellas'):
+        # /pet star 3.5  -> 3.5 estrellas (nivel interno 35, de 0.1 a 8.0)
+        try:
+            st = round(float(args[1]) * 10) if len(args) >= 2 else 0
+        except ValueError:
+            st = 0
+        if not 1 <= st <= 80:
+            return 'usage: /pet star <0.1..8.0>', []
+        _ms.poner_estrella(f, st)
+        msg = f'pet star level {st / 10.0:.1f}'
+        # Los bonos verdes viajan en la entrada de la mochila (+148..+176),
+        # no en el 0x0065: hay que refrescar la casilla, igual que la
+        # Star-up Card en app.py, o el cliente sigue con los viejos.
+        import combate as _cb
+        import cuentas as _cta
+        a = _app()
+        p = ses.personaje
+        r_pet = f.get('ranura')
+        if r_pet is not None and getattr(p, 'mascotas', None) is not None:
+            p.mascotas[str(r_pet)] = f
+        extra = list(a._refrescar(ses, [r_pet])) if r_pet is not None else []
+        extra.append(_ms.armar(f))
+        if f.get('fuera') and f.get('entidad'):
+            eid = int(f['entidad'])
+            extra.append(_cb.atributo(eid, _ms.hp_eff(f), _cb.KIND_HP))
+            extra.append(struct.pack('<HIBBI', 0x0013, eid, 1, 0x42, st))
+        try:
+            a._guardar_bolsa(ses, p.char_id)
+            if getattr(ses, 'usuario', None):
+                _cta.guardar_mascota(ses.usuario, p.char_id, f, getattr(p, 'mascotas', None))
+        except Exception:
+            log.exception('GM /pet star save')
+        return msg, extra
     elif sub in ('evolve', 'evolucionar'):
         if len(args) < 2 or str(args[1]).lower() not in ramas:
             return 'usage: /pet evolve 1|2', []
