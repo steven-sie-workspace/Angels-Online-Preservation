@@ -236,7 +236,7 @@ MODO_ESTACION = 'normal'
 # de entorno AO_CLIENTE, esta ruta, los sitios habituales de instalacion, y
 # los vecinos del propio repo -- que es lo normal, el cliente al lado del
 # servidor. Dejarla vacia tambien vale.
-RUTA_CLIENTE = r'C:\AO\Angels Online'
+RUTA_CLIENTE = r'C:\Users\Steven Sie\Documents\GitHub\Claude\ao\client'
 PUERTO_UPDATE_FTP = 2121
 # 8080 cae dentro de un intervalo TCP reservado por Windows en algunas
 # instalaciones (por ejemplo 8067-8166), lo que produce WinError 10013 aun
