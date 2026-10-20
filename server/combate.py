@@ -852,9 +852,59 @@ _DROP_OFICIAL_CACHE = {}
 # En los XML de las dos instancias Chaos todos los monstruos vienen marcados
 # con 王, incluidos los mobs comunes.  Esa marca sirve para sus inmunidades,
 # pero no significa que todos tengan botin garantizado.  achievement.xml es
-# mas preciso: identifica como Boss/C-Boss a estos tres NPC.
+# mas preciso. En Dinosaur Arena los cuatro jefes de progresion se distinguen
+# por sus cientos de millones de HP; en End Time los jefes 23709..23714 tienen
+# a la vez marca 王 y drop_id propio. Ba'shin's Gaze es el guardian de ambas
+# instancias y tambien conserva botin garantizado en sus dos variantes.
 _MONSTRUOS_CHAOS = frozenset(range(23673, 23725)) | {23745, 23839}
-_JEFES_CHAOS = frozenset({23688, 23714, 23839})
+_JEFES_CHAOS = frozenset({
+    # Chaos-Dinosaur Arena
+    23684, 23685, 23687, 23688, 23724,
+    # Chaos-End Time
+    23709, 23710, 23711, 23712, 23713, 23714, 23745, 23839,
+})
+
+
+_TIPOS_DE_TROPA = None
+
+
+def es_de_tropa(npc_type: int) -> bool:
+    """Si ese tipo sale en GRUPO (mas de 2 en un mismo mapa): monstruo comun.
+
+    Muchas instancias marcan con 王 a casi todo -- Leviathan's Bedroom a 540
+    bichos, Botti Palace a 422, la Dinosaur Arena a 350 -- y con eso todos
+    soltaban botin al 100%, como un jefe, y llenaban la mochila. Un jefe sale
+    uno (o dos) por mapa; lo que sale en tropa no lo es aunque lleve la marca.
+    Se cuenta en las plantillas y en las zonas que saca el mapa por evento.
+    """
+    global _TIPOS_DE_TROPA
+    if _TIPOS_DE_TROPA is None:
+        import collections as _co
+        import json as _js
+        tropa = set()
+        try:
+            import login as _lg_t
+            for f in set(_lg_t.PLANTILLAS_POR_STAGE.values()):
+                try:
+                    d = _js.loads((pathlib.Path(__file__).parent / 'plantillas' / f)
+                                  .read_text(encoding='utf-8'))
+                except Exception:
+                    continue
+                c = _co.Counter(int(e.get('npc_type') or 0) for e in d.get('spawns', [])
+                                if e.get('monstruo') and not e.get('apagado'))
+                tropa |= {t for t, n in c.items() if n > 2}
+        except Exception:
+            pass
+        try:
+            import eventos as _ev_t
+            for d in _ev_t._datos()['stages'].values():
+                for g in (d.get('generadores') or {}).values():
+                    if int(g.get('cuantos') or 0) > 2:
+                        tropa |= {int(t) for t in g.get('tipos') or []}
+        except Exception:
+            pass
+        _TIPOS_DE_TROPA = frozenset(tropa)
+    return int(npc_type or 0) in _TIPOS_DE_TROPA
 
 
 def _cargar_drops_plantilla() -> dict:
@@ -1100,7 +1150,7 @@ def botin_items(npc_type: int, nombre: str = '', nivel: int = 0) -> list:
     # tienen botin al 100%; los demas pasan por la probabilidad normal. Fuera
     # de esos mapas se conserva el comportamiento previo de los jefes.
     jefe_garantizado = (npc_type in _JEFES_CHAOS if npc_type in _MONSTRUOS_CHAOS
-                        else es_jefe(npc_type))
+                        else (es_jefe(npc_type) and not es_de_tropa(npc_type)))
     if jefe_garantizado:
         drops.append(random.choice(candidatos))
         return drops
