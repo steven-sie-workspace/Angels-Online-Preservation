@@ -1330,11 +1330,18 @@ def _ficha(p, base):
     # Bit 0x80000000 permite que el cliente ejecute los botones de WND_HOUSEINFO (Show, Take Back, Decorate)
     # y valida la condicion (*(_DWORD *)(player + 480) & 0x80000000) en Angel.exe (sub_5BA840..sub_5BA8F0)
     d['flags'] = 0x80000000
+    if getattr(p, 'alma', False):
+        # Bit de alma (+0x1e0): sub_5E9C90 le pone el cuerpo de alma.
+        d['flags'] |= 0x08000000
     # En 0x0002, el mapa/stage real va en el offset 3953 (offset 3235 dentro de 'resto')
     r = bytearray(d['resto'])
 
     if len(r) >= 3239:
         struct.pack_into('<I', r, 3235, p.stage)
+        # El mapa donde se revive (Cupid). Angel.exe sub_5E9C90 lo copia a
+        # +0x6228 y game.getrebornstring() lo pone en "Return to %s to
+        # revive". La plantilla capturada trae el 41 (Lyceum) fijo.
+        struct.pack_into('<I', r, 3205, int(getattr(p, 'checkpoint_stage', 0) or 41))
         # Suprimir dialogo molesto "Set Deal Password or not?" (*(_BYTE *)(v17 + 632) = 1)
         # El offset en a3 es 3937. Dado que 'resto' empieza en 718: 3937 - 718 = 3219.
         r[3219] = 1

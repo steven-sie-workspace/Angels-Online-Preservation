@@ -1977,6 +1977,94 @@ def _pet_subir(ficha, nivel):
     return ficha
 
 
+def _guardar_mascota_fuera(ses, addr):
+    """Guarda la mascota si esta fuera. Al morir no se queda en el mapa."""
+    p = getattr(ses, 'personaje', None)
+    f = getattr(p, 'mascota', None) if p else None
+    if isinstance(f, dict) and f.get('fuera') and f.get('ranura') is not None:
+        _pet_alternar(ses, addr, int(f['ranura']))
+
+
+def _poner_alma(ses, alma: bool, avisar: bool = True):
+    """Entra o sale del estado de alma: en la sesion, en el personaje (para la
+    ficha 0x0002 de cada mapa), en la bolsa (el equipo no suma) y, con
+    `avisar`, en el cliente."""
+    import inventario as _iv_alma
+    import presencia as _pr_alma
+    ses.alma = alma
+    p = getattr(ses, 'personaje', None)
+    if p is not None:
+        p.alma = alma
+    _iv_alma.marcar_alma(getattr(ses, 'inventario', None), alma)
+    if avisar:
+        _pr_alma.notificar_alma(ses, alma)
+    if alma and p is not None:
+        ses.enviar(_stats_ses(ses))
+
+
+# Con cuanto se revive, en por ciento del maximo. Lo demas lo sube la
+# regeneracion, como en el juego: la barra sube desde abajo.
+REVIVIR_PCT = 10
+
+
+def _quitar_buffs(ses):
+    """Al revivir se pierden los buffs de hechizo. Las claves de texto
+    (bonos de casa, bendiciones de sistema) no son buffs del cliente."""
+    p = ses.personaje
+    buffs = getattr(p, 'buffs', None) or {}
+    ids = [b for b in list(buffs) if isinstance(b, int) or str(b).isdigit()]
+    for b in ids:
+        buffs.pop(b, None)
+    if ids:
+        ses.enviar(*[struct.pack('<HIBBII', 0x001D, p.entity_id, 1, 4, int(b), 0)
+                     for b in ids])
+    return ids
+
+
+def _revivir_jugador(ses, addr, stage, x, y, motivo, en_sitio=False):
+    """Revive al jugador muerto (o alma) con REVIVIR_PCT de vida y mana y
+    sin buffs.
+
+    `en_sitio` (el totem): se queda donde esta. El 0x0013 kind 28 sin el
+    bit de alma le rehace el cuerpo y cierra la ventana de muerte (Angel.exe
+    0x5fdca0). Si no, cambia de mapa, aunque sea al mismo, y el 0x0002 que
+    llega al cargar ya va sin el bit.
+    """
+    import combate as _cb_rv
+    p = ses.personaje
+    if getattr(ses, 'alma', False):
+        _poner_alma(ses, False, avisar=en_sitio)
+    ses.muerto = False
+    quitados = _quitar_buffs(ses)
+    p.hp = max(1, _vida_max(p) * REVIVIR_PCT // 100)
+    p.mp = max(0, _mana_max(p) * REVIVIR_PCT // 100)
+    if en_sitio:
+        ses.enviar(_cb_rv.atributo(p.entity_id, p.hp, _cb_rv.KIND_HP),
+                   _cb_rv.atributo(p.entity_id, p.mp, _cb_rv.KIND_MP),
+                   _stats_ses(ses))
+    else:
+        p.stage = stage
+        p.tile_x, p.tile_y = x, y
+        _sincronizar_cambio_mapa(ses, stage, x, y)
+    if quitados:
+        log.info(f"[{addr}] revive sin buffs: {quitados}")
+    if getattr(ses, 'usuario', None):
+        cuentas.guardar_progreso(ses.usuario, p.char_id,
+                                 p.nivel, p.exp, p.hp, p.mp, sp=getattr(ses, "sp", None), buffs=getattr(p, "buffs", None))
+    log.info(f"[{addr}] revive ({motivo}) en stage {stage} ({x},{y})")
+
+
+def _revivir_en_punto(ses, addr, motivo):
+    """Revive en el punto fijado con Cupid, o en el Lyceum si no hay."""
+    p = ses.personaje
+    _revivir_jugador(
+        ses, addr,
+        getattr(p, 'checkpoint_stage', 0) or 41,
+        getattr(p, 'checkpoint_x', 0) or REVIVIR_LYCEUM[0],
+        getattr(p, 'checkpoint_y', 0) or REVIVIR_LYCEUM[1],
+        motivo)
+
+
 def _pet_alternar(ses, addr, ranura):
     """Saca la mascota al mundo, o la guarda si ya estaba fuera.
 
@@ -3176,6 +3264,9 @@ def _velocidad_de(ses) -> int:
         # nada, como la Shamrock Goldfish, suman cero y se quedan en aspecto.
         ms_real = _inv.velocidad_de_montura(bolsa.get(RANURA_MONTURA) or 0)
         ms_moda = _inv.velocidad_de_montura(bolsa.get(174) or 0)
+        if getattr(ses, 'alma', False):
+            # El alma anda a pie: la montura no cuenta hasta revivir.
+            ms_real = ms_moda = 0
         if not ms_real and not ms_moda and not bono_buff:
             return base
         # BONO_MONTURA pisa lo que diga item.xml, pero solo para la montura de
@@ -5111,6 +5202,16 @@ def _aplicar_efectos(ses, addr, efectos, motivo=''):
                     log.info('[%s] evento%s: %s %d -> %d', addr, motivo, campo, act, nuevo)
                 else:
                     sin_hacer.append('propiedad %d' % atr)
+            elif que == 'revivir':
+                # EVENT_ACT 16 REBORN: el totem de la nacion. El alma lo
+                # pulsa y revive ahi mismo (string 793 del cliente).
+                if p and getattr(ses, 'muerto', False):
+                    _revivir_jugador(ses, addr, p.stage, p.tile_x, p.tile_y,
+                                     'totem' + motivo, en_sitio=True)
+            elif que == 'ir_a_revivir':
+                # EVENT_ACT 39 TO_REBORN_POINT: al punto de Cupid.
+                if p and getattr(ses, 'muerto', False):
+                    _revivir_en_punto(ses, addr, 'evento' + motivo)
             elif que == 'objeto_estatico':
                 estado.objetos[int(ef[1])] = int(ef[2])
                 _cambiar_objeto_de_mapa(ses, addr, estado, int(ef[1]), int(ef[2]))
@@ -7440,7 +7541,11 @@ class Servidor:
                 en_combate = (ahora - ultimo_comb) < 4.0
 
                 toca_regen = False
-                if sentado:
+                if getattr(ses, 'muerto', False):
+                    # Muerto o alma: la vida se queda en 0. Si sube, el
+                    # cliente se cree vivo y no deja pasar a alma.
+                    pass
+                elif sentado:
                     toca_regen = True
                 else:
                     if (ahora - ultimo_mov) >= 2.0 and not en_combate:
@@ -7684,6 +7789,9 @@ class Servidor:
                 ses.patrulla_task.cancel()
             if getattr(ses, 'regen_task', None):
                 ses.regen_task.cancel()
+            if getattr(ses, 'alma', False):
+                import inventario as _iv_fin
+                _iv_fin.marcar_alma(getattr(ses, 'inventario', None), False)
             # Guardar donde quedo el personaje y su progreso/buffs, para que al
             # volver a entrar conserve su posicion, HP/MP, SP y buffs activos.
             if getattr(ses, 'personaje', None) and getattr(ses, 'usuario', None):
@@ -8460,6 +8568,12 @@ class Servidor:
                 return
             ses.entity_id = p.entity_id
             ses.personaje = p
+            if int(getattr(p, 'hp', 1) or 0) <= 0:
+                # Salio muerto o siendo alma: vuelve como alma. Antes de la
+                # secuencia, que la ficha 0x0002 lleve ya el bit.
+                ses.muerto = True
+                ses.alma = True
+                p.alma = True
             for sub in secuencia(p):
                 ses.enviar(sub)
             # El inventario va dentro de la secuencia de entrada: el 0x001A
@@ -9175,7 +9289,13 @@ class Servidor:
                                                             _cb.ataque(yo, m.entity_id, 0, _cb.TIPO_MUERTE),
                                                             _cb.atributo(yo, 0, _cb.KIND_HP))
                                                         ses.muerto = True
+                                                        ses.alma = False
+                                                        ses.sentado = False
                                                         m.en_combate_con = None
+                                                        try:
+                                                            _guardar_mascota_fuera(ses, addr)
+                                                        except Exception:
+                                                            log.exception('[%s] no se pudo guardar la mascota al morir', addr)
                                                     else:
                                                         if getattr(m, 'vivo', False) and m.hp > 0:
                                                             pkgs_imp_yo.extend(_procesar_triggers_buffs(ses, yo, m, addr=addr, en_ataque=False))
@@ -9748,6 +9868,12 @@ class Servidor:
             if getattr(ses, 'ia_task', None):
                 ses.ia_task.cancel()
             ses.ia_task = asyncio.create_task(_ia_monstruos())
+            if getattr(ses, 'alma', False):
+                # Ya con la bolsa cargada: el equipo no suma hasta revivir.
+                import inventario as _iv_ent
+                _iv_ent.marcar_alma(getattr(ses, 'inventario', None), True)
+                ses.enviar(_stats_ses(ses))
+                log.info(f"[{addr}] entra como alma (vida 0)")
             log.info(f"[{addr}] entro al mundo: '{p.nombre}' entidad={p.entity_id} "
                      f"char_id={p.char_id} tile=({p.tile_x},{p.tile_y}) "
                      f"en {time.time() - getattr(ses, '_t_entrada', time.time()):.1f}s")
@@ -12272,6 +12398,10 @@ class Servidor:
             import combate as _cb2
             import login as _lg2
             p = ses.personaje
+            if getattr(ses, 'alma', False):
+                # Por si la bolsa es otra: que los stats de este mapa ya
+                # salgan sin el equipo.
+                _iv2.marcar_alma(getattr(ses, 'inventario', None), True)
             ses.monstruos = _monstruos_de(p.stage)
             # Cargar la secuencia completa oficial del nuevo mapa (aparicion, capas, barra, stats, spawns y atributos)
             for sub in _lg2.secuencia(p):
@@ -12458,6 +12588,10 @@ class Servidor:
             except Exception:
                 log.exception('casas: fallo al sincronizar housing en 0x0009')
 
+            # El alma sigue sola: el 0x0002 de arriba lleva el bit en sus
+            # banderas (login._ficha) y el cliente le pone el cuerpo de alma.
+            # NO volver a mandar el kind 28 apagando y encendiendo: el cuerpo
+            # normal se rehace sobre los sprites de alma y sale otro personaje.
             log.info(f"[{addr}] mapa cargado exitosamente: stage {p.stage} "
                      f"tile ({p.tile_x},{p.tile_y})")
             return
@@ -14373,6 +14507,9 @@ class Servidor:
             return
 
         if opcode == 0x002E and ses.rol == 'mundo' and len(cuerpo) >= 4:
+            # Un muerto no usa objetos ni saca la mascota.
+            if getattr(ses, 'muerto', False):
+                return
             import inventario as inv
             import clases as _c
             # DOS FORMAS del mismo mensaje. Cuando el cuerpo trae CINCO bytes
@@ -16744,6 +16881,12 @@ class Servidor:
                     if getattr(ses, 'usuario', None):
                         cuentas.guardar_checkpoint(ses.usuario, _pj.char_id,
                                                    _pj.stage, _pj.tile_x, _pj.tile_y)
+                    # El texto de la ventana de muerte ("Return to %s") sale
+                    # de la ficha 0x0002 (login._ficha), asi que se ve al
+                    # volver a entrar. NO mandar 0x0013 kind 96: su manejador
+                    # (Angel.exe 0x602070) hace ret 0xc y el 0x0013 lo llama
+                    # con dos argumentos; descuadra la pila y el cliente se
+                    # cae.
                     log.info(f"[{addr}] {_pj.nombre} fijo el punto de revivir "
                              f"con Cupid: mapa {_pj.stage} casilla "
                              f"({_pj.tile_x},{_pj.tile_y})")
@@ -17291,19 +17434,24 @@ class Servidor:
                 # cliente al morir y contesta con este 0x0016 [02 00 00 00 00];
                 # el servidor solo tiene que revivir y cambiar el mapa.
                 # Medido en Celestia, mundo_190339_977913 t=684.51.
-                p2 = ses.personaje
-                rev_x = getattr(p2, 'checkpoint_x', 0) or REVIVIR_LYCEUM[0]
-                rev_y = getattr(p2, 'checkpoint_y', 0) or REVIVIR_LYCEUM[1]
-                p2.hp = _vida_max(p2)
-                p2.mp = _mana_max(p2)
-                p2.stage = getattr(p2, 'checkpoint_stage', 0) or 41
-                p2.tile_x, p2.tile_y = rev_x, rev_y
-                ses.muerto = False
-                _sincronizar_cambio_mapa(ses, p2.stage, rev_x, rev_y)
-                if getattr(ses, 'usuario', None):
-                    cuentas.guardar_progreso(ses.usuario, p2.char_id,
-                                             p2.nivel, p2.exp, p2.hp, p2.mp, sp=getattr(ses, "sp", None), buffs=getattr(ses.personaje, "buffs", None) if ses.personaje else None)
-                log.info(f"[{addr}] revive en stage {p2.stage} ({rev_x},{rev_y})")
+                # dead.lua manda tambien netcommand(2, 1) y (2, 2): aceptar o
+                # rechazar que OTRO te reviva. Eso no esta hecho, y el 2 es
+                # "no": ninguno de los dos manda al Lyceum.
+                if parametro != 0:
+                    log.info(f"[{addr}] respuesta {parametro} a revivir por otro jugador: sin hacer")
+                    return
+                _revivir_en_punto(ses, addr, 'ventana de muerte')
+                return
+            if accion == 3 and ses.personaje and getattr(ses, 'muerto', False):
+                # PASAR A ALMA. dead.lua OnOkDeadWnd con la segunda opcion:
+                # netcommand(3) y el aviso 793 ("busca el totem de tu nacion
+                # para revivir, o Esc para volver al punto de reaparicion").
+                # Sigue muerto (vida 0, sin regenerar, sin pegar) pero puede
+                # andar, y los eventos de alma (6, 8, 9) ya miran ses.muerto.
+                # El cliente se queda esperando: hasta que no le llega el
+                # 0x0010 con el bit de alma no deja andar.
+                _poner_alma(ses, True)
+                log.info(f"[{addr}] pasa a alma en stage {ses.personaje.stage}")
                 return
             if accion == 4 and ses.personaje:
                 if getattr(ses, 'puesto', None):

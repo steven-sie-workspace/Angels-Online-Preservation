@@ -464,11 +464,31 @@ def bonos_de_habilidades(habilidades):
     }
 
 
+# Bolsas de los jugadores en ALMA: su equipo no da nada hasta que revivan.
+# Por id, con la propia bolsa de valor para que el id no se reutilice
+# mientras siga aqui.
+_BOLSAS_ALMA = {}
+
+
+def marcar_alma(bolsa, alma: bool):
+    """Con alma=True el equipo de esa bolsa deja de sumar stats."""
+    if bolsa is None:
+        return
+    if alma:
+        _BOLSAS_ALMA[id(bolsa)] = bolsa
+    else:
+        _BOLSAS_ALMA.pop(id(bolsa), None)
+
+
+def es_bolsa_de_alma(bolsa) -> bool:
+    return bolsa is not None and _BOLSAS_ALMA.get(id(bolsa)) is bolsa
+
+
 def bonos_de_equipo(bolsa, mejoras: dict = None) -> dict:
     """Calcula la suma de atributos que otorgan los items equipados en la bolsa (Gear 1..10 y Fashion 167..174)."""
     eq = {'def': 0, 'accuracy': 0, 'agility': 0, 'atk_r': 0, 'atk_l': 0, 'matk': 0, 'mdef': 0, 'hp': 0, 'mp': 0, 'carga': 0,
           'res_body': 0, 'res_mind': 0, 'res_lightning': 0, 'res_fire': 0, 'res_ice': 0, 'res_corrosion': 0}
-    if not bolsa:
+    if not bolsa or es_bolsa_de_alma(bolsa):
         return eq
 
     r_weap_atk = 0
@@ -722,7 +742,7 @@ def modificadores_porcentuales_equipo(bolsa) -> dict:
         'res_elec': 0,
         'res_poison': 0,
     }
-    if not bolsa:
+    if not bolsa or es_bolsa_de_alma(bolsa):
         return res
 
     grupos = {}

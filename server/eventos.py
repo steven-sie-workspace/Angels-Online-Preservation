@@ -492,8 +492,13 @@ def traducir(numero, parms):
         return ('generador', _p(parms, 0), _p(parms, 1))
     if numero == 36:
         return ('tesoro', _p(parms, 0))
-    if numero == 39:
+    if numero == 16:
+        # REBORN: revivir ahi mismo. El totem de la nacion (dialogo del
+        # mapa, nodo con [16, [1]]) cuando lo pulsa un alma.
         return ('revivir',)
+    if numero == 39:
+        # TO_REBORN_POINT: al punto de revivir (Cupid), no ahi mismo.
+        return ('ir_a_revivir',)
     if numero == 41:
         return ('matar_para_avanzar', _p(parms, 0), _p(parms, 1),
                 _p(parms, 2), _p(parms, 3), _p(parms, 4), _p(parms, 5))

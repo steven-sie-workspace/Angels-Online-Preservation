@@ -146,7 +146,8 @@ def _spawn(ses):
     p = getattr(ses, 'personaje', None)
     b = bytearray(PLANTILLA)
     struct.pack_into('<I', b, OFF_ENTIDAD, eid)
-    struct.pack_into('<I', b, 4, 0)
+    # Banderas de la entidad (+0x1e0); el alma se ve tambien desde fuera.
+    struct.pack_into('<I', b, 4, BANDERA_ALMA if getattr(ses, 'alma', False) else 0)
     struct.pack_into('<I', b, OFF_X, tx)
     struct.pack_into('<I', b, OFF_Y, ty)
     n = nombre.encode('ascii', 'replace')[:TAM_NOMBRE - 1]
@@ -795,6 +796,52 @@ def notificar_emocion(ses, emote_id: int):
         for s in _vivas(stage):
             if s is not ses:
                 _mandar(s, pkt_pub)
+
+
+# Bit de ALMA en las banderas de la entidad (+0x1e0 en Angel.exe). Lo mira la
+# ventana de muerte (0x5b673a: ShowDeadOptionWindow(bGhost)) y lo escriben el
+# 0x0001 (body +4) y el 0x0010.
+BANDERA_ALMA = 0x08000000
+
+
+# Las banderas de la propia ficha 0x0002 (login._ficha): 0x80000000 deja usar
+# los botones de la casa. Las de los demas (0x0001) van a 0.
+BANDERAS_PROPIAS = 0x80000000
+
+# 0x0013 kind 28 = banderas. Angel.exe 0x5fdca0 (la entrada 28 de la tabla de
+# atributos): las copia a +0x1e0 y, si cambio el bit de alma, rehace el
+# cuerpo (0x5fa4e0); si lo quito, cierra la ventana de muerte.
+KIND_BANDERAS = 28
+
+
+def notificar_alma(ses, alma: bool):
+    """Pone o quita el alma: 0x0013 kind 28 y, al ponerla, 0x000A de pie.
+
+    El 0x000A con accion 0 saca al personaje de la accion 7 (muerto) del
+    golpe final; sin eso el alma no anda (0x5ed1c6). Al cambiar de mapa no
+    hace falta: el 0x0002 ya lleva el bit (login._ficha).
+    """
+    p = getattr(ses, 'personaje', None)
+    if not p:
+        return
+    extra = BANDERA_ALMA if alma else 0
+
+    def _pkts(eid, base):
+        out = [struct.pack('<HIBBI', 0x0013, int(eid), 1, KIND_BANDERAS, base | extra)]
+        if alma:
+            out.append(struct.pack('<HIII', 0x000A, int(eid), 0, 0))
+        return out
+
+    ses.enviar(*_pkts(p.entity_id, BANDERAS_PROPIAS))
+    stage = getattr(ses, '_mapa_presencia', None)
+    if stage is None:
+        stage = clave_de_mapa(ses, getattr(p, 'stage', None))
+    if stage is not None:
+        pkts = _pkts(entidad_de(ses), 0)
+        for s in _vivas(stage):
+            if s is not ses:
+                for pkt in pkts:
+                    _mandar(s, pkt)
 
 
 def notificar_emocion_entidad(stage, entity_id: int, emote_id: int):
