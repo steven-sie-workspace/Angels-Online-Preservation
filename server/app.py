@@ -399,8 +399,12 @@ def _monstruos_de(stage: int):
         f = plantillas / nombre
         if f.exists():
             d = json.loads(f.read_text(encoding='utf-8'))
+            # La casilla, la misma que manda login.poblar: los puntos de la
+            # plantilla caen a veces en agua o pared (login.casillas_de_plantilla).
+            _casillas = _lg.casillas_de_plantilla(stage, d.get('spawns', []))
             bichos = {e['entity_id']: combate.Monstruo(e['entity_id'], e['npc_type'],
-                                                     e['nombre'], e['tile'],
+                                                     e['nombre'],
+                                                     list(_casillas.get(e['entity_id'], e['tile'])),
                                                      e.get('sprite', 0), stage=stage)
                     for e in d.get('spawns', []) if e.get('monstruo') and not e.get('apagado')}
             # La ZONA de su generador (tools/zonas_de_plantilla.py): la miran
@@ -415,6 +419,7 @@ def _monstruos_de(stage: int):
         for item in _lg.PLAYGROUND_MONSTERS[stage]:
             eid, ntype, nom, tile = item[:4]
             sp = item[4] if len(item) > 4 else (_lg.sprite_de(ntype, 42107) if ntype == 224 else _lg.sprite_de(ntype, 0))
+            tile = combate.casilla_de_aparicion(stage, tile, ntype)
             bichos[eid] = combate.Monstruo(eid, ntype, nom, tile, sprite=sp, stage=stage)
     # TOTEM WAR: el totem del centro de las arenas 200..207 (totem_war.py).
     import totem_war as _tw_m
@@ -2811,14 +2816,7 @@ def _invocar_lord_playground(ses, lord_type: int, lord_nombre: str, m_muerto, ad
     st = ses.personaje.stage if ses.personaje else 42
     nombre_mapa = {42: 'East Playground', 43: 'West Playground'}.get(st, f'Playground ({st})')
 
-    orig_x, orig_y = m_muerto.tile_x, m_muerto.tile_y
-    spawn_pos = (orig_x, orig_y)
-    if not _transitable.se_pisa(st, orig_x, orig_y):
-        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (1, 1), (-1, 1), (1, -1)):
-            nx, ny = orig_x + dx, orig_y + dy
-            if _transitable.se_pisa(st, nx, ny):
-                spawn_pos = (nx, ny)
-                break
+    spawn_pos = tuple(_cb.casilla_de_aparicion(st, (m_muerto.tile_x, m_muerto.tile_y)))
 
     _SIG_LORD_PLAYGROUND[0] += 1
     lord_eid = _SIG_LORD_PLAYGROUND[0]
@@ -6451,6 +6449,8 @@ def _poner_generado(ses, eid, npc_type, tile, zona):
             log.info('NPC de evento %s (%d) en %s, zona %d', _npc_g[0], npc_type, tuple(tile), zona)
             return None
     _st = getattr(getattr(ses, 'personaje', None), 'stage', None)
+    # Los puntos de zona del .mpc tambien caen a veces en agua o pared.
+    tile = _cb_g.casilla_de_aparicion(_st, tile, npc_type)
     m = _cb_g.Monstruo(eid, npc_type, nombre, list(tile), sprite, stage=_st)
     m.generado = True
     m.zona_generador = int(zona)
@@ -11783,6 +11783,24 @@ class Servidor:
                             cx, cy = _px, _py
                     tile_ef_x = cx
                     tile_ef_y = cy
+
+                # Los saltos del Chaos Mage (Swiftness Spell y Dimension Shift,
+                # 混亂技能, 射程 12) iban tal cual a la casilla pinchada: el
+                # jugador acababa en mitad de un lago o en un tejado. Se acorta
+                # al alcance y se cae en la ultima casilla alcanzable de la
+                # linea; si no hay ninguna, se queda donde esta. El efecto y la
+                # explosion de Dimension Shift van a donde cae de verdad.
+                if ((13595 <= tipo <= 13599 or tipo in _cb.SWIFTNESS_SPELL)
+                        and cx > 0 and cy > 0 and ses.personaje):
+                    _p_salto = ses.personaje
+                    _dest = _transitable.destino_de_salto(
+                        _p_salto.stage, (_p_salto.tile_x, _p_salto.tile_y),
+                        (cx, cy), mag.get('rango') or 12)
+                    if _dest != (cx, cy):
+                        log.info('[%s] salto %s a (%s, %s) corregido a %s', addr, tipo, cx, cy, _dest)
+                        cx, cy = _dest
+                        if tile_ef_x or tile_ef_y:
+                            tile_ef_x, tile_ef_y = cx, cy
 
                 area = max(1, mag.get('area', 1))
                 # Si es de "varios golpes individuales en el area", lo que se ve

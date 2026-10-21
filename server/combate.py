@@ -499,6 +499,41 @@ class _Atacante:
 ATACANTE = _Atacante()
 
 
+def casilla_de_aparicion(stage, tile, npc_type=None, otros=None):
+    """Donde sale de verdad un monstruo cuyo punto es `tile`.
+
+    Si el punto no es alcanzable (agua, pared, tejado: transitable.alcanzable):
+      1. la casilla buena mas cercana, si esta a 5 o menos (la orilla);
+      2. si no, uno de los `otros` puntos alcanzables de su zona -- en las
+         plantillas, los de su mismo tipo --, de entre los cinco mas cercanos;
+         hay generadores cuyo rectangulo es mucho mas grande que la sala
+         (Phoenix Palace: filas enteras de puntos sobre pared);
+      3. si no, la buena mas cercana a 20; y si tampoco, se queda.
+    Los que no se mueven (move_speed 0) se dejan en su sitio si tienen suelo a
+    dos casillas, que desde ahi se les pega; asi las antorchas y pilares de
+    evento no se desplazan. Para la misma entrada da siempre lo mismo: el
+    spawn que ve el cliente (login.poblar) y el Monstruo del servidor tienen
+    que coincidir.
+    """
+    import transitable as _tr
+    x, y = int(tile[0]), int(tile[1])
+    if stage is None or _tr.alcanzable(stage, x, y):
+        return [x, y]
+    d = _datos(npc_type) if npc_type is not None else None
+    if d and d.get('move_speed', 50) == 0 and _tr.casilla_cercana(stage, x, y, radio=2):
+        return [x, y]
+    c = _tr.casilla_cercana(stage, x, y, radio=5)
+    if c is None and otros:
+        buenos = sorted({(int(o[0]), int(o[1])) for o in otros
+                         if _tr.alcanzable(stage, o[0], o[1])},
+                        key=lambda o: ((o[0] - x) ** 2 + (o[1] - y) ** 2, o))[:5]
+        if buenos:
+            c = buenos[(x * 7919 + y * 104729) % len(buenos)]
+    if c is None:
+        c = _tr.casilla_cercana(stage, x, y)
+    return list(c) if c else [x, y]
+
+
 class Monstruo:
     """Un bicho vivo en el mapa."""
 
@@ -775,7 +810,7 @@ class Monstruo:
             for _ in range(10):
                 tx = max(0, self.spawn_x + _r.randint(-radio, radio))
                 ty = max(0, self.spawn_y + _r.randint(-radio, radio))
-                if ((st is None or _tr.se_pisa(st, tx, ty))
+                if ((st is None or _tr.alcanzable(st, tx, ty))
                         and (st not in (168, 176, 413) or _tr.linea_libre(st, (self.spawn_x, self.spawn_y), (tx, ty)))):
                     candidato = (tx, ty)
                     break

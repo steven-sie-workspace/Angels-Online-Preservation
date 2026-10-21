@@ -1176,6 +1176,39 @@ def interactivos_casa(player_level=1):
     return salida
 
 
+_CASILLAS_PLANTILLA = {}
+
+
+def casillas_de_plantilla(stage, spawns):
+    """{entity_id: casilla} de los monstruos de una plantilla, corregidos con
+    combate.casilla_de_aparicion: sus puntos caen a veces en agua o pared.
+    Los otros puntos de su zona son los de su mismo tipo en la plantilla (la
+    'zona' solo la traen unos pocos). Lo usan login.poblar y
+    app._monstruos_de, asi que cliente y servidor los ponen en el mismo sitio.
+    Las capturadas en crudo ('hex') llevan la posicion en sus bytes: tal cual.
+    Se calcula una vez por mapa.
+    """
+    if int(stage) in _CASILLAS_PLANTILLA:
+        return _CASILLAS_PLANTILLA[int(stage)]   # las plantillas no cambian
+    import combate as _cb_cs
+    por_tipo = {}
+    for e in spawns:
+        if e.get('monstruo') and not e.get('hex'):
+            por_tipo.setdefault(e['npc_type'], []).append(e['tile'])
+    res = {}
+    for e in spawns:
+        if e.get('monstruo') and not e.get('hex'):
+            res[e['entity_id']] = tuple(_cb_cs.casilla_de_aparicion(
+                stage, e['tile'], e['npc_type'], otros=por_tipo[e['npc_type']]))
+    _CASILLAS_PLANTILLA[int(stage)] = res
+    return res
+
+
+def _casilla_spawn(stage, e, spawns):
+    """La casilla de una entrada de plantilla (ver casillas_de_plantilla)."""
+    return casillas_de_plantilla(stage, spawns).get(e['entity_id'], tuple(e['tile']))
+
+
 def poblar(stage: int, player_level=1):
     """NPC, monstruos, portales y totems propios del mapa."""
     if stage == 501:
@@ -1258,7 +1291,7 @@ def poblar(stage: int, player_level=1):
             # Angel Michael y los totems igual. El suyo es 40006 para Cupid y
             # 60241 para los cuatro totems.
             salida.append(_npc_spawn(e['entity_id'], e['npc_type'],
-                                     e['nombre'], tuple(e['tile']),
+                                     e['nombre'], _casilla_spawn(stage, e, d43['spawns']),
                                      sprite=e.get('sprite', 0),
                                      klass=e.get('klass', 200),
                                      direccion=e.get('direccion'),
@@ -1281,6 +1314,8 @@ def poblar(stage: int, player_level=1):
         for item in PLAYGROUND_MONSTERS[stage]:
             eid, ntype, nom, tile = item[:4]
             sp = item[4] if len(item) > 4 else 0
+            import combate as _cb_pob
+            tile = tuple(_cb_pob.casilla_de_aparicion(stage, tile, ntype))
             salida.append(_npc_spawn(eid, ntype, nom, tile, sprite=sp, klass=1))
         return salida
     f = PLANTILLAS / 'lyceum.json'
@@ -1296,7 +1331,7 @@ def poblar(stage: int, player_level=1):
             salida.append(struct.pack('<H', 0x0008) + bytes.fromhex(e['hex']))
         else:
             salida.append(_npc_spawn(e['entity_id'], e['npc_type'],
-                                     e['nombre'], tuple(e['tile']),
+                                     e['nombre'], _casilla_spawn(stage, e, d['spawns']),
                                      sprite=e.get('sprite', 0),
                                      klass=e.get('klass', 200),
                                      direccion=e.get('direccion'),

@@ -5,8 +5,11 @@ tools/transitable.py en plantillas/transitable.bin (ahi esta explicado de
 donde sale y como se comprobo). Un mapa que no este en el fichero se trata
 como todo transitable, que es como iba antes.
 """
+import logging
 import pathlib
 import struct
+
+log = logging.getLogger(__name__)
 
 _MAPAS = None
 FICHERO = pathlib.Path(__file__).parent / 'plantillas' / 'transitable.bin'
@@ -130,3 +133,152 @@ def avanzar(stage, desde, objetivo, pasos, parar_a=0):
             break  # Un MOVE solo dibuja un segmento, no una ruta doblada.
         _, x, y = mejor
     return x, y
+
+
+# --------------------------------------------------------------------------
+# CASILLAS ALCANZABLES
+#
+# Que una casilla se pise no basta: hay trozos sueltos de suelo en mitad de un
+# lago o en el tejado de una casa a los que ningun jugador llega andando. Se
+# parte el suelo en zonas conexas (a cuatro vecinas) y una zona cuenta como
+# alcanzable si tiene un portal o una llegada de portal (portales.json) o si es
+# grande. Lo de grande es por las salas de mazmorra a las que se entra por un
+# salto del propio mapa: la Gulp Room 4 tiene salas de 1184 y 3230 casillas
+# sin ningun portal. Los trozos sueltos medidos no pasan de ~360 casillas.
+
+ZONA_GRANDE = 500
+PORTALES = pathlib.Path(__file__).parent / 'plantillas' / 'portales.json'
+JUMPMAP = pathlib.Path(__file__).parent / 'plantillas' / 'jumpmap.json'
+_ZONAS = {}
+_ANCLAS = None
+_CERCANAS = {}
+
+
+def _anclas():
+    """{stage: [casillas]} donde se sabe que esta o llega un jugador."""
+    global _ANCLAS
+    if _ANCLAS is None:
+        _ANCLAS = {}
+        try:
+            import json
+            mapas = json.loads(PORTALES.read_text(encoding='utf-8')).get('mapas', {})
+            for st, lista in mapas.items():
+                for por in lista:
+                    if por.get('tile'):
+                        _ANCLAS.setdefault(int(st), []).append(tuple(por['tile'][:2]))
+                    if por.get('llegada') and por.get('destino') is not None:
+                        _ANCLAS.setdefault(int(por['destino']), []).append(tuple(por['llegada'][:2]))
+            # Y las llegadas de jumpmap.xml (Angels GO!, volver a la ciudad).
+            saltos = json.loads(JUMPMAP.read_text(encoding='utf-8')).get('destinos', [])
+            for d in saltos:
+                if d.get('tile') and d.get('stage') is not None:
+                    _ANCLAS.setdefault(int(d['stage']), []).append(tuple(d['tile'][:2]))
+        except Exception:
+            log.debug('anclas de transitable', exc_info=True)
+    return _ANCLAS
+
+
+def _zonas(stage):
+    """(etiqueta por casilla, set de etiquetas alcanzables) del mapa."""
+    st = int(stage or 0)
+    if st in _ZONAS:
+        return _ZONAS[st]
+    w, h, bits = _cargar()[st]
+    pisa = [bool(bits[i >> 3] & (1 << (i & 7))) for i in range(w * h)]
+    lab = [-1] * (w * h)
+    tam = []
+    for i0 in range(w * h):
+        if not pisa[i0] or lab[i0] >= 0:
+            continue
+        c = len(tam)
+        lab[i0] = c
+        pila, n = [i0], 0
+        while pila:
+            i = pila.pop()
+            n += 1
+            x = i % w
+            for j in ((i - 1) if x > 0 else -1, (i + 1) if x < w - 1 else -1, i - w, i + w):
+                if 0 <= j < w * h and pisa[j] and lab[j] < 0:
+                    lab[j] = c
+                    pila.append(j)
+        tam.append(n)
+    buenas = {c for c, n in enumerate(tam) if n >= ZONA_GRANDE}
+    for ax, ay in _anclas().get(st, []):
+        # Las llegadas medidas pueden caer una o dos casillas fuera del suelo.
+        for r in range(4):
+            hit = [lab[(ay + dy) * w + ax + dx]
+                   for dy in range(-r, r + 1) for dx in range(-r, r + 1)
+                   if 0 <= ax + dx < w and 0 <= ay + dy < h and lab[(ay + dy) * w + ax + dx] >= 0]
+            if hit:
+                buenas.add(hit[0])
+                break
+    _ZONAS[st] = (w, lab, buenas)
+    return _ZONAS[st]
+
+
+def alcanzable(stage, x, y):
+    """Si un jugador puede llegar andando a esa casilla (ver arriba)."""
+    if not conocido(stage):
+        return True
+    if not se_pisa(stage, x, y):
+        return False
+    w, lab, buenas = _zonas(stage)
+    return lab[int(y) * w + int(x)] in buenas
+
+
+def casilla_cercana(stage, x, y, radio=20):
+    """La casilla alcanzable mas cercana a (x, y); ella misma si ya lo es.
+
+    Para los puntos de aparicion: las plantillas reparten los monstruos de
+    cada generador en una rejilla cada 5 casillas sobre el rectangulo de la
+    zona, y en los mapas con agua o paredes muchos caian dentro. Entre las de
+    la distancia minima (y una mas, para que no se amontonen en la orilla) se
+    elige una fija por casilla de origen, asi el spawn que ve el cliente y el
+    monstruo del servidor coinciden. None si no hay ninguna en `radio`.
+    """
+    x, y = int(x), int(y)
+    if alcanzable(stage, x, y):
+        return x, y
+    clave = (int(stage or 0), x, y, radio)
+    if clave in _CERCANAS:
+        return _CERCANAS[clave]
+    hallado, mejor = [], None
+    for r in range(1, radio + 1):
+        for dx in range(-r, r + 1):
+            for dy in range(-r, r + 1):
+                if max(abs(dx), abs(dy)) == r and alcanzable(stage, x + dx, y + dy):
+                    hallado.append((dx * dx + dy * dy, x + dx, y + dy))
+        if hallado and mejor is None:
+            mejor = r
+        if mejor is not None and r >= mejor + 1:
+            break
+    res = None
+    if hallado:
+        hallado.sort()
+        tope = hallado[0][0] + 2 * mejor + 1
+        cerca = [(cx, cy) for d, cx, cy in hallado if d <= tope]
+        res = cerca[(x * 7919 + y * 104729) % len(cerca)]
+    _CERCANAS[clave] = res
+    return res
+
+
+def destino_de_salto(stage, desde, hasta, alcance):
+    """Adonde cae un salto (Swiftness Spell, Dimension Shift) de `desde` a `hasta`.
+
+    Primero se acorta al alcance del hechizo (casillas, como el 射程 del
+    magic.xml). Si el sitio no es alcanzable -- agua, tejado, pared -- se
+    recorre la linea de vuelta hacia el jugador y se cae en la primera casilla
+    buena. Si no hay ninguna, el salto no se hace: devuelve `desde`.
+    """
+    (x0, y0), (x1, y1) = (int(desde[0]), int(desde[1])), (int(hasta[0]), int(hasta[1]))
+    n = max(abs(x1 - x0), abs(y1 - y0))
+    alcance = max(0, int(alcance or 0))
+    if n > alcance:
+        x1 = x0 + round((x1 - x0) * alcance / n)
+        y1 = y0 + round((y1 - y0) * alcance / n)
+    if alcanzable(stage, x1, y1):
+        return x1, y1
+    for x, y in reversed(list(_linea((x0, y0), (x1, y1)))[:-1]):
+        if alcanzable(stage, x, y):
+            return x, y
+    return x0, y0
