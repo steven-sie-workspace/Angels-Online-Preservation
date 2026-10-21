@@ -1122,6 +1122,32 @@ def _dueno(ses):
     return getattr(p, 'char_id', None) or getattr(ses, 'char_id', None) or 4980
 
 
+def _guardar_luego(ses, clave, fn):
+    """Deja `fn` para justo despues del mensaje que se esta atendiendo; con la
+    misma `clave` solo corre la ultima. Un hechizo de area que mata a veinte
+    bichos guardaba la ficha entera cuatro veces por baja (~120 ms cada una
+    con un personaje grande) y el cliente veia el hechizo con retraso."""
+    pend = ses.__dict__.get('_guardar_pendiente')
+    if pend is None:
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            fn()                 # sin bucle (pruebas, herramientas): ya
+            return
+        pend = ses.__dict__['_guardar_pendiente'] = {}
+
+        def _vaciar(ses=ses):
+            todo = ses.__dict__.pop('_guardar_pendiente', None) or {}
+            for k, f in todo.items():
+                try:
+                    f()
+                except Exception:
+                    log.exception('guardado aplazado %s', k)
+        loop.call_soon(_vaciar)
+    pend.pop(clave, None)
+    pend[clave] = fn
+
+
 def _refrescar(ses, ranuras, con_oro=False):
     """Los 0x001B de las casillas que cambiaron.
 
@@ -1185,7 +1211,7 @@ def _refrescar(ses, ranuras, con_oro=False):
     if ses.personaje and getattr(ses, 'usuario', None):
         mejoras = getattr(ses.personaje, 'mejoras', {})
         if any(v.get('vinculacion') for v in mejoras.values()):
-            cuentas.guardar_mejoras(ses.usuario, cid, mejoras)
+            _guardar_luego(ses, 'mejoras', lambda u=ses.usuario: cuentas.guardar_mejoras(u, cid, mejoras))
     return fuera
 
 
@@ -3218,10 +3244,13 @@ def _procesar_muerte_monstruo(ses, m, yo, addr, espera=0.0):
                     struct.pack('<HIBBQ', 0x001D, yo, 1, 32, _u64(exp_actual_ui)))
 
             if getattr(ses, 'usuario', None):
-                cuentas.guardar_progreso(ses.usuario, p.char_id, p.nivel, p.exp,
-                                         p.hp, p.mp, p.habilidades,
-                                         hp_max=p.hp_max, mp_max=p.mp_max, sp=getattr(ses, "sp", None), buffs=getattr(ses.personaje, "buffs", None) if ses.personaje else None)
-                cuentas.guardar_oro(ses.usuario, p.char_id, ses.oro)
+                # Aplazados: en un area, una vez por hechizo y no por baja.
+                # Leen el estado al guardar, asi que va el de despues de todas.
+                _guardar_luego(ses, 'progreso', lambda ses=ses, p=p: cuentas.guardar_progreso(
+                    ses.usuario, p.char_id, p.nivel, p.exp, p.hp, p.mp, p.habilidades,
+                    hp_max=p.hp_max, mp_max=p.mp_max, sp=getattr(ses, "sp", None),
+                    buffs=getattr(p, "buffs", None)))
+                _guardar_luego(ses, 'oro', lambda ses=ses, p=p: cuentas.guardar_oro(ses.usuario, p.char_id, ses.oro))
 
             # La mascota solo gana EXP si participo en el combate (exp_pet > 0, proporcional a su % de dano)
             if pet_fuera and exp_pet > 0:
@@ -3232,7 +3261,8 @@ def _procesar_muerte_monstruo(ses, m, yo, addr, espera=0.0):
                 if _r_pet is not None and getattr(p, 'mascotas', None) is not None:
                     p.mascotas[str(_r_pet)] = f_pet
                 if getattr(ses, 'usuario', None):
-                    cuentas.guardar_mascota(ses.usuario, p.char_id, f_pet, getattr(p, 'mascotas', None))
+                    _guardar_luego(ses, 'mascota', lambda ses=ses, p=p, f=f_pet: cuentas.guardar_mascota(
+                        ses.usuario, p.char_id, f, getattr(p, 'mascotas', None)))
                 salida_combate.append(_ms.armar(f_pet))
                 if _sub_p > 0:
                     if _r_pet is not None:
@@ -3318,7 +3348,8 @@ def _procesar_muerte_monstruo(ses, m, yo, addr, espera=0.0):
         except Exception:
             ses.enviar(*salida_combate)
         if ses.personaje and getattr(ses, 'usuario', None):
-            cuentas.guardar_inventario(ses.usuario, cid, bolsa, _cantidades(ses))
+            _guardar_luego(ses, 'inventario', lambda ses=ses, cid=cid, bolsa=bolsa: cuentas.guardar_inventario(
+                ses.usuario, cid, bolsa, _cantidades(ses)))
 
         log.info(f"[{addr}] mato un {m.nombre} (entidad {objetivo}); +{exp_ganada} exp, +{oro} oro, {len(drops)} items")
         # LOGROS: la baja cuenta para "matar N de este monstruo", a cada uno
@@ -7001,7 +7032,11 @@ def _logros_muerte(ses, addr, npc_type):
     ahora = time.time()
     if cuenta or ahora - getattr(ses, '_logros_ultimo', 0) >= INTERVALO_LOGROS:
         ses._logros_ultimo = ahora
-        _logros_actualizar(ses, addr, enviar=cuenta)
+        # Medir todo cuesta 30-50 ms: un area con veinte bajas mide una vez.
+        if cuenta:
+            ses._logros_enviar = True
+        _guardar_luego(ses, 'logros', lambda ses=ses: _logros_actualizar(
+            ses, addr, enviar=ses.__dict__.pop('_logros_enviar', False)))
 
 
 def _logros_poner_titulo(ses, addr, titulo):
