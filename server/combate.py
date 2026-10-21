@@ -48,6 +48,12 @@ KIND_EXP = 4                # Alias retrocompatible
 # del personaje sale de ese total; los cortes entre un rango y otro NO estan
 # en los xml del cliente ni se han podido medir todavia.
 KIND_CREDITO = 49
+# ESTADO del personaje. Medido en Celestia (mundo_203502_844482 t=25.3): al
+# pedir quedarse como alma (c2s 0x0016 accion 3) llega 0x0013 tipo 28 con
+# 0x08000000 y un 0x000A (yo, 0, 0, 0). Es el bit que el cliente mira en
+# +0x1e0 para la musica de muerto (005b36a0): el modo FANTASMA.
+KIND_ESTADO = 28
+ESTADO_FANTASMA = 0x08000000
 # Rango del personaje (1..20, string.xml 1700..1719). En Angel.exe (sub_5FEB10,
 # offset 16920 de la tabla de 0x0013 -> kind 51), mandar 0x0013 con kind 51
 # actualiza en vivo tanto el requisito de rango (a2+1232) como el texto del
@@ -769,7 +775,8 @@ class Monstruo:
             for _ in range(10):
                 tx = max(0, self.spawn_x + _r.randint(-radio, radio))
                 ty = max(0, self.spawn_y + _r.randint(-radio, radio))
-                if st is None or _tr.se_pisa(st, tx, ty):
+                if ((st is None or _tr.se_pisa(st, tx, ty))
+                        and (st not in (168, 176, 413) or _tr.linea_libre(st, (self.spawn_x, self.spawn_y), (tx, ty)))):
                     candidato = (tx, ty)
                     break
             if candidato:
@@ -779,6 +786,7 @@ class Monstruo:
         self.tile = [self.tile_x, self.tile_y]
         self.en_combate_con = None
         self.ultimo_ataque = 0.0
+        self.volviendo_casa = False
         self.panico = False
         self.panico_hasta = 0.0
         self.dano_jugador = 0
@@ -1268,6 +1276,9 @@ def datos_magia(magic_id: int) -> dict:
             # el efecto 511 y su hijo el 13374, que lleva el 493 -- las lanzas
             # que caen -- y los 3500 de poder del tooltip.
             res['multi_golpe_area'] = d.get('範圍多次單體攻擊') == '是'
+            # 不能對玩家施放: el hechizo no se puede usar contra jugadores (71 en
+            # magic.xml). Lo mira pvp_liga.atacar.
+            res['no_jugadores'] = d.get('不能對玩家施放') == '是'
             res['hijo_area'] = _num(d.get('轉嫁法術'), 0) if res['multi_golpe_area'] else 0
             res['sigilo'] = d.get('魔法狀態') == '潛行'
             res['esquiva_fis'] = _num(d.get('物理迴避'), 0)
@@ -1955,6 +1966,23 @@ def combo_de(magic_id: int):
                 'dano': ef.get('dano_golpe', 0),
                 'es_ricochet': ef.get('es_ricochet', False)}
     return None
+
+
+# Las AoE de combo (Bullet Arrow, Steel Rain, Sword of Kings...) sueltan TODOS
+# sus golpes durante la animacion, que es una sola. Con el 連擊間隔 de
+# magic.xml (250 ms) los 12 golpes de Bullet Arrow V tardaban 3 s, mucho mas
+# lentos que en el juego (lo noto el usuario el 20/10/2026). Se comprimen para
+# que la rafaga entera quepa en DURACION_RAFAGA_AOE.
+DURACION_RAFAGA_AOE = 1.2
+
+
+def separacion_aoe(combo) -> float:
+    """Segundos entre golpes de una AoE de combo."""
+    if not combo or combo.get('golpes', 1) <= 1:
+        return 0.2
+    golpes = int(combo['golpes'])
+    sep = max(0.06, combo.get('intervalo_ms', 200) / 1000.0)
+    return max(0.06, min(sep, DURACION_RAFAGA_AOE / max(1, golpes - 1)))
 
 
 def cura_por_tics(magic_id: int):

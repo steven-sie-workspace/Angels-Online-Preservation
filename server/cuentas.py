@@ -343,13 +343,42 @@ def _exportar_json_disco():
                 pass
 
 
+# El respaldo y el espejo cuentas.json van en un HILO APARTE. Se hacian en el
+# mismo hilo que atiende el juego, en CADA cambio (cuentas.json entero con
+# fsync, y cada 25 la copia de la base): al plantar en la granja el servidor
+# se quedaba medio segundo parado con el "Backup automatico" en medio
+# (hestia.log, 20/10/2026 16:19:38). Los cambios seguidos se juntan en uno.
+_PENDIENTE_RESPALDO = threading.Event()
+_RESPALDO_INMEDIATO = [False]
+_HILO_RESPALDO = [None]
+ESPERA_RESPALDO = 1.5
+
+
+def _trabajador_respaldo():
+    while True:
+        _PENDIENTE_RESPALDO.wait()
+        time.sleep(ESPERA_RESPALDO)       # junta los cambios que lleguen seguidos
+        _PENDIENTE_RESPALDO.clear()
+        inmediato, _RESPALDO_INMEDIATO[0] = _RESPALDO_INMEDIATO[0], False
+        try:
+            if inmediato or _CAMBIOS_DESDE_BACKUP >= 25 or (time.time() - _ULTIMO_BACKUP > 300):
+                hacer_backup(motivo="cambios_frecuentes")
+            else:
+                _exportar_json_disco()
+        except Exception:
+            log.exception("Error en el respaldo en segundo plano")
+
+
 def _notificar_cambio(inmediato=False):
     global _CAMBIOS_DESDE_BACKUP
     _CAMBIOS_DESDE_BACKUP += 1
-    if inmediato or _CAMBIOS_DESDE_BACKUP >= 25 or (time.time() - _ULTIMO_BACKUP > 300):
-        hacer_backup(motivo="cambios_frecuentes")
-    else:
-        _exportar_json_disco()
+    if inmediato:
+        _RESPALDO_INMEDIATO[0] = True
+    if _HILO_RESPALDO[0] is None or not _HILO_RESPALDO[0].is_alive():
+        _HILO_RESPALDO[0] = threading.Thread(target=_trabajador_respaldo, name='respaldo-cuentas',
+                                             daemon=True)
+        _HILO_RESPALDO[0].start()
+    _PENDIENTE_RESPALDO.set()
 
 
 async def tarea_backup_periodico(intervalo_segundos=300):
@@ -1650,6 +1679,34 @@ def db_mover_oro_banco_gremio(usuario, char_id, guild_id, cambio_banco, oro):
             con.close()
 
 
+def db_intercambiar_banco_gremio(guild_id: int, origen: int, destino: int) -> bool:
+    """Mueve (o intercambia, si el destino esta ocupado) dos casillas del banco
+    de la liga en una transaccion. False si en el origen no hay nada."""
+    guild_id, origen, destino = int(guild_id), int(origen), int(destino)
+    if origen == destino:
+        return False
+    with _LOCK:
+        con = _get_conn()
+        try:
+            con.execute('BEGIN IMMEDIATE')
+            if not con.execute('SELECT 1 FROM gremio_banco WHERE guild_id=? AND ranura=?',
+                               (guild_id, origen)).fetchone():
+                con.rollback()
+                return False
+            # -1 de casilla puente para no chocar con la clave (guild_id, ranura)
+            con.execute('UPDATE gremio_banco SET ranura=-1 WHERE guild_id=? AND ranura=?', (guild_id, origen))
+            con.execute('UPDATE gremio_banco SET ranura=? WHERE guild_id=? AND ranura=?', (origen, guild_id, destino))
+            con.execute('UPDATE gremio_banco SET ranura=? WHERE guild_id=? AND ranura=-1', (destino, guild_id))
+            con.commit()
+            _notificar_cambio()
+            return True
+        except Exception:
+            con.rollback()
+            raise
+        finally:
+            con.close()
+
+
 def db_poner_banco_gremio(guild_id: int, ranura: int, item_id: int, cantidad: int):
     with _LOCK:
         con = _get_conn()
@@ -1689,6 +1746,15 @@ def db_asignar_territorio_gremio(tw_stage: int, guild_id: int):
     with _LOCK:
         con = _get_conn()
         try:
+            con.execute('BEGIN IMMEDIATE')
+            if int(tw_stage) not in range(200, 208):
+                raise ValueError('Invalid Totem War territory.')
+            if not con.execute('SELECT 1 FROM gremios WHERE guild_id=?', (int(guild_id),)).fetchone():
+                raise ValueError('The league does not exist.')
+            otro = con.execute('SELECT tw_stage FROM gremio_territorios WHERE guild_id=? AND tw_stage<>?',
+                               (int(guild_id), int(tw_stage))).fetchone()
+            if otro:
+                raise ValueError('Your league already owns another territory.')
             con.execute('INSERT OR REPLACE INTO gremio_territorios (tw_stage, guild_id, capturado_en) '
                         'VALUES (?, ?, CURRENT_TIMESTAMP)', (int(tw_stage), int(guild_id)))
             con.commit()

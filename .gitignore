@@ -59,3 +59,7 @@ tools/idioma/salida/
 
 # Salida de tools/build_guide.py (12 MB): se genera, no se guarda
 /guide.html
+
+# Volcados de REA/Ghidra (pseudo codigo del cliente): se regeneran con el MCP
+# rea y son codigo descompilado de IGG, no se publican.
+docs/rea_evidence/

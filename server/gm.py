@@ -39,7 +39,8 @@ _CMDS_MALL = ('mall', 'itemmall')
 _CMDS_GUILDLEVEL = ('guildlevel', 'glevel', 'gldlevel', 'gldlvl', 'guildlvl', 'glvl', 'guildrank', 'grank', 'setguildlevel')
 _CMDS_GUILDREP = ('guildrep', 'grep', 'gldrep')
 _CMDS_GUILD = ('guild', 'gremio', 'liga')
-_CMDS_TW = ('settw', 'settotemwar', 'tw', 'totemwar')
+_CMDS_TW = ('settw', 'settotemwar', 'tw', 'totemwar', 'twstart', 'twstop',
+            'notice', 'aviso', 'anuncio', 'gmsg', 'twtotem')
 _CMDS_FARM = ('plant', 'sembrar', 'farm', 'granja')
 _CMDS = frozenset(('help',) + _CMDS_ITEM + _CMDS_GOLD + _CMDS_LEVEL + _CMDS_LEVELALL
                   + _CMDS_SKILLS + _CMDS_SKILLSALL + _CMDS_SKILLS5
@@ -61,7 +62,8 @@ MALL = (
 AYUDA = ("GM: /item <id> [qty]  /gold <amount>  /mall [no] [qty]  /level <n>  /levelall <n>  /guildlevel <1..10>  /guildrep <n>  "
          "/skills [lv]  /skillsall [lv]  /skills5  /clearskills  "
          "/pet level|exp|path|evolve|star  /ball reset  /quest <id> <step>  "
-         "/rango [1..20]  /estacion <normal|navidad|halloween|sakura|verano>  /farm enter  /plant <id>")
+         "/rango [1..20]  /estacion <normal|navidad|halloween|sakura|verano>  /farm enter  /plant <id>  "
+         "/twstart [min]  /twstop  /tw  /settw <campo> <liga>  /twtotem <1..8>  /notice <texto>")
 
 
 def _app():

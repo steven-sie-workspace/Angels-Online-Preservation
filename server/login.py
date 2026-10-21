@@ -214,6 +214,18 @@ def secuencia(p: Personaje):
             if not mando_quests:
                 salida.append(_quests(p, base))
                 mando_quests = True
+        elif op == 0x0131:
+            # No repetir los propietarios del servidor grabado (Degenerates,
+            # AllStars, FastCrew). El mapa debe mostrar la propiedad local.
+            import totem_war
+            salida.append(totem_war.paquete_territorios())
+        elif op == 0x0155:
+            # LOGROS. La plantilla traia el 0x0155 del personaje grabado
+            # (2 logros, "Score 4") y se repetia en CADA cambio de mapa,
+            # pisando el de verdad: la ventana salia toda a 0% (20/10/2026).
+            import logros as _lg_sec
+            salida.append(_lg_sec.paquete(p, getattr(p, 'logros_muertos', None) or {},
+                                          ctx=getattr(p, '_logros_ctx', None)))
         elif op == 0x005B:
             salida.append(_barra(p, base))
         elif op == 0x0014:
@@ -285,15 +297,6 @@ def secuencia(p: Personaje):
                 elif ent == 21:
                     struct.pack_into('<II', b, 8, 252, 27)
             salida.append(struct.pack('<H', 0x0008) + bytes(b))
-        elif op == 0x0155:
-            # Los logros (ventana Ctrl+A): conseguidos, progreso y puntos.
-            # Ver logros.py; antes se mandaba la plantilla de otro jugador.
-            import logros as _lg
-            try:
-                salida.append(_lg.actualizar(p)[0])
-            except Exception:
-                log.exception('no se pudo armar el 0x0155')
-                salida.append(struct.pack('<H', op) + base)
         elif op == 0x005C:
             import presencia as _pr
             salida.append(_pr.paquete_emotes_desbloqueados(getattr(p, 'emotes', None) or set()))
@@ -788,6 +791,10 @@ def _map_object_spawn(entity_id: int, sprite: int, tile: tuple, direccion: int =
 # faltaba en la de la IA. El Lyceum y el Fighting Palace NO van aqui:
 # se tratan aparte y cada consumidor los anade si los necesita.
 PLANTILLAS_POR_STAGE = {
+    50: 'territory_area_1.json',
+    100: 'territory_area_2.json',
+    117: 'territory_area_3.json',
+    377: 'territory_area_4.json',
     501 : 'league_farm.json',
     # Las dos primeras salas de Magic Kichen Path, la instancia a la
     # que se entra por el tornado de (250,171) de Lava Cave. Pobladas
@@ -1177,6 +1184,9 @@ def poblar(stage: int, player_level=1):
     if stage == 500:
         return interactivos_casa(player_level)
     salida = npc_de_los_xml(stage)
+    import territorios_liga
+    if stage in territorios_liga.AREAS:
+        salida += territorios_liga.paquetes(stage)
     salida += portales_de(stage)
     try:
         import casas as _cs_pob
@@ -1431,6 +1441,30 @@ def _ficha(p, base):
         struct.pack_into('<I', crudo, 0xd4, int(p.char_id or 0))
     import cartas as _cartas
     _cartas.perfil(crudo, p)
+    # TITULOS (crown.xml): 128 bytes de bits en el +0x6d0 y el titulo puesto
+    # en el +0x750 (REA FUN_005e9c90 -> FUN_005eb0b0 / FUN_004cfd80). Los
+    # desbloquean los logros (columna 稱號 de achievement.xml). Ver logros.py.
+    if len(crudo) >= 0x754:
+        try:
+            import logros as _lg_f
+            crudo[0x6d0:0x750] = _lg_f.bits_titulos(p)
+            titulo = int(getattr(p, 'titulo', 0) or 0)
+            if not titulo:
+                import json as _js_f
+                import cuentas as _cta_f
+                con = _cta_f._get_conn()
+                try:
+                    fila = con.execute('SELECT datos FROM personajes WHERE char_id=?',
+                                       (int(p.char_id or 0),)).fetchone()
+                finally:
+                    con.close()
+                titulo = int((_js_f.loads(fila[0]) if fila and fila[0] else {}).get('titulo') or 0)
+            if titulo not in set(_lg_f.titulos_de(getattr(p, 'logros', None) or [])):
+                titulo = 0
+            struct.pack_into('<I', crudo, 0x750, titulo)
+        except Exception:
+            import logging as _lg_err
+            _lg_err.getLogger('login').exception('titulos en el 0x0002')
     return bytes(crudo)
 
 
