@@ -1255,6 +1255,37 @@ def encontrar_sub_combate(mid: int, d: dict, tabla: dict):
     return None
 
 
+_MAGIC_FILAS = None
+
+
+def _filas_magic(db) -> dict:
+    """La tabla magic de content.db entera, por id, sin las columnas vacias.
+
+    Antes datos_magia abria content.db y la recorria (no tiene indices) por
+    cada hechizo: ~25 ms cada uno. Los logros cuentan los hechizos V que sabe
+    el personaje (_logros_ctx) y a nivel alto son ~1.500, asi que el primer
+    login tras arrancar volvio a tardar 15-50 s. Leerla una vez: ~1 s."""
+    global _MAGIC_FILAS
+    if _MAGIC_FILAS is not None:
+        return _MAGIC_FILAS
+    filas = {}
+    if db.exists():
+        try:
+            con = sqlite3.connect(db)
+            try:
+                cur = con.execute('select * from magic')
+                cols = [c[0] for c in cur.description]
+                for row in cur:
+                    filas[str(row[0])] = {k: v for k, v in zip(cols, row)
+                                          if v is not None and str(v).strip() != ''}
+            finally:
+                con.close()
+        except Exception:
+            pass
+    _MAGIC_FILAS = filas
+    return filas
+
+
 def datos_magia(magic_id: int) -> dict:
     """Informacion del hechizo/skill desde magic.xml."""
     global _MAGIC_CACHE
@@ -1267,19 +1298,7 @@ def datos_magia(magic_id: int) -> dict:
            'es_auto': False, 'es_cura': False, 'es_buff': False,
            'es_ataque': False, 'es_pasiva': False,
            'es_magia_visual': False}
-    d = {}
-    if db.exists():
-        try:
-            con = sqlite3.connect(db)
-            cols = [c[1] for c in con.execute('pragma table_info(magic)').fetchall()]
-            row = con.execute('select * from magic where id=?', (str(magic_id),)).fetchone()
-            con.close()
-            if row:
-                for k_col, v_col in zip(cols, row):
-                    if v_col is not None and str(v_col).strip() != '':
-                        d[k_col] = v_col
-        except Exception:
-            pass
+    d = dict(_filas_magic(db).get(str(magic_id)) or {})
     d_xml = _magic_xml().get(int(magic_id or 0))
     if d_xml:
         d.update(d_xml)

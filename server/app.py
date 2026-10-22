@@ -20205,6 +20205,7 @@ def _precalentar():
         _lg.tabla()
         import combate as _cb_pre, skills as _sk_pre
         _cb_pre._datos(0)
+        _cb_pre.datos_magia(1)          # la tabla magic entera (logros al entrar)
         _sk_pre.nivel_de_magia(1)
         p = None
         for cta in (cuentas.cargar().get('cuentas') or {}).values():
