@@ -5658,13 +5658,14 @@ def _volver_a_casa(ses, m, ahora):
                                 dst_x=sx * 32, dst_y=sy * 32, speed=spd))
     except Exception:
         log.debug('no se pudo mandar al monstruo a su casa', exc_info=True)
-    pasos = max(abs(m.tile_x - sx), abs(m.tile_y - sy))
+    import combate as _cb_vc
+    recorrido = _cb_vc.segundos_de_recorrido(m.tile_x * 32, m.tile_y * 32, sx * 32, sy * 32, spd)
     m.tile_x, m.tile_y = sx, sy
     try:
         m.tile[0], m.tile[1] = sx, sy
     except Exception:
         pass
-    m.proximo_paso = ahora + pasos * 32.0 / spd
+    m.proximo_paso = ahora + recorrido
 TIC_CARRERA = 1.0
 PASOS_RIVAL = 3
 VELOCIDAD_RIVAL = 100
@@ -10434,6 +10435,12 @@ class Servidor:
                 # La probabilidad de pasear sale del tick: un paso cada 5.6 s
                 # de mediana, que es lo medido en el Lyceum de Celestia.
                 PROB_PASO = TICK_IA / _cb.SEGUNDOS_ENTRE_PASEOS
+                # Al perseguir, el paso siguiente sale hasta medio tick ANTES
+                # de que llegue: el tick cae en cualquier punto de los 100 ms,
+                # y esperando a pasarse el bicho se paraba de media 50 ms en
+                # cada tramo. Asi el error queda repartido a los dos lados.
+                ANTICIPO = TICK_IA / 2
+                recorrido = _cb.segundos_de_recorrido
                 MOVE = Msg.registry[(0x0005, 's2c', '*')]
                 ses._golpes_sin_volcar = []
                 try:
@@ -10556,7 +10563,7 @@ class Servidor:
                                             _pr_inv_action.notificar_companero_accion(
                                                 ses, *pkgs_inv_hit)
                                     else:
-                                        if (inv.get('move_speed', 50) or 0) > 0 and ahora >= inv.get('proximo_paso', 0):
+                                        if (inv.get('move_speed', 50) or 0) > 0 and ahora >= inv.get('proximo_paso', 0) - ANTICIPO:
                                             dx = targ.tile_x - inv['tile_x']
                                             dy = targ.tile_y - inv['tile_y']
                                             dist_t = max(abs(dx), abs(dy))
@@ -10568,9 +10575,8 @@ class Servidor:
                                             inv['tile_x'] += stx
                                             inv['tile_y'] += sty
                                             dst_x, dst_y = inv['tile_x'] * 32, inv['tile_y'] * 32
-                                            _pasos = max(abs(stx), abs(sty)) or 1
                                             spd = inv.get('move_speed', 50) or 50
-                                            inv['proximo_paso'] = ahora + (_pasos * 32.0 / spd)
+                                            inv['proximo_paso'] = ahora + recorrido(cur_x, cur_y, dst_x, dst_y, spd)
                                             _mv_inv = MOVE.build(entity_id=inv['entity_id'],
                                                                  cur_x=cur_x, cur_y=cur_y,
                                                                  dst_x=dst_x, dst_y=dst_y,
@@ -10597,7 +10603,7 @@ class Servidor:
                                         ses.enviar(_mv_inv)
                                         import presencia as _pr
                                         _pr.notificar_invocacion_movimiento(ses, inv['entity_id'], _mv_inv)
-                                    elif p_dist > 2 and ahora >= inv.get('proximo_paso', 0):
+                                    elif p_dist > 2 and ahora >= inv.get('proximo_paso', 0) - ANTICIPO:
                                         pasos_dar = min(p_dist - 2, 3)
                                         stx = (1 if p_dx > 0 else (-1 if p_dx < 0 else 0)) * pasos_dar
                                         sty = (1 if p_dy > 0 else (-1 if p_dy < 0 else 0)) * pasos_dar
@@ -10605,9 +10611,8 @@ class Servidor:
                                         inv['tile_x'] += stx
                                         inv['tile_y'] += sty
                                         dst_x, dst_y = inv['tile_x'] * 32, inv['tile_y'] * 32
-                                        _pasos = max(abs(stx), abs(sty)) or 1
                                         spd = inv.get('move_speed', 50) or 50
-                                        inv['proximo_paso'] = ahora + (_pasos * 32.0 / spd)
+                                        inv['proximo_paso'] = ahora + recorrido(cur_x, cur_y, dst_x, dst_y, spd)
                                         _mv_inv = MOVE.build(entity_id=inv['entity_id'],
                                                              cur_x=cur_x, cur_y=cur_y,
                                                              dst_x=dst_x, dst_y=dst_y,
@@ -10716,7 +10721,7 @@ class Servidor:
                                                         _cb.atributo(ch_targ.entity_id, ch_targ.porcentaje)
                                                     )
                                         else:
-                                            if ahora >= getattr(m, 'proximo_paso', 0):
+                                            if ahora >= getattr(m, 'proximo_paso', 0) - ANTICIPO:
                                                 dx = ch_targ.tile_x - m.tile_x
                                                 dy = ch_targ.tile_y - m.tile_y
                                                 dist_t = max(abs(dx), abs(dy))
@@ -10725,13 +10730,18 @@ class Servidor:
                                                     _mapa_de_paso(m, p.stage), (m.tile_x, m.tile_y),
                                                     (ch_targ.tile_x, ch_targ.tile_y), pasos_dar, parar_a=r_m)
                                                 stx, sty = _nx - m.tile_x, _ny - m.tile_y
+                                                if not stx and not sty:
+                                                    m.proximo_paso = ahora + 0.5
+                                                    continue
                                                 cur_x, cur_y = m.tile_x * 32, m.tile_y * 32
                                                 m.tile_x += stx
                                                 m.tile_y += sty
                                                 m.tile[0], m.tile[1] = m.tile_x, m.tile_y
                                                 dst_x, dst_y = m.tile_x * 32, m.tile_y * 32
-                                                _pasos = max(abs(stx), abs(sty)) or 1
                                                 spd = m.move_speed or _cb.VELOCIDAD_PASEO
+                                                # Faltaba: sin el, mandaba un
+                                                # 0x0005 en cada tick (10/s).
+                                                m.proximo_paso = ahora + recorrido(cur_x, cur_y, dst_x, dst_y, spd)
                                                 _mv_ch = MOVE.build(entity_id=m.entity_id,
                                                                     cur_x=cur_x, cur_y=cur_y,
                                                                     dst_x=dst_x, dst_y=dst_y,
@@ -10743,20 +10753,22 @@ class Servidor:
                                         p_dx = p.tile_x - m.tile_x
                                         p_dy = p.tile_y - m.tile_y
                                         p_dist = max(abs(p_dx), abs(p_dy))
-                                        if p_dist > 2 and ahora >= getattr(m, 'proximo_paso', 0):
+                                        if p_dist > 2 and ahora >= getattr(m, 'proximo_paso', 0) - ANTICIPO:
                                             pasos_dar = min(p_dist - 2, 3)
                                             _nx, _ny = _transitable.avanzar(
                                                 _mapa_de_paso(m, p.stage), (m.tile_x, m.tile_y),
                                                 (p.tile_x, p.tile_y), pasos_dar, parar_a=2)
                                             stx, sty = _nx - m.tile_x, _ny - m.tile_y
+                                            if not stx and not sty:
+                                                m.proximo_paso = ahora + 0.5
+                                                continue
                                             cur_x, cur_y = m.tile_x * 32, m.tile_y * 32
                                             m.tile_x += stx
                                             m.tile_y += sty
                                             m.tile[0], m.tile[1] = m.tile_x, m.tile_y
                                             dst_x, dst_y = m.tile_x * 32, m.tile_y * 32
-                                            _pasos = max(abs(stx), abs(sty)) or 1
                                             spd = m.move_speed or _cb.VELOCIDAD_PASEO
-                                            m.proximo_paso = ahora + (_pasos * 32.0 / spd)
+                                            m.proximo_paso = ahora + recorrido(cur_x, cur_y, dst_x, dst_y, spd)
                                             _mv_ch = MOVE.build(entity_id=m.entity_id,
                                                                   cur_x=cur_x, cur_y=cur_y,
                                                                   dst_x=dst_x, dst_y=dst_y,
@@ -10797,13 +10809,14 @@ class Servidor:
                                         new_x, new_y = _transitable.avanzar(
                                             _mapa_de_paso(m, p.stage), (m.tile_x, m.tile_y), (new_x, new_y), stride)
                                         cur_x, cur_y = m.tile_x * 32, m.tile_y * 32
-                                        _pasos = max(abs(new_x - m.tile_x), abs(new_y - m.tile_y)) or 1
                                         m.tile_x = new_x
                                         m.tile_y = new_y
                                         m.tile[0], m.tile[1] = new_x, new_y
                                         dst_x, dst_y = new_x * 32, new_y * 32
                                         spd = int((m.move_speed or 50) * 1.25)
-                                        m.proximo_paso = ahora + (_pasos * 32.0 / spd)
+                                        # Si avanzar() no le deja moverse, que
+                                        # no lo reintente en el tick siguiente.
+                                        m.proximo_paso = ahora + max(TICK_IA * 3, recorrido(cur_x, cur_y, dst_x, dst_y, spd))
                                         ses.enviar(MOVE.build(entity_id=m.entity_id,
                                                               cur_x=cur_x, cur_y=cur_y,
                                                               dst_x=dst_x, dst_y=dst_y,
@@ -11084,7 +11097,10 @@ class Servidor:
                                                 _impacto()
                                     else:
                                         if not getattr(m, 'es_estatico', False):
-                                            if ahora < getattr(m, 'proximo_paso', 0):
+                                            # Ya a tiro y aun llegando: espera
+                                            # a llegar y pega, no se mueve.
+                                            if (d_targ <= r_atk
+                                                    or ahora < getattr(m, 'proximo_paso', 0) - ANTICIPO):
                                                 continue
                                             dx = targ_x - m.tile_x
                                             dy = targ_y - m.tile_y
@@ -11106,13 +11122,12 @@ class Servidor:
                                             m.tile_y += step_y
                                             m.tile[0], m.tile[1] = m.tile_x, m.tile_y
                                             dst_x, dst_y = m.tile_x * 32, m.tile_y * 32
-                                            _pasos = max(abs(step_x), abs(step_y)) or 1
                                             spd = m.move_speed or _cb.VELOCIDAD_PASEO
                                             if getattr(m, 'debuffs', None):
                                                 for deb in m.debuffs.values():
                                                     if deb.get('vel_mov_mod'):
                                                         spd = max(10, spd + deb['vel_mov_mod'])
-                                            m.proximo_paso = ahora + (_pasos * 32.0 / spd)
+                                            m.proximo_paso = ahora + recorrido(cur_x, cur_y, dst_x, dst_y, spd)
                                             ses.enviar(MOVE.build(entity_id=m.entity_id,
                                                                   cur_x=cur_x, cur_y=cur_y,
                                                                   dst_x=dst_x, dst_y=dst_y,
@@ -11146,7 +11161,14 @@ class Servidor:
                                                                         _cb.PAUSA_PASEO_MAX)
                                 continue
                             _pasos = max(abs(new_x - m.tile_x), abs(new_y - m.tile_y)) or 1
-                            m.proximo_paso = (ahora + _pasos * _cb.SEGUNDOS_POR_CASILLA
+                            # El ritmo del paseo se queda como estaba, pero
+                            # nunca por debajo de lo que tarda en llegar: un
+                            # bicho lento en diagonal (speed 50, 3+3 casillas)
+                            # tarda 1.13 s y aqui se le daban 1.02 + pausa.
+                            _spd_paseo = m.move_speed or _cb.VELOCIDAD_PASEO
+                            m.proximo_paso = (ahora + max(_pasos * _cb.SEGUNDOS_POR_CASILLA,
+                                                          recorrido(m.tile_x * 32, m.tile_y * 32,
+                                                                    new_x * 32, new_y * 32, _spd_paseo))
                                               + random.uniform(_cb.PAUSA_PASEO_MIN, _cb.PAUSA_PASEO_MAX))
                             cur_x, cur_y = m.tile_x * 32, m.tile_y * 32
                             m.tile_x = new_x
@@ -11156,7 +11178,7 @@ class Servidor:
                             ses.enviar(MOVE.build(entity_id=m.entity_id,
                                                   cur_x=cur_x, cur_y=cur_y,
                                                   dst_x=dst_x, dst_y=dst_y,
-                                                  speed=m.move_speed or _cb.VELOCIDAD_PASEO))
+                                                  speed=_spd_paseo))
                         # --- IA DE MASCOTA AUTONOMA (Combate activo / Ayuda / Skills / Self-Buffs) ---
                         f_pet = getattr(p, 'mascota', None) if ses.personaje else None
                         pet_eid = getattr(ses, 'pet_entity_id', None)

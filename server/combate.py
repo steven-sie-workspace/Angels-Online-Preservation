@@ -2484,6 +2484,25 @@ SEGUNDOS_POR_CASILLA = 0.34
 PAUSA_PASEO_MIN = 0.15
 PAUSA_PASEO_MAX = 0.90
 
+# EL 'speed' DEL 0x0005 NO SON PIXELES POR SEGUNDO. Medido en las sesiones
+# grabadas (logs/sesiones, *_orden.jsonl): entre dos 0x0004 seguidos el
+# cliente avanza sobre la recta a ~270 px/s con speed 110 y a ~650 con la
+# montura (275), igual en horizontal, vertical y diagonal. Y en el corpus
+# del servidor real (corpus/all.db) los 0x0005 que cortan un trayecto a
+# medias (cada ~0.48 s) caen a 1.15-1.2 x speed pixeles del origen. Las dos
+# cosas dan ~2.4 px/s por punto de speed, en distancia EUCLIDEA.
+#
+# El servidor contaba casillas * 32 / speed, o sea 2.4 veces de mas y en
+# casillas de Chebyshev: el bicho llegaba en menos de la mitad del tiempo y
+# se quedaba quieto esperando el paso siguiente. Eso era el andar a tirones.
+PX_POR_SEGUNDO_Y_VELOCIDAD = 2.4
+
+
+def segundos_de_recorrido(cur_x, cur_y, dst_x, dst_y, speed) -> float:
+    """Lo que tarda el cliente en llevar una entidad de cur a dst (en px)."""
+    d = ((dst_x - cur_x) ** 2 + (dst_y - cur_y) ** 2) ** 0.5
+    return d / (max(1, speed or 0) * PX_POR_SEGUNDO_Y_VELOCIDAD)
+
 # Segundos entre el 0x000A del monstruo y su numero de dano. El campo de
 # animacion del 0x000A es la duracion en milisegundos: un bicho con animacion
 # 951 manda su 0x000B a los 951..1118 ms, y otro con 774 a los 783..786 ms.
