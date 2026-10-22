@@ -174,10 +174,13 @@ def vaciar_ranura(dueno: int, ranura: int,
     #   167..175  fashion equipada e insignia
     #   176..275  bolsa Fashion
     #   276..     pestanas Card y Furniture, hasta 556
+    #   558       Equip Pet de Gear
+    #   559..598  las casillas de Pet Amplify (sin ellas, sacar la mascota
+    #             dejaba la 559 llena en el cliente y se cerraba, 21/10/2026)
     #   616       burbuja de chat equipada
     #   617..666  bolsa de burbujas de chat
     # Esas casillas tambien aceptan el submensaje de vaciado con ranura u16.
-    if contenedor == CONT_MOCHILA and (ranura < 0 or (ranura > 154 and not ((167 <= ranura <= 556) or (616 <= ranura <= 666)))):
+    if contenedor == CONT_MOCHILA and (ranura < 0 or (ranura > 154 and not ((167 <= ranura <= 556) or (558 <= ranura <= 598) or (616 <= ranura <= 666)))):
         log.warning(f"Intento de vaciar ranura fuera de limites ({ranura}) en CONT_MOCHILA - omitido para evitar crash")
         return b''
     return struct.pack('<HIBBIH', 0x001B, 1, 2, contenedor, dueno, ranura)
@@ -226,7 +229,7 @@ def es_equipo(ranura) -> bool:
         return False
     # La 175 es la insignia y la 166 (0xA6) es la tarjeta de puesto (Stall Card).
     # La 616 es la ranura equipada de la burbuja de chat (Speech Bubble slot).
-    return (r < PRIMERA_RANURA_BOLSA) or (166 <= r <= 175) or (r == RANURA_BURBUJA)
+    return (r < PRIMERA_RANURA_BOLSA) or (166 <= r <= 175) or (r == RANURA_BURBUJA) or r == 558
 
 
 def es_burbuja_bag(ranura) -> bool:
@@ -484,16 +487,21 @@ def es_bolsa_de_alma(bolsa) -> bool:
     return bolsa is not None and _BOLSAS_ALMA.get(id(bolsa)) is bolsa
 
 
-def bonos_de_equipo(bolsa, mejoras: dict = None) -> dict:
+def bonos_de_equipo(bolsa, mejoras: dict = None, mascotas: dict = None) -> dict:
     """Calcula la suma de atributos que otorgan los items equipados en la bolsa (Gear 1..10 y Fashion 167..174)."""
     eq = {'def': 0, 'accuracy': 0, 'agility': 0, 'atk_r': 0, 'atk_l': 0, 'matk': 0, 'mdef': 0, 'hp': 0, 'mp': 0, 'carga': 0,
           'res_body': 0, 'res_mind': 0, 'res_lightning': 0, 'res_fire': 0, 'res_ice': 0, 'res_corrosion': 0}
     if not bolsa or es_bolsa_de_alma(bolsa):
         return eq
 
+    import pet_equipment
+    verdes_pet = pet_equipment.bonos(bolsa, mascotas)
+    for clave, valor in verdes_pet.items():
+        if clave in eq:
+            eq[clave] += valor
     r_weap_atk = 0
     l_weap_atk = 0
-    gen_atk = 0
+    gen_atk = verdes_pet.get('atk', 0)
 
     for ranura, item_id in bolsa.items():
         try:
@@ -501,7 +509,7 @@ def bonos_de_equipo(bolsa, mejoras: dict = None) -> dict:
             iid = int(item_id)
         except (ValueError, TypeError):
             continue
-        if not es_equipo(r) or r == RANURA_ORO or r in (11, 12):
+        if not es_equipo(r) or r == RANURA_ORO or r in (11, 12, pet_equipment.RANURA):
             continue
         x = dict(_bonus(iid))
         # LOS STATS DEL MARTILLO VERDE. Se guardaban y se enseñaban en el
@@ -601,9 +609,9 @@ def bonos_de_equipo(bolsa, mejoras: dict = None) -> dict:
     return eq
 
 
-def vida_maxima(hp_max, habilidades, bolsa=None, mejoras=None, buffs=None, mp_max=0):
+def vida_maxima(hp_max, habilidades, bolsa=None, mejoras=None, buffs=None, mp_max=0, mascotas=None):
     """El tope de vida: el guardado mas las pasivas, el equipo y sus verdes."""
-    eq_hp = bonos_de_equipo(bolsa, mejoras)['hp'] if bolsa else 0
+    eq_hp = bonos_de_equipo(bolsa, mejoras, mascotas)['hp'] if bolsa else 0
     total = int(hp_max or 0) + bonos_de_habilidades(habilidades)['hp'] + eq_hp
     if buffs:
         now = time.time()
@@ -614,14 +622,14 @@ def vida_maxima(hp_max, habilidades, bolsa=None, mejoras=None, buffs=None, mp_ma
                 if 'hp_bonus' in b_data and b_data['hp_bonus'] > 0:
                     total += int(b_data['hp_bonus'])
                 if 'mp_to_hp_pct' in b_data and b_data['mp_to_hp_pct'] > 0:
-                    base_mp = mana_maximo(mp_max, habilidades, bolsa=bolsa, mejoras=mejoras)
+                    base_mp = mana_maximo(mp_max, habilidades, bolsa=bolsa, mejoras=mejoras, mascotas=mascotas)
                     total += int(round(base_mp * (b_data['mp_to_hp_pct'] / 100.0)))
     return total
 
 
-def mana_maximo(mp_max, habilidades, bolsa=None, mejoras=None, buffs=None):
+def mana_maximo(mp_max, habilidades, bolsa=None, mejoras=None, buffs=None, mascotas=None):
     """Igual que vida_maxima, para el mana."""
-    eq_mp = bonos_de_equipo(bolsa, mejoras)['mp'] if bolsa else 0
+    eq_mp = bonos_de_equipo(bolsa, mejoras, mascotas)['mp'] if bolsa else 0
     total = int(mp_max or 0) + bonos_de_habilidades(habilidades)['mp'] + eq_mp
     if buffs:
         now = time.time()
@@ -800,7 +808,7 @@ def stats(bolsa=None, habilidades: list = None,
           oro: int = None,
           buffs: dict = None,
           sp: int = None, sp_max: int = None,
-          mejoras: dict = None) -> bytes:
+          mejoras: dict = None, mascotas: dict = None) -> bytes:
     """Sub-mensaje 0x0042 con los stats del personaje segun lo que lleva puesto y habilidades pasivas.
 
     El array que empieza en +20 alterna valor base y valor efectivo:
@@ -845,7 +853,7 @@ def stats(bolsa=None, habilidades: list = None,
     else:
         sp_pts = 0
 
-    eq = bonos_de_equipo(bolsa, mejoras)
+    eq = bonos_de_equipo(bolsa, mejoras, mascotas)
     # La carga que suman las piezas puestas (sobre todo la mochila) va aqui:
     # antes el tope eran solo los 2000 de base mas las pasivas de armadura.
     load_max += eq.get('carga', 0)
@@ -952,6 +960,8 @@ def stats(bolsa=None, habilidades: list = None,
                     ice_eff += b_data['res_ice']
                 if 'res_corrosion' in b_data:
                     rotten_eff += b_data['res_corrosion']
+                if b_data.get('carga'):
+                    load_max += b_data['carga']
 
     # TODO lo que va aqui se recorta al rango del campo. Sin esto, un solo
     # numero fuera de sitio -- un debuff que deje un stat en negativo, o un
@@ -1656,6 +1666,8 @@ def look_de_burbuja(item_id: int) -> int:
 
 def es_ranura_valida(item_id: int, ranura: int) -> bool:
     """Verifica si un item puede colocarse en esa ranura especifica para evitar pisar armadura real con fashion."""
+    if ranura == 558:  # Equip Pet; la elegibilidad de la ficha se valida en app
+        return es_mascota(item_id)
     # 1. Ranura equipada de burbuja de chat (616): SOLO admite burbujas de chat
     if ranura == RANURA_BURBUJA:
         return es_burbuja_chat(item_id)
@@ -1696,6 +1708,9 @@ def es_ranura_valida(item_id: int, ranura: int) -> bool:
         except Exception:
             pass
         return categoria_item(item_id) in ('傢俱', '家具')
+    # 7c2. Pet Amplify (559..598): solo mascotas (ver amplify.py)
+    if 559 <= ranura <= 598:
+        return es_mascota(item_id)
     # 7d. Raise-a-Pet Room (477..486): mascotas y huevos de mascotas
     if 477 <= ranura <= 486:
         return es_mascota(item_id) or categoria_item(item_id) in ('寵物', '寵物蛋')
@@ -2754,9 +2769,12 @@ def creditos_de(item_id: int) -> int:
             except Exception:
                 pass
         if not _INVERSION:
-            f = (pathlib.Path(__file__).parent.parent / 'extracted_paks' / 'data1'
-                 / 'setting' / 'eng' / 'investitem.xml')
-            if f.exists():
+            raiz_paks = pathlib.Path(__file__).parent.parent / 'extracted_paks'
+            # data1 en la extraccion completa; update26 en la que saca
+            # paks_cliente.py del cliente cuando no hay extracted_paks.
+            f = next((c for c in (raiz_paks / sub / 'setting' / 'eng' / 'investitem.xml'
+                                  for sub in ('data1', 'update26')) if c.exists()), None)
+            if f is not None:
                 txt = f.read_text(encoding='utf-8', errors='replace')
                 for trozo in re.findall(r'<投資物品[^>]*>', txt):
                     mid = re.search(r'編號="(\d+)"', trozo)
@@ -2765,6 +2783,55 @@ def creditos_de(item_id: int) -> int:
                         _INVERSION[int(mid.group(1))] = int(mcr.group(1))
     return _INVERSION.get(int(item_id), 0)
 
+
+
+# OBJETOS DE STAT PERMANENTE (永久性效果="是"): Weight Seed (負重 +1200),
+# Attack Seed, Hero Fruit, Lvl 3 HP Source... Unos 95. Lo que suben va en las
+# mismas columnas que el equipo; se traducen a las claves de los buffs para
+# sumarlos como uno que no acaba (logros.con_reputacion).
+_COLS_PERMANENTES = (('負重', 'carga'), ('atk_avg', 'atk'), ('matk', 'matk'), ('def', 'def'),
+                     ('mdef', 'mdef'), ('accuracy', 'hit'), ('agility', 'eva'), ('hp', 'hp_bonus'),
+                     ('mp', 'mp_bonus'), ('crit_rate', 'crit'), ('res_body', 'res_body'),
+                     ('res_mind', 'res_mind'), ('res_lightning', 'res_lightning'),
+                     ('res_fire', 'res_fire'), ('res_ice', 'res_ice'), ('res_corrosion', 'res_corrosion'))
+_PERMANENTES = {}
+
+
+def stats_permanentes_de(item_id: int):
+    """{clave de buff: cuanto} si el item sube stats para siempre, o None."""
+    item_id = int(item_id)
+    if item_id in _PERMANENTES:
+        return _PERMANENTES[item_id]
+    r = None
+    try:
+        import sqlite3
+        db = pathlib.Path(__file__).parent.parent / 'corpus' / 'content.db'
+        con = sqlite3.connect(db)
+        for t in TABLAS_ITEM:
+            cols = [c[1] for c in con.execute('pragma table_info(%s)' % t)]
+            if '永久性效果' not in cols:
+                continue
+            usadas = [(c, k) for c, k in _COLS_PERMANENTES if c in cols]
+            fila = con.execute('select "永久性效果", %s from %s where id=?'
+                               % (', '.join('"%s"' % c for c, _ in usadas), t), (str(item_id),)).fetchone()
+            if not fila:
+                continue
+            if fila[0] == '是':
+                r = {}
+                for (c, k), v in zip(usadas, fila[1:]):
+                    try:
+                        v = int(float(v or 0))
+                    except (TypeError, ValueError):
+                        v = 0
+                    if v:
+                        r[k] = r.get(k, 0) + v
+                r = r or None
+            break
+        con.close()
+    except Exception:
+        pass
+    _PERMANENTES[item_id] = r
+    return r
 
 
 # Los vales de experiencia, categoria 經驗卷. Son 188 en el cliente y cada

@@ -18,6 +18,33 @@ a guess, it says so.
 
 ## Actual state
 
+Oct 21 pet release: [scope, tests and remaining limitations](docs/ENTREGA_PETS_2026-10-21.md).
+
+Pet progression (Oct 21): fixed fusion blocked by initial bonus ranges,
+general-star desynchronization and the first enhancement feed missing its
+increment. Official enhancement coefficients remain unverified; existing
+pets are not automatically compensated.
+See [audit, fixes and tests](docs/PETS_ESTRELLAS_AUDITORIA_2026-10-21.md).
+Pet combos now send one skill effect followed by their damage ticks,
+without replaying the cast per hit. Player combat is unchanged by this fix.
+Equip Pet slot 558 now accepts 5.0+ star pets and applies/removes their green
+stat contribution. See [equipment and level-growth notes](docs/PET_EQUIP_Y_CRECIMIENTO_2026-10-21.md)
+for tests and the provenance/limits of the implemented rules.
+
+Lyceum services (Oct 21): Astrologer, Login Rewarder and Green Angel,
+including persistent fees/quotas, exchanges and level-21+ Straw drops.
+See the [NPC service notes](docs/LYCEUM_NPC_SERVICES_2026-10-21.md)
+for evidence, tests and explicitly provisional drop/draw probabilities.
+Green Angel includes the mount catalog (group 401); Login Rewarder is at
+`(141,106)`. Straw drops now read missing monster levels from `monster.xml`.
+
+Farm interaction range and soil/crop refresh have been corrected;
+experimental action animations remain disabled pending client validation.
+See the [Farm investigation](docs/FARM_INTERACCIONES_2026-10-21.md).
+This release also includes the previously pending EXP/honor vouchers,
+permanent-stat items and `app` startup alias changes;
+see [release scope and validation](docs/ENTREGA_2026-10-21.md).
+
 **Works**
 
 - Login, character creation, selection and deletion, saved to disk
@@ -266,6 +293,12 @@ a guess, it says so.
   - **Terra Keeper**: old-style dialogue showing the owning league; League Manor from the Heaven General goes to the Terra Keeper of the field.
   - **Heaven General (Tree 5920)**: Populated in all 4 cities, offering rank badge shop 71 (items 3735..3748), daily combat/production reward boxes (3776..3783, 9255..9258, 13409..13412), hidden daily token 3754, and territory teleport (`GOTO_GUILD_REGION`).
   - **Terra Keeper (Tree 5936) & Governor (Tree 5940)**: Gated entry to private territory areas (Area I stage 50, Area II stage 100, Area III stage 117, Area IV stage 377) and Thorn Wasteland stage 16 routing. Governor provides personal bank, guild vault, and Regression Scroll (3734).
+- **Event Overview**: Online Bonus (daily minutes online, s2c `0x018A`) and Login Bonus (days logged this month, `0x016F`) with their Receive buttons (action 72 / 54), byte-identical to what the official server sent at login. Exchange's "Go to" (action 73) opens the shop of its group (`0x0151`). Event News opens a local page (`http://127.0.0.1:8280/news.htm`, news in `data/noticias.json`).
+- **Angel Pass**: season Winter's Hymn Treasures, 60 levels, daily and weekly quests (monsters by race, farm, capture, fusion, ball, totem, login...), Claim / Purchase Lv / Purchase Premium Pass (action 74, s2c `0x018C`-`0x0194`). The client picks the season by the PC clock from its own `battlepass.xml`; all seasons had expired, so `update26.pak` gets that season's dates extended (agreed, like the rank medal).
+- **Pet Amplify**: Unlock Slot (c2s `0x015D`, Amplify Hammers as in `pet_inlay.xml`) and Re-Amplify all / attribute / value (`0x015C`); the state packet `0x0179` is byte-identical to the official one. Inserting a pet into a slot is not done yet.
+- **Gift boxes without a drop table** (1,766, e.g. Enchanted-Cozy Xmas Suitcase): opened from the list in their description ("Open to get:" gives all, "one of" gives one).
+- **New titles without changing map**: the `0x0002` is resent (its handler does not load the map).
+- **No `extracted_paks` needed**: on start, if it is missing, the server extracts the current `setting/*` files from the installed client's `.pak` (~250 MB, ~7 s, local only).
 - **Totem respawn & training totems**: a broken totem comes back after 1 second with a NEW entity id (the old one was still dead in the client: slow to appear and without HP bar), as the monster type of its level (`monster.xml` 21397 "Totem Lv 1", 300,000 HP ... 21404 "Totem Lv 8") and back to level 1. The four training fields (Sunflower Plain, Foggy Forest, Mysterious Garden, Megalith Plain) show their decorative totem next to the Terra Keeper (positions from Celestia captures); it can never be damaged.
 - **PvP damage**: separate formula from monsters, AO style `(ATK - DEF) x skill multiplier`, with the effective (buffed) defense of the target and its damage reduction from buffs and equipment (`物理/魔法傷害抵銷`). Combos hit all their hits, area combo skills (Bullet Arrow, Steel Rain...) play their animation once and finish in ~1.2 s, and the 71 spells flagged `不能對玩家施放` cannot hit players. Global tuning in `pvp_liga.FACTOR_PVP`.
 - **Fusion system (WND_FUSE)**: C2S `0x0147` `[mode][main][assistant][potion][random]`, result via `0x001D` code 50 and pet preview via code 51 (all from REA). Consumables (10 + 10 + potion), equipment (one green attribute from the assistant) and pets (up to 3 bonuses, shapeshift into a new pet from the `fuse.xml` pet list with the Shape Fusion Potion 16074). Success rates for consumables/equipment are the client's own formulas; pet success uses a softened formula (`fusion.EXITO_MASCOTA_*`).

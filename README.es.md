@@ -18,6 +18,33 @@ una suposición, lo dice.
 
 ## Estado real
 
+Entrega de pets del 21/10: [alcance, pruebas y pendientes](docs/ENTREGA_PETS_2026-10-21.md).
+
+Progresion de pets (21/10): corregidos el bloqueo de fusion por rangos
+iniciales, las estrellas generales desincronizadas y el primer pienso de
+mejora sin incremento. Los coeficientes oficiales de intensificacion siguen
+pendientes; no se compensan pets existentes automaticamente.
+Ver [auditoria, correcciones y pruebas](docs/PETS_ESTRELLAS_AUDITORIA_2026-10-21.md).
+Combos de pet: un solo efecto de skill y todos sus golpes de dano, sin
+recastear cada subgolpe. El combate del personaje no se modifica.
+Equip Pet: habilitado el slot 558 para pets de 5.0+ estrellas, con bonos
+verdes reales y retirada de stats al desequipar. Crecimiento por nivel y
+procedencia de las reglas en [la nota de equipo y crecimiento](docs/PET_EQUIP_Y_CRECIMIENTO_2026-10-21.md).
+
+Servicios de Lyceum (21/10): Astrologer, Login Rewarder y Green Angel,
+con costes/cuotas persistentes, canjes y Straws desde nivel 21. Detalles,
+pruebas y probabilidades provisionales en
+[la nota de servicios NPC](docs/LYCEUM_NPC_SERVICES_2026-10-21.md).
+Green Angel incluye el catalogo de monturas (grupo 401) y Login Rewarder
+queda en `(141,106)`. La caida de Straws usa el nivel real de `monster.xml`.
+
+Farm: corregidos el alcance de interaccion y el refresco tierra/planta;
+las animaciones experimentales quedan desactivadas, pendientes de validar.
+Ver [diagnostico y pruebas de Farm](docs/FARM_INTERACCIONES_2026-10-21.md).
+Esta entrega tambien incluye los cambios previos de vales de EXP/honor,
+estadisticas permanentes y alias de arranque de `app`;
+ver [alcance y validacion de la entrega](docs/ENTREGA_2026-10-21.md).
+
 **Funciona**
 
 - Login, creación, selección y borrado de personaje, con persistencia en disco
@@ -276,6 +303,12 @@ Path`, `Third Spirit`, `Limit Breaker`, `Shadow Meld`, `Killer Intent`) y la
   - **Terra Keeper**: diálogo antiguo que muestra la liga dueña; League Manor desde el Heaven General lleva al Terra Keeper del campo.
   - **Heaven General (Árbol 5920)**: Presente en las 4 capitales; tienda 71 de insignias de clan (3735..3748), entrega diaria de cofres de combate/producción (3776..3783, 9255..9258, 13409..13412), sello diario 3754 y teletransporte a territorio (`GOTO_GUILD_REGION`).
   - **Terra Keeper (Árbol 5936) y Governor (Árbol 5940)**: Control de acceso a áreas de territorio (Área I stage 50, Área II stage 100, Área III stage 117, Área IV stage 377) y accesos especiales desde Thorn Wasteland (stage 16). El Governor provee banco personal, almacén de clan y Regression Scroll (3734).
+- **Event Overview**: Online Bonus (minutos conectado del día, s2c `0x018A`) y Login Bonus (días conectado del mes, `0x016F`) con sus botones Receive (acción 72 / 54), idénticos byte a byte a lo que mandaba el servidor oficial al entrar. El "Go to" del Exchange (acción 73) abre la tienda de su grupo (`0x0151`). Event News abre una página local (`http://127.0.0.1:8280/news.htm`, noticias en `data/noticias.json`).
+- **Angel Pass**: temporada Winter's Hymn Treasures, 60 niveles, tareas diarias y semanales (monstruos por raza, granja, captura, fusión, baile, tótem, login...), Claim / Purchase Lv / Purchase Premium Pass (acción 74, s2c `0x018C`-`0x0194`). El cliente elige la temporada con el reloj del PC entre las de su `battlepass.xml`; todas habían caducado, así que en `update26.pak` se alargan las fechas de esa temporada (pactado, como la medalla de rango).
+- **Pet Amplify**: Unlock Slot (c2s `0x015D`, Amplify Hammers según `pet_inlay.xml`) y Re-Amplify todo / atributo / valor (`0x015C`); el `0x0179` de estado es idéntico al oficial. Falta meter la mascota en la casilla.
+- **Regalos sin tabla de caída** (1.766, p. ej. Enchanted-Cozy Xmas Suitcase): se abren con la lista de su descripción ("Open to get:" da todo, "one of" da uno).
+- **Títulos nuevos sin cambiar de mapa**: se reenvía el `0x0002` (su manejador no carga el mapa).
+- **Ya no hace falta `extracted_paks`**: al arrancar, si falta, el servidor saca los `setting/*` vigentes de los `.pak` del cliente instalado (~250 MB, ~7 s, solo en local).
 - **Reaparición del tótem y tótems de entrenamiento**: el tótem roto vuelve al segundo con un id de entidad NUEVO (el viejo seguía muerto en el cliente: tardaba en verse y salía sin barra de vida), con el tipo de monstruo de su nivel (`monster.xml` 21397 "Totem Lv 1", 300.000 HP ... 21404 "Totem Lv 8") y otra vez en nivel 1. Los cuatro campos de entrenamiento (Sunflower Plain, Foggy Forest, Mysterious Garden, Megalith Plain) muestran su tótem decorativo junto al Terra Keeper (posiciones de capturas de Celestia); nunca se le puede dañar.
 - **Daño PvP**: fórmula separada de la de monstruos, al estilo AO `(ATAQUE - DEFENSA) x multiplicador`, con la defensa efectiva (con buffs) del rival y su reducción de daño de buffs y equipo (`物理/魔法傷害抵銷`). Los combos pegan todos sus golpes, las AoE de combo (Bullet Arrow, Steel Rain...) hacen su animación una vez y terminan en ~1,2 s, y los 71 hechizos marcados `不能對玩家施放` no dañan a jugadores. Ajuste global en `pvp_liga.FACTOR_PVP`.
 - **Sistema de fusión (WND_FUSE)**: C2S `0x0147` `[modo][principal][asistente][poción][aleatorio]`, resultado por `0x001D` código 50 y vista previa de mascota por el código 51 (todo con REA). Consumibles (10 + 10 + poción), equipo (un atributo verde del asistente) y mascotas (hasta 3 bonos; transformación en una mascota nueva de la lista de `fuse.xml` con la Shape Fusion Potion 16074). El éxito de consumibles y equipo usa las fórmulas del propio cliente; el de mascotas, una fórmula suavizada (`fusion.EXITO_MASCOTA_*`).

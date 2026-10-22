@@ -7,6 +7,13 @@ La LOGICA DE JUEGO no existe todavia (ver docs/05_SERVIDOR.md).
 Uso:
     python server/app.py [--host 127.0.0.1] [--port 16768]
 """
+import sys as _sys_alias
+# Arrancado como `python server/app.py`, este modulo se llama __main__ y un
+# `import app` en otro modulo (fusion, granja, farm_mecanicas...) cargaba una
+# SEGUNDA copia entera: 3,7 s con el servidor parado la primera vez que se
+# plantaba (log del 21/10/2026 13:14:16 -> 13:14:20) y un estado aparte.
+if __name__ == '__main__':
+    _sys_alias.modules.setdefault('app', _sys_alias.modules[__name__])
 import asyncio
 import argparse
 import os
@@ -582,7 +589,8 @@ def _final_tutorial(ses, addr):
         ses.enviar(clases.aviso(_nombre_item(item_id), tipo=0,
                                 msg_id=clases.MSG_ITEM))
         ses.enviar(*inv.entregar(cid, item_id, ranura))
-    ses.enviar(inv.stats(bolsa, mejoras=_mejoras_de(ses)))
+    ses.enviar(inv.stats(bolsa, mejoras=_mejoras_de(ses),
+                         mascotas=getattr(ses.personaje, 'mascotas', None)))
     # Y al Lyceum.
     ses.personaje.stage = clases.STAGE_LYCEUM
     ses.personaje.tile_x, ses.personaje.tile_y = clases.TILE_LYCEUM
@@ -887,6 +895,13 @@ def _meter(ses, item_id: int, n: int = 1, pet_metadata: dict = None) -> int:
         if int(item_id) in _lg_m.items_contados()[0] and getattr(ses, 'personaje', None):
             asyncio.get_event_loop().call_soon(
                 lambda: _logros_contar(ses, 'obtiene:%d' % int(item_id), int(n or 1)))
+    except Exception:
+        pass
+    try:
+        import pase as _ps_mt
+        if int(item_id) in _ps_mt.items_de_tareas() and getattr(ses, 'personaje', None):
+            asyncio.get_event_loop().call_soon(
+                lambda: _pase_evento(ses, '蒐集道具類', int(n or 1), int(item_id)))
     except Exception:
         pass
     import inventario as inv
@@ -2250,6 +2265,11 @@ def _pet_alternar(ses, addr, ranura):
     import struct as _st
     import combate as _cb
     import mascotas as _ms
+    import pet_equipment as _peq
+    if int(ranura) == _peq.RANURA:
+        import clases as _cl_peq
+        ses.enviar(_cl_peq.aviso('Please un-equip this pet before summoning it.', tipo=0))
+        return
     f = _pet_ficha(ses, ranura)
     f['fuera'] = not f.get('fuera')
     p = ses.personaje
@@ -3298,6 +3318,9 @@ def _procesar_muerte_monstruo(ses, m, yo, addr, espera=0.0):
 
         drops = (_cb.botin_items(m.npc_type, nombre=getattr(m, 'nombre', ''), nivel=getattr(m, 'nivel', 0))
                  if con_botin else [])
+        if con_botin:
+            import lyceum_services as _ly_drop
+            drops = list(drops) + _ly_drop.straw_drop_monstruo(ses.personaje.stage, m)
         if ses.personaje:
             import misiones as _mis_drop
             drops_mis = _mis_drop.verificar_botin_mision(ses, m.npc_type, getattr(m, 'nombre', ''))
@@ -4929,6 +4952,8 @@ def _casa_fabricar(ses, recipe_id):
         ses.enviar_inmediato(*_refrescar(ses, touched),
                             struct.pack('<HBI', 0x004C, int(success), recipe_id))
     delay = max(0.1, int(row.get('製作時間') or 1))
+    import lyceum_services as _ly_make
+    delay *= max(0.10, 1-_ly_make.bono(getattr(ses.personaje, 'buffs', None), 'fabricacion_pct')/100)
     ses.house_make_task = asyncio.get_event_loop().call_later(delay, finish)
 
 def _casa_buff_diario(ses, addr):
@@ -5940,6 +5965,8 @@ def _herramienta_para(ses, herramienta):
         return False, MSG_RECOLECTAR_MONTADO, 0
     velocidad = sum(_iv_h.velocidad_recoleccion(int(bolsa.get(r) or 0))
                     for r in range(1, 11) if bolsa.get(r))
+    import lyceum_services as _ly_gather
+    velocidad += _ly_gather.bono(getattr(ses.personaje, 'buffs', None), 'recoleccion_pct')
     if cat_m == '機甲':
         return True, None, velocidad
     ranuras = RANURAS_HERRAMIENTA.get(herramienta)
@@ -6099,6 +6126,14 @@ def _sacar_de_veta(ses, addr, stage, ent, mat, mid):
                 ses.enviar(*pkgs)
         except Exception:
             log.exception('progreso de recoleccion')
+        import lyceum_services as _ly_straw
+        import house_services as _hs_straw
+        _nivel_veta = int((_hs_straw.xml_rows('material.xml').get(int(mid)) or {}).get('等級限制') or 0)
+        for _straw_id, _straw_qty in _ly_straw.straw_drop(stage, _nivel_veta):
+            _slot_straw = _meter(ses, _straw_id, _straw_qty)
+            if _slot_straw is not None:
+                ses.enviar(*_refrescar(ses, [_slot_straw]),
+                           _cl_r.aviso(_nombre_item(_straw_id), tipo=0, msg_id=_cl_r.MSG_ITEM))
         _guardar_bolsa(ses, ses.personaje.char_id)
     log.info('[%s] veta %s (%s) en %s: %s, %d/%d', addr, ent, mat['nombre'], stage,
              dado, cuenta[0], mat['limite'])
@@ -6797,6 +6832,7 @@ def _logros_datos(ses):
     p.logros_cont = {}
     p.logros_dias = []
     p.titulo = 0
+    p.stats_permanentes = {}
     try:
         con = cuentas._get_conn()
         try:
@@ -6808,6 +6844,7 @@ def _logros_datos(ses):
         p.logros_cont = {str(k): int(v) for k, v in (d.get('logros_cont') or {}).items()}
         p.logros_dias = [str(x) for x in (d.get('logros_dias') or [])]
         p.titulo = int(d.get('titulo') or 0)
+        p.stats_permanentes = {str(k): int(v) for k, v in (d.get('permanentes') or {}).items()}
     except Exception:
         log.exception('logros: no se pudieron cargar las muertes / el titulo')
     # Las muertes que se contaban antes en Personaje.contadores ('mata:N').
@@ -6836,6 +6873,469 @@ def _logros_guardar(ses):
                                                          logros_cont=cont, logros_dias=dias))
     except Exception:
         log.exception('logros: no se pudo guardar')
+
+
+# ---------------------------------------------------------------- BONOS
+# Online Bonus y Login Bonus de la ventana Event Overview. Ver bonos.py.
+
+def _bonos_estado(ses):
+    """El bonos.Estado del personaje (se carga una vez de su ficha)."""
+    import json
+    import bonos
+    p = ses.personaje
+    est = getattr(p, '_bonos', None)
+    if est is None:
+        d = {}
+        try:
+            con = cuentas._get_conn()
+            try:
+                fila = con.execute('SELECT datos FROM personajes WHERE char_id=?', (int(p.char_id),)).fetchone()
+            finally:
+                con.close()
+            d = (json.loads(fila[0]) if fila and fila[0] else {}).get('bonos') or {}
+        except Exception:
+            log.exception('bonos: no se pudo cargar el estado')
+        est = p._bonos = bonos.Estado(d)
+    return est
+
+
+def _bonos_guardar(ses):
+    p = getattr(ses, 'personaje', None)
+    est = getattr(p, '_bonos', None) if p else None
+    if est is None or not getattr(ses, 'usuario', None):
+        return
+    datos = est.datos()
+    try:
+        cuentas._actualizar_personaje(ses.usuario, p.char_id, lambda d: d.update(bonos=datos))
+    except Exception:
+        log.exception('bonos: no se pudo guardar')
+
+
+def _bonos_enviar(ses):
+    """Los dos s2c con el contador y lo ya reclamado."""
+    import bonos
+    p = ses.personaje
+    est = _bonos_estado(ses)
+    est.al_dia()
+    ses.enviar(bonos.paquete_login(bonos.dias_del_mes(getattr(p, 'logros_dias', None)), est.login))
+    ses.enviar(bonos.paquete_online(est.minutos, est.online))
+
+
+def _bonos_tick(ses, now=None):
+    """Cuenta el tiempo conectado del dia; avisa al cliente cada minuto."""
+    import bonos
+    import datetime as _dt_b
+    p = getattr(ses, 'personaje', None)
+    if p is None:
+        return
+    now = time.monotonic() if now is None else now
+    antes = getattr(ses, '_bonos_tick', None)
+    ses._bonos_tick = now
+    if antes is None:
+        return
+    est = _bonos_estado(ses)
+    dia = est.dia
+    est.al_dia()
+    if est.dia != dia:
+        # Medianoche con el personaje dentro: cuenta como dia conectado.
+        hoy = _dt_b.date.today().isoformat()
+        dias = list(getattr(p, 'logros_dias', None) or [])
+        if hoy not in dias:
+            p.logros_dias = (dias + [hoy])[-400:]
+        _bonos_enviar(ses)
+    minutos = est.minutos
+    est.segundos += max(0.0, min(5.0, now - antes))
+    if est.minutos != minutos:
+        ses.enviar(bonos.paquete_online(est.minutos, est.online))
+        _bonos_guardar(ses)
+
+
+def _bonos_reclamar(ses, addr, accion, fid):
+    """c2s 0x0016 accion 54 (Login) / 72 (Online) / 53 (Online, la primera libre)."""
+    import bonos
+    import clases as _cl_b
+    p = ses.personaje
+    est = _bonos_estado(ses)
+    est.al_dia()
+    if accion == bonos.ACCION_LOGIN:
+        filas, contador, mascara = bonos.filas_login(), bonos.dias_del_mes(getattr(p, 'logros_dias', None)), est.login
+    else:
+        if accion == bonos.ACCION_ONLINE_VIEJA:
+            fid = bonos.siguiente_online(est) or 0
+        filas, contador, mascara = bonos.filas_online(), est.minutos, est.online
+    motivo = bonos.reclamable(filas, fid, contador, mascara)
+    if motivo:
+        log.info(f"[{addr}] bonos: accion {accion} fila {fid} rechazada ({motivo})")
+        _bonos_enviar(ses)
+        return
+    items = filas[int(fid)][1]
+    libres = sum(1 for r in range(20, _tope_bolsa(ses.inventario) + 1) if r not in ses.inventario)
+    if libres < len(items):
+        ses.enviar(_cl_b.aviso('Your bag is full.'))
+        return
+    if accion == bonos.ACCION_LOGIN:
+        est.login |= 1 << (int(fid) - 1)
+    else:
+        est.online |= 1 << (int(fid) - 1)
+    for item_id, n in items:
+        log.info(f"[{addr}] bonos: fila {fid} -> {_gm_dar_item(ses, item_id, n)}")
+    _bonos_guardar(ses)
+    _bonos_enviar(ses)
+
+
+def _dar_exp_y_creditos(ses, exp=0, creditos=0):
+    """Suma exp de personaje y/o creditos de rango (cantidades absolutas), con
+    subida de nivel y de rango, como los premios de los pedidos de la casa."""
+    import combate, clases
+    from producer_orders import reward_progress
+    p = ses.personaje
+    progreso = reward_progress(
+        dict(exp=p.exp, oro=0, creditos=getattr(p, 'creditos', 0) or 0, nivel=p.nivel,
+             rango=getattr(p, 'rango', 1) or 1, hp_max=p.hp_max, mp_max=p.mp_max),
+        dict(exp=int(exp), creditos=int(creditos)),
+        combate.exp_para_nivel, combate.nivel_maximo(), combate.rango_de_creditos)
+    nivel_antes, rango_antes = p.nivel, getattr(p, 'rango', 1)
+    for k in ('exp', 'creditos', 'nivel', 'rango', 'hp_max', 'mp_max'):
+        setattr(p, k, progreso[k])
+    actual, siguiente = combate.exp_para_barra(p.nivel, p.exp)
+    ses.enviar(struct.pack('<HIB', 0x001D, p.entity_id, 4)
+               + struct.pack('<BQ', 29, p.nivel)
+               + struct.pack('<BQ', 30, combate.exp_para_nivel(p.nivel))
+               + struct.pack('<BQ', 31, siguiente) + struct.pack('<BQ', 32, actual),
+               combate.atributo(p.entity_id, p.creditos, combate.KIND_CREDITO),
+               combate.atributo(p.entity_id, p.rango, combate.KIND_RANGO), _stats_ses(ses))
+    if p.nivel > nivel_antes:
+        ses.enviar(combate.atributo(p.entity_id, p.nivel, 29), combate.efecto_level_up(p.entity_id))
+    if p.rango > rango_antes:
+        ses.enviar(combate.efecto_level_up(p.entity_id, es_rango=True))
+    if exp:
+        ses.enviar(clases.aviso(str(int(exp)), tipo=0, msg_id=clases.MSG_EXP))
+    if creditos:
+        ses.enviar(clases.aviso(str(int(creditos)), tipo=0, msg_id=642))
+    if getattr(ses, 'usuario', None):
+        cuentas.guardar_progreso(ses.usuario, p.char_id, p.nivel, p.exp, p.hp, p.mp, p.habilidades)
+
+
+def _dar_exp_habilidad(ses, skill_id, puntos):
+    """Suma skill exp a UNA habilidad (los Skill Bonus Voucher). False si no la tiene."""
+    import clases
+    p = ses.personaje
+    nuevas, dada = [], False
+    for sid, nivel, pts in p.habilidades or []:
+        if int(sid) == int(skill_id) and not dada:
+            pts += int(puntos)
+            tope = p.nivel + 11 if sid in range(20, 32) else p.nivel
+            while nivel < tope and pts >= max(1, clases.exp_requerida_skill(nivel, sid)):
+                pts -= max(1, clases.exp_requerida_skill(nivel, sid))
+                nivel += 1
+            pts = min(pts, max(1, clases.exp_requerida_skill(nivel, sid)))
+            dada = True
+            ses.enviar(clases.aviso_doble(clases.MSG_SKILL_EXP, clases.nombre(sid), str(int(puntos))))
+        nuevas.append((sid, nivel, pts))
+    if dada:
+        p.habilidades = nuevas
+        ses.enviar(clases.arbol(nuevas))
+        if getattr(ses, 'usuario', None):
+            cuentas.guardar_progreso(ses.usuario, p.char_id, p.nivel, p.exp, p.hp, p.mp, p.habilidades)
+    return dada
+
+
+# ------------------------------------------------- TRAINING TOP STUDENT (123)
+# Premio: uno de los seis Top Student (wiki angels.wikidot.com, quest Top
+# Student Training). El dialogo del cliente solo ofrece "Choose fighter
+# weapon" (12319) o "Choose mage weapon" (12320): el de mago es el Staff y el
+# de luchador, el del tipo de arma que se lleve puesta (Dagger si ninguna).
+TOP_STUDENT_MAGO = 1516
+TOP_STUDENT_POR_TIPO = {'劍': 1513, '斧': 1514, '弓箭': 1515, '槍': 1517, '影刃': 14543}
+CLAVE_PREMIO_TOP_STUDENT = 'premio_quest:123'
+
+
+def _top_student_premio_guion():
+    import dialogos
+    return [dialogos.armar_linea(12317, 1, [])[2:],
+            dialogos.armar_linea(12318, 1, [12319, 12320])[2:]]
+
+
+def _top_student_reclamado(ses):
+    _logros_datos(ses)
+    return bool(ses.personaje.logros_cont.get(CLAVE_PREMIO_TOP_STUDENT))
+
+
+def _top_student_dar_premio(ses, addr, mago):
+    import inventario as _iv_ts
+    import misiones as _mis_ts
+    p = ses.personaje
+    if not _mis_ts.mision_completada(p, 123) or _top_student_reclamado(ses):
+        return
+    arma = TOP_STUDENT_MAGO
+    if not mago:
+        arma = 1513
+        for r in (3, 4, 11, 12):
+            it = ses.inventario.get(r)
+            if it and _iv_ts.categoria_item(int(it)) in TOP_STUDENT_POR_TIPO:
+                arma = TOP_STUDENT_POR_TIPO[_iv_ts.categoria_item(int(it))]
+                break
+    res = _gm_dar_item(ses, arma, 1)
+    if 'llena' in res:
+        import clases as _cl_ts
+        ses.enviar(_cl_ts.aviso('Your bag is full.'))
+        return
+    p.logros_cont[CLAVE_PREMIO_TOP_STUDENT] = 1
+    _logros_guardar(ses)
+    log.info(f"[{addr}] Training top student: premio {res}")
+
+
+# ---------------------------------------------------------------- PET AMPLIFY
+# Ver amplify.py.
+
+def _amplify_estado(ses):
+    import json
+    import amplify
+    p = ses.personaje
+    est = getattr(p, '_amplify', None)
+    if est is None:
+        d = {}
+        try:
+            con = cuentas._get_conn()
+            try:
+                fila = con.execute('SELECT datos FROM personajes WHERE char_id=?', (int(p.char_id),)).fetchone()
+            finally:
+                con.close()
+            d = (json.loads(fila[0]) if fila and fila[0] else {}).get('amplify') or {}
+        except Exception:
+            log.exception('amplify: no se pudo cargar el estado')
+        est = p._amplify = amplify.Estado(d)
+    return est
+
+
+def _amplify_guardar(ses):
+    p = getattr(ses, 'personaje', None)
+    est = getattr(p, '_amplify', None) if p else None
+    if est is None or not getattr(ses, 'usuario', None):
+        return
+    datos = est.datos()
+    try:
+        cuentas._actualizar_personaje(ses.usuario, p.char_id, lambda d: d.update(amplify=datos))
+    except Exception:
+        log.exception('amplify: no se pudo guardar')
+
+
+def _amplify_gastar(ses, ids, n):
+    """Quita n unidades entre esos objetos (en ese orden). False si no hay."""
+    if sum(_cant_total_item(ses, i) for i in ids) < n:
+        return False
+    tocadas = []
+    for i in ids:
+        if n <= 0:
+            break
+        q = min(n, _cant_total_item(ses, i))
+        if q:
+            tocadas += _consumir_item_total(ses, i, q)
+            n -= q
+    ses.enviar(*_refrescar(ses, sorted(set(tocadas))))
+    _guardar_bolsa(ses, ses.personaje.char_id)
+    return True
+
+
+def _amplify_mascotas(ses):
+    """Por casilla abierta: (id de la mascota, sus stats totales)."""
+    import amplify
+    import inventario as _iv_am
+    import mascotas as _ms_am
+    est = _amplify_estado(ses)
+    p = ses.personaje
+    fichas = getattr(p, 'mascotas', None) or {}
+    bolsa = getattr(ses, 'inventario', None) or getattr(p, 'inventario', None) or {}
+    out = []
+    for i in range(est.abiertas):
+        r = amplify.RANURA_INI + i
+        it = bolsa.get(r) or bolsa.get(str(r))
+        if it and _iv_am.es_mascota(int(it)):
+            f = fichas.get(str(r)) or fichas.get(r) or {}
+            # El bono sale del stat TOTAL de la mascota (base
+            # + verde) y la lista del 0x0179 lleva el id con el que la conoce
+            # el cliente (el +8 del 0x0065).
+            out.append((_ms_am.uid_cliente(f), _ms_am.totales(f) if f else {}))
+        else:
+            out.append((0, None))
+    return out
+
+
+def _amplify_refrescar(ses, enviar=True):
+    """Recalcula las mascotas metidas y el bono a los stats del personaje."""
+    import amplify
+    est = _amplify_estado(ses)
+    mas = _amplify_mascotas(ses)
+    est.mascotas = [m for m, _ in mas]
+    verdes = [v for _, v in mas]
+    ses.personaje.stats_amplify = est.buff(verdes)
+    if enviar:
+        ses.enviar(amplify.paquete(est, verdes), _stats_ses(ses))
+    return verdes
+
+
+def _amplify_c2s(ses, addr, opcode, cuerpo):
+    import amplify
+    import clases as _cl_am
+    est = _amplify_estado(ses)
+    if opcode == amplify.C2S_ABRIR:
+        filas = amplify.leer_abrir(cuerpo)
+        log.info(f"[{addr}] amplify: abrir casilla {est.abiertas + 1}, martillos {filas}")
+        if est.abiertas >= amplify.MAX_CASILLAS:
+            return
+        precio = amplify.coste(est.abiertas)
+        if not _amplify_gastar(ses, amplify.MARTILLO_ABRIR, precio):
+            ses.enviar(_cl_am.aviso("You don't have the right hammer.", tipo=7, msg_id=_cl_am.MSG_TEXTO))
+            return
+        est.abrir()
+    else:
+        pedido = amplify.leer_cambiar(cuerpo)
+        log.info(f"[{addr}] amplify: re-amplify {pedido}")
+        if not pedido:
+            return
+        tipo, casilla = int(pedido[0]), int(pedido[1]) - 1
+        if tipo not in amplify.MARTILLOS or not 0 <= casilla < est.abiertas:
+            return
+        if not _amplify_gastar(ses, amplify.MARTILLOS[tipo], 1):
+            ses.enviar(_cl_am.aviso("You don't have the right hammer.", tipo=7, msg_id=_cl_am.MSG_TEXTO))
+            return
+        est.cambiar(tipo, casilla)
+    _amplify_refrescar(ses)
+    _amplify_guardar(ses)
+
+
+# ---------------------------------------------------------------- ANGEL PASS
+# Ver pase.py. La temporada la elige el cliente con su battlepass.xml, que
+# cliente_local.py alarga en el pak.
+PASE_REGLAS_DE_LOGROS = (('captura:', ('抓寵類',)), ('fusion_cons:', ('融合道具類',)),
+                         ('fusion_pets', ('融合道具類',)), ('baile', ('舉辦舞會類', '參與舞會類')),
+                         ('totem_roto', ('參與圖騰戰類',)))
+
+
+def _pase_estado(ses):
+    import json
+    import pase
+    p = ses.personaje
+    est = getattr(p, '_pase', None)
+    if est is None:
+        d = {}
+        try:
+            con = cuentas._get_conn()
+            try:
+                fila = con.execute('SELECT datos FROM personajes WHERE char_id=?', (int(p.char_id),)).fetchone()
+            finally:
+                con.close()
+            d = (json.loads(fila[0]) if fila and fila[0] else {}).get('pase') or {}
+        except Exception:
+            log.exception('pase: no se pudo cargar el estado')
+        est = p._pase = pase.Estado(p.char_id, d)
+    return est
+
+
+def _pase_guardar(ses):
+    p = getattr(ses, 'personaje', None)
+    est = getattr(p, '_pase', None) if p else None
+    if est is None or not getattr(ses, 'usuario', None):
+        return
+    datos = est.datos()
+    try:
+        cuentas._actualizar_personaje(ses.usuario, p.char_id, lambda d: d.update(pase=datos))
+    except Exception:
+        log.exception('pase: no se pudo guardar')
+
+
+def _pase_al_dia(ses, enviar=True):
+    """Sortea las tareas del dia / semana nuevos y cuenta el login del dia."""
+    import pase
+    est = _pase_estado(ses)
+    cambios = est.al_dia()
+    if enviar:
+        for cual in cambios:
+            ses.enviar(pase.paquete_reinicio(est, cual))
+    if cambios:
+        _pase_evento(ses, '登入遊戲類', guardar=False)
+        _pase_guardar(ses)
+    return cambios
+
+
+def _pase_entrar(ses):
+    """Al entrar al mundo: el 0x018D con todo el estado."""
+    import pase
+    _pase_al_dia(ses, enviar=False)
+    ses.enviar(pase.paquete_estado(_pase_estado(ses)))
+
+
+def _pase_evento(ses, regla, n=1, param=None, guardar=True):
+    """Avanza las tareas de pase de esa regla y da la exp de las que se cumplen."""
+    import pase
+    if not getattr(ses, 'personaje', None):
+        return
+    try:
+        est = _pase_estado(ses)
+        tocadas, exp = est.contar(regla, n, param)
+        total = 0
+        while exp > 0:
+            total += exp
+            mas, exp = est.contar('完成通行證任務類', exp)
+            tocadas += mas
+        for t in tocadas:
+            ses.enviar(pase.paquete_tarea(*t))
+        if total:
+            est.sumar_exp(total)
+            ses.enviar(pase.paquete_nivel(est))
+        if tocadas and guardar:
+            _pase_guardar(ses)
+    except Exception:
+        log.exception('pase: evento %s', regla)
+
+
+def _pase_de_logros(ses, clave, n):
+    for prefijo, reglas in PASE_REGLAS_DE_LOGROS:
+        if str(clave).startswith(prefijo):
+            for regla in reglas:
+                _pase_evento(ses, regla, n)
+
+
+def _pase_accion(ses, addr, que):
+    """c2s 0x0016 accion 74: 2 comprar nivel, 3 reclamar, 4 comprar el pase."""
+    import pase
+    import clases as _cl_p
+    est = _pase_estado(ses)
+    t = pase.temporada()
+    if que == pase.ACC_RECLAMAR:
+        items = pase.premios_pendientes(est)
+        libres = sum(1 for r in range(20, _tope_bolsa(ses.inventario) + 1) if r not in ses.inventario)
+        if libres < len(items):
+            ses.enviar(_cl_p.aviso('Your bag is full.'))
+            return
+        for item_id, cant in items:
+            log.info(f"[{addr}] pase: {_gm_dar_item(ses, item_id, cant)}")
+        est.gratis = est.nivel
+        ses.enviar(pase.paquete_reclamado(1, est.gratis))
+        if est.pase:
+            est.pago = est.nivel
+            ses.enviar(pase.paquete_reclamado(2, est.pago))
+    elif que in (pase.ACC_NIVEL, pase.ACC_PASE):
+        item = int(t.get('升級道具ID' if que == pase.ACC_NIVEL else '開通道具ID') or 0)
+        if que == pase.ACC_NIVEL and est.nivel >= pase.nivel_max():
+            return
+        if que == pase.ACC_PASE and est.pase:
+            return
+        if not item or _cant_total_item(ses, item) < 1:
+            ses.enviar(_cl_p.aviso('You need %s.' % _nombre_item(item)))
+            return
+        ses.enviar(*_refrescar(ses, _consumir_item_total(ses, item, 1)))
+        _guardar_bolsa(ses, ses.personaje.char_id)
+        if que == pase.ACC_NIVEL:
+            est.nivel += 1
+            est.exp = 0
+            ses.enviar(pase.paquete_nivel(est))
+        else:
+            est.pase = True
+            ses.enviar(pase.paquete_pase(est))
+    else:
+        return
+    _pase_guardar(ses)
 
 
 def _logros_stats(ses):
@@ -6918,6 +7418,7 @@ def _logros_contar(ses, clave, n=1, maximo=False, addr=None):
             cont[clave] = max(int(cont.get(clave, 0) or 0), int(n))
         else:
             cont[clave] = int(cont.get(clave, 0) or 0) + int(n)
+            _pase_de_logros(ses, clave, n)
         _logros_actualizar(ses, addr, enviar=True)
         _logros_guardar(ses)
     except Exception:
@@ -6994,8 +7495,12 @@ def _logros_actualizar(ses, addr=None, enviar=False, silencioso=False):
                         _s_bc.enviar(_bc)
                     except Exception:
                         pass
-            mandar(_cl_a.aviso('New title unlocked! You will find it in the Title tab '
-                               'after changing map.', tipo=0))
+            # El titulo, en caliente, con el 0x001D codigo 56 (ver
+            # logros.paquete_titulo_nuevo). NO con el 0x0002: ese rehace el
+            # personaje del cliente y dejaba la mochila y el equipo en blanco
+            # (titulo 137 de Pet Master - 15, 21/10/2026).
+            for _t in sorted(nuevos_t):
+                mandar(_lg_a.paquete_titulo_nuevo(p.entity_id, _t))
         _logros_guardar(ses)
         log.info('[%s] %s consigue los logros %s', addr, p.nombre, nuevos)
     if (nuevos or enviar) and not silencioso:
@@ -7026,6 +7531,8 @@ def _logros_muerte(ses, addr, npc_type):
     if not p:
         return
     _logros_datos(ses)
+    import pase as _ps_m
+    _pase_evento(ses, '打怪類', 1, _ps_m.razas().get(int(npc_type or 0), 0))
     cuenta = int(npc_type or 0) in _lg_m.tipos_con_logro()
     if cuenta:
         p.logros_muertos[int(npc_type)] = p.logros_muertos.get(int(npc_type), 0) + 1
@@ -8014,7 +8521,8 @@ def _vida_max(p, bolsa=None) -> int:
                            getattr(p, 'habilidades', None), bolsa=b,
                            mejoras=getattr(p, 'mejoras', None),
                            buffs=__import__('logros').con_reputacion(getattr(p, 'buffs', None), p),
-                           mp_max=getattr(p, 'mp_max', 0))
+                           mp_max=getattr(p, 'mp_max', 0),
+                           mascotas=getattr(p, 'mascotas', None))
 
 
 def _mana_max(p, bolsa=None) -> int:
@@ -8029,7 +8537,8 @@ def _mana_max(p, bolsa=None) -> int:
     return inv.mana_maximo(getattr(p, 'mp_max', 0),
                            getattr(p, 'habilidades', None), bolsa=b,
                            mejoras=getattr(p, 'mejoras', None),
-                           buffs=__import__('logros').con_reputacion(getattr(p, 'buffs', None), p))
+                           buffs=__import__('logros').con_reputacion(getattr(p, 'buffs', None), p),
+                           mascotas=getattr(p, 'mascotas', None))
 
 
 def _cb_alcance(ses) -> int:
@@ -8060,7 +8569,8 @@ def _stats_ses(ses):
     buffs = _lg_st.con_reputacion(buffs, p)     # las stats fijas de la reputacion
     return inv.stats(bolsa, habs, hp=hp, hp_max=hp_max, mp=mp, mp_max=mp_max,
                      oro=oro, buffs=buffs, sp=sp, sp_max=bars,
-                     mejoras=getattr(p, 'mejoras', None) if p else None)
+                     mejoras=getattr(p, 'mejoras', None) if p else None,
+                     mascotas=getattr(p, 'mascotas', None) if p else None)
 
 
 def _refrescar_logros(ses, forzar=False):
@@ -8105,7 +8615,9 @@ def _otorgar_skill_exp(ses, p, yo, arma_puesta=0, magic_id=0, accion=None):
         return []
     import configuracion, cuentas, clases as _cl, combate as _cb, inventario as _iv
     pkgs = []
-    mult = configuracion.multiplicador_skill_exp()
+    # Con los buffs del personaje: el Astro Pisces III (+300 % de skill exp)
+    # no se notaba porque aqui no se pasaban (21/10/2026).
+    mult = configuracion.multiplicador_skill_exp(getattr(p, 'buffs', None))
     exp_ganada = max(1, int(round(1 * mult)))
 
     SKILLS_PRODUCTOR = {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}
@@ -8650,6 +9162,13 @@ class Servidor:
                     _casa_tick_monstruos(ses)
                 except Exception:
                     log.exception('casas: error al contar tiempo conectado')
+                try:
+                    _bonos_tick(ses)
+                    if time.time() - getattr(ses, '_pase_visto', 0) >= 60:
+                        ses._pase_visto = time.time()
+                        _pase_al_dia(ses)
+                except Exception:
+                    log.exception('bonos: error al contar tiempo conectado')
                 yo = p.entity_id
                 sentado = getattr(ses, 'sentado', False)
                 ahora = time.time()
@@ -8829,6 +9348,10 @@ class Servidor:
                 _casa_tick_limpieza(ses, flush=True)
             except Exception:
                 log.exception('casas: error al guardar el tiempo conectado')
+            try:
+                _bonos_guardar(ses)
+            except Exception:
+                log.exception('bonos: error al guardar el tiempo conectado')
             if ses in self.mundos:
                 self.mundos.remove(ses)
             try:
@@ -9710,6 +10233,24 @@ class Servidor:
                 _logros_actualizar(ses, addr, silencioso=True)
             except Exception:
                 log.exception('logros antes de entrar')
+            try:
+                import misiones as _mis_alu
+                _alu = _mis_alu.cerrar_misiones_de_alumno(p)
+                if _alu:
+                    log.info(f"[{addr}] graduado con misiones de alumno activas {_alu}: cerradas")
+                    if getattr(ses, 'usuario', None):
+                        cuentas.guardar_quests(ses.usuario, p.char_id, p.quests)
+            except Exception:
+                log.exception('misiones de alumno al entrar')
+            try:
+                _bonos_estado(ses)
+            except Exception:
+                log.exception('bonos antes de entrar')
+            try:
+                _amplify_estado(ses)
+                p._amplify_verdes = _amplify_refrescar(ses, enviar=False)
+            except Exception:
+                log.exception('amplify antes de entrar')
             for sub in secuencia(p):
                 ses.enviar(sub)
             # El inventario va dentro de la secuencia de entrada: el 0x001A
@@ -9740,7 +10281,7 @@ class Servidor:
                                  mp=p.mp, mp_max=p.mp_max,
                                  oro=p.oro, buffs=getattr(p, 'buffs', None),
                                  sp=ses.sp, sp_max=bars,
-                                 mejoras=_mejoras_de(ses)))
+                                 mejoras=_mejoras_de(ses), mascotas=getattr(p, 'mascotas', None)))
             import combate as _cb
             ses.enviar(_cb.atributo(p.entity_id, ses.sp, _cb.KIND_SP))
             if getattr(p, 'buffs', None):
@@ -9864,6 +10405,10 @@ class Servidor:
             try:
                 _logros_vaciar(ses)
                 _logros_actualizar(ses, addr, enviar=True)
+                _pase_entrar(ses)
+                # Pet Amplify ya con el inventario de la sesion: el bono a los
+                # stats y el 0x0179 con las mascotas metidas.
+                _amplify_refrescar(ses)
                 if getattr(p, 'titulo', 0):
                     import logros as _lg_in
                     ses.enviar(_lg_in.paquete_titulo(p.entity_id, p.titulo, True))
@@ -10836,7 +11381,8 @@ class Servidor:
                                 if b_bf_atk.get('atk_speed'):
                                     cadencia_pet = max(0.75, cadencia_pet * (1.0 - min(0.40, b_bf_atk['atk_speed'] / 100.0)))
                                 if dist_pet <= r_pet:
-                                    if ahora - f_pet.get('ultimo_ataque', 0) >= cadencia_pet:
+                                    if (ahora - f_pet.get('ultimo_ataque', 0) >= cadencia_pet
+                                            and ahora >= f_pet.get('combo_hasta', 0)):
                                         f_pet['ultimo_ataque'] = ahora
                                         pet_targ.en_combate_con = pet_eid  # El monstruo enfoca a la mascota
                                         sks = f_pet.get('skills') or list(_ms.skills_de(f_pet.get('sprite', 3001), int(f_pet.get('nivel', 1))))
@@ -10892,33 +11438,14 @@ class Servidor:
                                                 ses, *_pkgs_pet_hit)
                                             _combo_p = _cb.combo_de(sk_usada)
                                             if _combo_p and _combo_p.get('golpes', 1) > 1:
-                                                _golpes = _combo_p['golpes']
-                                                _sep_p = max(0.05, _combo_p.get('intervalo_ms', 200) / 1000.0)
-                                                for _gk in range(1, _golpes):
-                                                    def _pet_subgolpe(k_dmg=dano_pet):
-                                                        if not getattr(pet_targ, 'vivo', False) or pet_targ.hp <= 0:
-                                                            return
-                                                        pet_targ.hp = max(0, pet_targ.hp - k_dmg)
-                                                        _pkgs_pet_subhit = (
-                                                            _cb.numero_de_dano(pet_eid, pet_targ.entity_id, k_dmg,
-                                                                               ataque=sk_usada, efecto=ef_pet,
-                                                                               es_magia=_pet_skill_magic),
-                                                            _cb.cierre_de_dano(pet_eid, pet_targ.entity_id,
-                                                                               ataque=sk_usada, efecto=ef_pet,
-                                                                               es_magia=_pet_skill_magic),
-                                                            _cb.numero_flotante(pet_targ.entity_id, k_dmg),
-                                                            _cb.atributo(pet_targ.entity_id, pet_targ.porcentaje if pet_targ.hp > 0 else 0)
-                                                        )
-                                                        ses.enviar_inmediato(*_pkgs_pet_subhit)
-                                                        import presencia as _pr_pet_subhit
-                                                        _pr_pet_subhit.notificar_companero_accion(
-                                                            ses, *_pkgs_pet_subhit)
-                                                        if pet_targ.hp <= 0:
-                                                            _procesar_muerte_monstruo(ses, pet_targ, yo, addr, espera=0.1)
-                                                    try:
-                                                        asyncio.get_event_loop().call_later(_sep_p * _gk, _pet_subgolpe)
-                                                    except Exception:
-                                                        pass
+                                                import pet_combos as _pet_combos
+                                                _dur_combo_pet = _pet_combos.programar_subgolpes(
+                                                    ses, f_pet, pet_eid, pet_targ, dano_pet, _combo_p,
+                                                    es_aoe=bool(sk_datos.get('es_aoe')),
+                                                    al_morir=lambda victima, _ses=ses, _yo=yo, _addr=addr:
+                                                        _procesar_muerte_monstruo(
+                                                            _ses, victima, _yo, _addr, espera=0.1))
+                                                f_pet['combo_hasta'] = ahora + _dur_combo_pet
                                         else:
                                             dano_pet = max(10, int(base_atk_pet * 1.2) - (getattr(pet_targ, 'defensa', 0) // 3))
                                             pet_targ.registrar_dano(min(pet_targ.hp, dano_pet), es_pet=True)
@@ -10942,30 +11469,45 @@ class Servidor:
                                 else:
                                     if ahora >= f_pet.get('proximo_paso', 0):
                                         spd_p = 140 if int(f_pet.get('saciedad', 0)) > 100 else 105
-                                        pasos_dar = min(max(1, dist_pet - 1), 4)
-                                        cur_px, cur_py = pet_x * 32, pet_y * 32
-                                        nx_p, ny_p = pet_x, pet_y
-                                        for _ in range(pasos_dar):
-                                            if nx_p < pet_targ.tile_x: nx_p += 1
-                                            elif nx_p > pet_targ.tile_x: nx_p -= 1
-                                            if ny_p < pet_targ.tile_y: ny_p += 1
-                                            elif ny_p > pet_targ.tile_y: ny_p -= 1
-                                        f_pet['x'] = nx_p
-                                        f_pet['y'] = ny_p
-                                        ses.pet_tile = [nx_p, ny_p]
-                                        dst_px, dst_py = nx_p * 32, ny_p * 32
-                                        f_pet['proximo_paso'] = ahora + (32.0 * pasos_dar / float(spd_p))
-                                        _p_mv = MOVE.build(entity_id=pet_eid, cur_x=cur_px, cur_y=cur_py, dst_x=dst_px, dst_y=dst_py, speed=spd_p)
-                                        ses.enviar(_p_mv)
-                                        import presencia as _pr
-                                        _pr.notificar_mascota_movimiento(ses, pet_eid, _p_mv)
+                                        # Por casillas que se pisan, como al seguir al jugador.
+                                        (nx_p, ny_p), _ok_pet = _transitable.tramo(
+                                            int(getattr(p, 'stage', 0) or 0), (pet_x, pet_y),
+                                            (pet_targ.tile_x, pet_targ.tile_y),
+                                            min(max(1, dist_pet - 1), 4), parar_a=1)
+                                        if (nx_p, ny_p) == (pet_x, pet_y):
+                                            # Sin paso posible: se queda y lo reintenta luego.
+                                            f_pet['proximo_paso'] = ahora + 0.5
+                                        else:
+                                            pasos_dar = max(1, max(abs(nx_p - pet_x), abs(ny_p - pet_y)))
+                                            cur_px, cur_py = pet_x * 32, pet_y * 32
+                                            f_pet['x'] = nx_p
+                                            f_pet['y'] = ny_p
+                                            ses.pet_tile = [nx_p, ny_p]
+                                            dst_px, dst_py = nx_p * 32, ny_p * 32
+                                            f_pet['proximo_paso'] = ahora + (32.0 * pasos_dar / float(spd_p))
+                                            _p_mv = MOVE.build(entity_id=pet_eid, cur_x=cur_px, cur_y=cur_py, dst_x=dst_px, dst_y=dst_py, speed=spd_p)
+                                            ses.enviar(_p_mv)
+                                            import presencia as _pr
+                                            _pr.notificar_mascota_movimiento(ses, pet_eid, _p_mv)
                             else:
                                 dp_x = p.tile_x - pet_x
                                 dp_y = p.tile_y - pet_y
                                 dist_jug = max(abs(dp_x), abs(dp_y))
                                 spd_p = 140 if int(f_pet.get('saciedad', 0)) > 100 else 105
-                                if dist_jug > 15:
-                                    f_pet['x'] = p.tile_x + 1
+                                # Va por casillas que se pisan (antes en linea
+                                # recta: cruzaba barrancos) y, si se queda
+                                # atras, corre para alcanzar en vez de
+                                # teletransportarse (21/10/2026). Solo salta
+                                # al lado si no hay camino o esta muy lejos.
+                                _st_pet = int(getattr(p, 'stage', 0) or 0)
+                                _fin_pet, _hay_camino = ((pet_x, pet_y), True)
+                                if 1 < dist_jug <= 30 and ahora >= f_pet.get('proximo_paso', 0):
+                                    _fin_pet, _hay_camino = _transitable.tramo(
+                                        _st_pet, (pet_x, pet_y), (p.tile_x, p.tile_y),
+                                        min(dist_jug - 1, 6 if dist_jug > 6 else 4), parar_a=1)
+                                if dist_jug > 30 or not _hay_camino:
+                                    _lado = p.tile_x + 1 if _transitable.se_pisa(_st_pet, p.tile_x + 1, p.tile_y) else p.tile_x
+                                    f_pet['x'] = _lado
                                     f_pet['y'] = p.tile_y
                                     ses.pet_tile = [f_pet['x'], f_pet['y']]
                                     cur_px, cur_py = f_pet['x'] * 32, f_pet['y'] * 32
@@ -10976,15 +11518,13 @@ class Servidor:
                                     )
                                     import presencia as _pr
                                     _pr.notificar_mascota_movimiento(ses, pet_eid, _p_mv)
-                                elif dist_jug > 1 and ahora >= f_pet.get('proximo_paso', 0):
-                                    pasos_dar = min(dist_jug - 1, 4)
+                                elif dist_jug > 1 and ahora >= f_pet.get('proximo_paso', 0) \
+                                        and _fin_pet != (pet_x, pet_y):
+                                    nx_j, ny_j = _fin_pet
+                                    pasos_dar = max(1, max(abs(nx_j - pet_x), abs(ny_j - pet_y)))
+                                    if dist_jug > 6:
+                                        spd_p = max(spd_p, 200)     # alcanzar corriendo
                                     cur_px, cur_py = pet_x * 32, pet_y * 32
-                                    nx_j, ny_j = pet_x, pet_y
-                                    for _ in range(pasos_dar):
-                                        if nx_j < p.tile_x: nx_j += 1
-                                        elif nx_j > p.tile_x: nx_j -= 1
-                                        if ny_j < p.tile_y: ny_j += 1
-                                        elif ny_j > p.tile_y: ny_j -= 1
                                     f_pet['x'] = nx_j
                                     f_pet['y'] = ny_j
                                     ses.pet_tile = [nx_j, ny_j]
@@ -11183,7 +11723,8 @@ class Servidor:
                               hp=p.hp, hp_max=p.hp_max,
                               mp=p.mp, mp_max=p.mp_max,
                               oro=getattr(ses, 'oro', p.oro), buffs=getattr(p, 'buffs', None),
-                              sp=ses.sp, sp_max=bars, mejoras=_mejoras_de(ses)),
+                              sp=ses.sp, sp_max=bars, mejoras=_mejoras_de(ses),
+                              mascotas=getattr(p, 'mascotas', None)),
                     *_apariencia(ses)
                 ]
                 # Restauracion de buffs activos al entrar al mundo (relog)
@@ -14973,6 +15514,25 @@ class Servidor:
                 log.warning(f"[{addr}] mover {org} -> {dst}: la ranura {org} esta vacia")
                 return
             it_org = bolsa[org]
+            # El slot Equip Pet (558) tiene requisitos de la instancia, no
+            # solo de su item_id. Validar tambien el sentido inverso del swap.
+            import pet_equipment as _peq_mv
+            for _origen_pet, _destino_pet in ((org, dst), (dst, org)):
+                if _destino_pet != _peq_mv.RANURA or not bolsa.get(_origen_pet):
+                    continue
+                _item_peq = bolsa[_origen_pet]
+                _registro_peq = getattr(ses.personaje, 'mascotas', None) or {}
+                _ficha_peq = _registro_peq.get(str(_origen_pet)) or _registro_peq.get(_origen_pet)
+                _activa_peq = getattr(ses.personaje, 'mascota', None)
+                if not _ficha_peq and isinstance(_activa_peq, dict) and _activa_peq.get('ranura') == _origen_pet:
+                    _ficha_peq = _activa_peq
+                _error_peq = ('Only pets can be equipped here.' if not inv.es_mascota(_item_peq)
+                              else _peq_mv.error_equipar(_ficha_peq))
+                if _error_peq:
+                    import clases as _cl_peq_mv
+                    ses.enviar(_cl_peq_mv.aviso(_error_peq, tipo=0),
+                               *_refrescar(ses, [org, dst]))
+                    return
             # ESCRITURAS DE CASA (Cottage, Delicate House, Romantic Villa,
             # Luxurious..., 房屋): NO son muebles. Son el tamano de la casa
             # (cuantos muebles caben) y viven en la casilla 376 o en la
@@ -15015,6 +15575,17 @@ class Servidor:
                 if not _valid_slot:
                     ses.enviar(*_refrescar(ses, [org, dst]))
                     return
+            import amplify as _amp_mv
+            if _amp_mv.es_ranura(dst) or _amp_mv.es_ranura(org):
+                if _amp_mv.es_ranura(dst) and (dst - _amp_mv.RANURA_INI >= _amplify_estado(ses).abiertas
+                                               or not inv.es_mascota(it_org)):
+                    import clases as _cl_amv
+                    ses.enviar(_cl_amv.aviso('This slot is locked!' if inv.es_mascota(it_org)
+                                             else 'Please insert a pet!'),
+                               *_refrescar(ses, [org, dst]))
+                    return
+                # Despues del movimiento: mascotas metidas, bono y 0x0179.
+                asyncio.get_event_loop().call_soon(lambda: _amplify_refrescar(ses))
             if not inv.es_ranura_valida(it_org, dst):
                 log.warning(f"[{addr}] mover {org} -> {dst}: ranura no valida para item {it_org}")
                 ses.enviar(*_refrescar(ses, [org]))
@@ -15107,8 +15678,8 @@ class Servidor:
                 # casilla anterior.
                 _mascs_swap = getattr(ses.personaje, 'mascotas', None) if ses.personaje else None
                 if isinstance(_mascs_swap, dict):
-                    _f_org = _mascs_swap.pop(str(org), None)
-                    _f_dst = _mascs_swap.pop(str(dst), None)
+                    _f_org = _mascs_swap.pop(str(org), None) or _mascs_swap.pop(org, None)
+                    _f_dst = _mascs_swap.pop(str(dst), None) or _mascs_swap.pop(dst, None)
                     if _f_org:
                         _f_org['ranura'] = dst
                         _mascs_swap[str(dst)] = _f_org
@@ -15157,6 +15728,10 @@ class Servidor:
             _c_org = _cantidades(ses).pop(org, 1)
             _cantidades(ses)[dst] = _c_org
             _mover_inst(ses, org, dst)
+            if dst == _peq_mv.RANURA and ses.personaje:
+                _estado_peq = ses.personaje.mejoras.get(dst, {})
+                if inv.vincular_equipo(int(it), cid, _estado_peq):
+                    ses.personaje.mejoras[dst] = _estado_peq
             _masc_p = getattr(ses.personaje, 'mascota', None) if ses.personaje else None
             if isinstance(_masc_p, dict) and _masc_p.get('ranura') == org:
                 _masc_p['ranura'] = dst
@@ -15753,6 +16328,11 @@ class Servidor:
             ses.enviar(_cs.pkt_house_name(_c.house_name))
             return
 
+        # PET AMPLIFY: abrir casilla (0x015D) y Re-Amplify (0x015C). Ver amplify.py.
+        if opcode in (0x015D, 0x015C) and ses.rol == 'mundo' and ses.personaje:
+            _amplify_c2s(ses, addr, opcode, cuerpo)
+            return
+
         # WND_EXCHANGE (sendExchange Lua: opcode 0x0160 o 0x0148)
         if opcode in (0x0160, 0x0148) and ses.rol == 'mundo' and ses.personaje and len(cuerpo) >= 4:
             import clases as _cl
@@ -15762,6 +16342,9 @@ class Servidor:
                 rec_id = struct.unpack_from('<I', cuerpo, 0)[0]
                 veces = 1
             veces = max(1, min(100, int(veces)))
+            import lyceum_services as _ly_exchange
+            if _ly_exchange.canjear(ses, rec_id, veces):
+                return
             receta = _obtener_receta_exchange(rec_id)
             if not receta:
                 ses.enviar(_cl.aviso("Invalid exchange recipe.", tipo=7, msg_id=_cl.MSG_TEXTO))
@@ -16398,10 +16981,53 @@ class Servidor:
                              % (addr, _cuanto, _f.get('nombre'), _sub,
                                 _f.get('nivel')))
                     return
-                # Los otros tres destinos todavia no se aplican; se dice en
-                # el log para no perderlos de vista.
-                log.info('[%s] vale de experiencia sin implementar: '
-                         'destino %d, %d puntos' % (addr, _dest, _cuanto))
+                # Personaje (1), habilidad (2, "choose a target skill": la
+                # habilidad llega en el objetivo del 0x002E) y honor (3, los
+                # creditos de rango). La medalla de rango tambien es destino 3
+                # y tiene su propio caso mas abajo.
+                import configuracion as _cf_vale
+                if not (_dest == inv.VALE_HONOR
+                        and int(item_id) == int(getattr(_cf_vale, 'ITEM_MEDALLA_RANGO', 83266))):
+                    if _dest == inv.VALE_HABILIDAD:
+                        habs_v = {int(h[0]) for h in (ses.personaje.habilidades or [])}
+                        if objetivo is None or int(objetivo) not in habs_v:
+                            log.info('[%s] vale de habilidad %s sin habilidad elegida (cuerpo %s)'
+                                     % (addr, item_id, cuerpo.hex()))
+                            ses.enviar(_c.aviso('Choose the skill to use it on.', tipo=7, msg_id=_c.MSG_TEXTO))
+                            return
+                    _sacar(ses, ranura, 1)
+                    ses.enviar(*_refrescar(ses, [ranura]))
+                    _guardar_bolsa(ses, cid)
+                    if _dest == inv.VALE_PERSONAJE:
+                        _dar_exp_y_creditos(ses, exp=_cuanto)
+                    elif _dest == inv.VALE_HONOR:
+                        _dar_exp_y_creditos(ses, creditos=_cuanto)
+                    elif _dest == inv.VALE_HABILIDAD:
+                        _dar_exp_habilidad(ses, int(objetivo), _cuanto)
+                    log.info('[%s] vale %s: destino %d, %d' % (addr, item_id, _dest, _cuanto))
+                    return
+
+            # Caso 0b: STATS PERMANENTES (Weight Seed, Attack Seed, Hero Fruit...).
+            _perm = inv.stats_permanentes_de(item_id)
+            if _perm and ses.personaje:
+                _logros_datos(ses)
+                p_perm = ses.personaje
+                acum = dict(getattr(p_perm, 'stats_permanentes', None) or {})
+                for k, v in _perm.items():
+                    acum[k] = int(acum.get(k, 0)) + int(v)
+                p_perm.stats_permanentes = acum
+                _sacar(ses, ranura, 1)
+                ses.enviar(*_refrescar(ses, [ranura]), _stats_ses(ses),
+                           _c.aviso('Your abilities were permanently improved.', tipo=7, msg_id=_c.MSG_TEXTO))
+                _guardar_bolsa(ses, cid)
+                if getattr(ses, 'usuario', None):
+                    try:
+                        cuentas._actualizar_personaje(ses.usuario, p_perm.char_id,
+                                                      lambda d: d.update(permanentes=acum))
+                    except Exception:
+                        log.exception('no se pudieron guardar los stats permanentes')
+                log.info('[%s] %s usa %s: %s (total %s)' % (addr, p_perm.nombre, item_id, _perm, acum))
+                return
 
 
             # Consumible custom: Medalla de ascenso de rango (+1 rango por uso)
@@ -17083,6 +17709,39 @@ class Servidor:
                          addr, item_id, premio_id, premio_n, nom_premio)
                 return
 
+            # Caso 5d: REGALOS SIN TABLA, con el contenido en su descripcion
+            # ("Requires 6 slots and above to open. Open to get: ..."). Ver
+            # bolsas.contenido_descrito.
+            descrito = _bol.contenido_descrito(item_id)
+            if descrito:
+                modo, premios, huecos = descrito
+                if modo == 'uno':
+                    premios = [random.choice(premios)]
+                libres = sum(1 for r in range(20, _tope_bolsa(bolsa) + 1) if r not in bolsa)
+                if libres + (1 if _cant_de(ses, ranura) == 1 else 0) < huecos:
+                    ses.enviar(_c.aviso('You need %d free slots to open this.' % huecos,
+                                        tipo=7, msg_id=_c.MSG_TEXTO))
+                    return
+                antes = set(bolsa.keys())
+                _sacar(ses, ranura, 1)
+                tocadas = [ranura]
+                salida = []
+                for premio_id, premio_n in premios:
+                    destino = _meter(ses, premio_id, premio_n)
+                    if destino is not None:
+                        tocadas.append(destino)
+                        salida.append(_c.aviso('You got %s x%d!' % (_nombre_item(premio_id), premio_n),
+                                               tipo=7, msg_id=_c.MSG_TEXTO))
+                tocadas = sorted(set(tocadas) | (set(bolsa.keys()) - antes))
+                import misiones as _mis_desc
+                salida.extend(_mis_desc.verificar_progreso_recoleccion(ses, [p for p, _ in premios]))
+                salida.extend(_refrescar(ses, tocadas))
+                ses.enviar(*salida)
+                if getattr(ses, 'usuario', None):
+                    cuentas.guardar_inventario(ses.usuario, cid, bolsa, _cantidades(ses))
+                log.info('[%s] regalo %s abierto (%s) -> %s', addr, item_id, modo, premios)
+                return
+
             # Caso 6: genuine Card Book cards. Validation and consumption
             # must commit together; an English name containing Card is not
             # sufficient to consume an item (EXP cards are other systems).
@@ -17506,6 +18165,17 @@ class Servidor:
                     log.debug(f"[{addr}] clic en entidad {ent} sin nombre registrado")
                     return
 
+                import lyceum_services as _ly_npc
+                if ses.personaje and ses.personaje.stage == 41 and _nom_ent in _ly_npc.NOMBRES:
+                    g_servicio = dialogos.propio(_nom_ent, entidad=ent, stage=41)
+                    ses.dlg_ent, ses.dlg_guion, ses.dlg_paso = ent, g_servicio, 1
+                    ses.dlg_val = struct.unpack_from('<H', g_servicio[0], 4)[0]
+                    ses.dlg_quest_ofrecida = None
+                    ses._astro_pendiente = None
+                    ses._lyceum_exchange = None
+                    ses.enviar(dialogos.linea_de(g_servicio, 0, ses.personaje.nombre))
+                    return
+
                 g_quest = None
                 if ses.personaje:
                     proc, tipo_proc, datos_proc = _mis.interactuar_npc(ses, _nom_ent, entidad=ent)
@@ -17524,6 +18194,10 @@ class Servidor:
                                 g_comp = dp if dp else g_mis
                             else:
                                 g_comp = g_mis if g_mis else dp
+                            if qid_proc == 123 and tipo_proc == 'completada':
+                                # Training top student: Michael da a elegir el arma
+                                # (msg 12317/12318, opciones 12319 / 12320).
+                                g_comp = _top_student_premio_guion()
                             if g_comp:
                                 ses.dlg_ent, ses.dlg_guion, ses.dlg_paso = ent, g_comp, 1
                                 ses.dlg_val = struct.unpack_from('<H', g_comp[0], 4)[0] if len(g_comp[0]) >= 6 else 4
@@ -17664,7 +18338,11 @@ class Servidor:
                         registrado=_reg,
                         entidad=ent,
                         en_progreso=_en_prog,
-                        graduado=_es_grad,
+                        # Michael si ofrece el entrenamiento al graduado que ya
+                        # lo tenia (para terminarlo o cobrar el arma).
+                        graduado=_es_grad and not (
+                            _nom_ent == 'Michael' and ses.personaje
+                            and __import__('misiones').tiene_mision(ses.personaje, 123)),
                         cleanliness=_clean_house,
                         house_level=_house_lvl,
                         nivel=getattr(ses.personaje, 'nivel', 1) if ses.personaje else 1)
@@ -17708,7 +18386,15 @@ class Servidor:
                                     ses.enviar(_cl_tk.aviso(_txt_tk, tipo=0))
                             except Exception:
                                 log.debug('Terra Keeper: dueno del campo', exc_info=True)
-                            if _recorrer_dialogo_mapa(ses, addr, _st_c, 5936):
+                            # En los cuatro campos de entrenamiento (7, 20, 22, 28)
+                            # el acceso es libre: su dialogo propio 5975 ("...open
+                            # now on Michael's orders", "Go to the Training Area").
+                            # El arbol 5936 es el de la Totem War ("Your league
+                            # doesn't have the right of the land totem") y en el 20,
+                            # 22 y 28 tapaba el acceso (en el 7 no tiene ese nodo).
+                            import totem_war as _tw_tk2
+                            if (not _tw_tk2.es_totem_decorativo(_st_c)
+                                    and _recorrer_dialogo_mapa(ses, addr, _st_c, 5936)):
                                 return
                         _raiz_ent = DIALOGO_DE_ENTIDAD.get((int(_st_c), int(ent)))
                         if _raiz_ent and _recorrer_dialogo_mapa(ses, addr, _st_c, _raiz_ent):
@@ -17866,6 +18552,15 @@ class Servidor:
                     return
 
                 # Opciones de mision interactiva (Interes [Ayudar/Salir] o Propuesta [Aceptar/Rechazar])
+                import lyceum_services as _ly_op
+                _nom_servicio = _nombre_entidad(ses, ent)
+                if ses.personaje and ses.personaje.stage == 41 and _nom_servicio in _ly_op.NOMBRES:
+                    if _el not in _ops or not _ly_op.procesar_opcion(ses, _nom_servicio, _el):
+                        ses.dlg_ent = None
+                        ses._astro_pendiente = None
+                        ses.enviar(struct.pack('<H', 0x0012) + dialogos.FIN)
+                    return
+
                 if getattr(ses, 'dlg_quest_ofrecida', None):
                     qid_ofrecida = ses.dlg_quest_ofrecida
                     fase = getattr(ses, 'dlg_quest_fase', 'interes')
@@ -17993,7 +18688,33 @@ class Servidor:
                     log.info(f"[{addr}] Leccion {q_leccion} aceptada mediante opcion {_el}")
                     return
 
+                # Premio de Training top student: arma de luchador o de mago.
+                if _el in (12319, 12320) and ses.personaje:
+                    _top_student_dar_premio(ses, addr, _el == 12320)
+                    ses.enviar(struct.pack('<H', 0x0012) + dialogos.FIN)
+                    ses.dlg_ent = None
+                    return
+
                 # Evaluacion de Michael para Top Student Training (Quest 123)
+                if _el == 12308 and ses.personaje:
+                    import misiones as _mis_hecha
+                    if _mis_hecha.mision_completada(ses.personaje, 123):
+                        if _top_student_reclamado(ses):
+                            ses.enviar(struct.pack('<H', 0x0012) + dialogos.FIN)
+                            ses.dlg_ent = None
+                        else:
+                            g_pr = _top_student_premio_guion()
+                            ses.dlg_ent, ses.dlg_guion, ses.dlg_paso = ent, g_pr, 1
+                            ses.dlg_val = 1
+                            ses.enviar(dialogos.linea_de(g_pr, 0, ses.personaje.nombre))
+                        return
+                if _el == 12308 and ses.personaje and _es_graduado(ses):
+                    import misiones as _mis_g123
+                    if not _mis_g123.tiene_mision(ses.personaje, 123):
+                        ses.enviar(struct.pack('<H', 0x0012) + dialogos.FIN)
+                        ses.dlg_ent = None
+                        log.info(f"[{addr}] Top Student Training: graduado, no se ofrece")
+                        return
                 if _el == 12308:
                     import misiones as _mis_mich
                     nom = ses.personaje.nombre if ses.personaje else 'Jugador'
@@ -18868,6 +19589,29 @@ class Servidor:
                 import misiones as _mis_del
                 _mis_del.abandonar_mision(ses, qid_borrar)
                 return
+            if accion in (53, 54, 72) and ses.personaje:
+                # LOGIN / ONLINE BONUS de la ventana Event Overview
+                # (actboard.l: netcommand(54|72, fila); onlinereward.l: 53). Ver bonos.py.
+                _bonos_reclamar(ses, addr, accion, parametro)
+                return
+            if accion == 74 and ses.personaje:
+                # ANGEL PASS (battlepass.l OnBattlePassaActionOK). Ver pase.py.
+                _pase_accion(ses, addr, int(parametro))
+                return
+            if accion == 73 and ses.personaje:
+                # EXCHANGE de la ventana Event Overview: actboard.l
+                # OnClickABExchange -> netcommand(73, grupo). El boton lleva el
+                # 群組 de exchangegroup.xml (FUN_006d0a50 le pone row[1]).
+                # El s2c 0x0151 [u32 grupo] abre la ventana con las recetas de
+                # exchange.xml, como el NPC de los Angelic Vouchers; el canje
+                # llega luego por el 0x0160 / 0x0148.
+                import house_services as _hs73
+                if any(int(r.get('群組') or 0) == int(parametro)
+                       for r in _hs73.xml_rows('exchange.xml').values()):
+                    ses.enviar(struct.pack('<HI', 0x0151, int(parametro)))
+                else:
+                    log.info(f"[{addr}] exchange: grupo {parametro} sin recetas")
+                return
             if accion == 49 and ses.personaje:
                 # TITULO (game.equipcrown -> FUN_00614da0(0x31, id)). Ver logros.py.
                 _logros_poner_titulo(ses, addr, parametro)
@@ -19515,6 +20259,12 @@ def main():
         _raiz.addHandler(_fh)
     except Exception as _e:
         log.warning('no se pudo abrir el log de fichero: %s', _e)
+    # Sin extracted_paks (el repo no lo trae): las tablas salen del cliente.
+    try:
+        import paks_cliente
+        paks_cliente.asegurar_extraidos()
+    except Exception:
+        log.exception('no se pudieron sacar las tablas del cliente')
     try:
         asyncio.run(Servidor(a.host, a.port, a.fport, a.wport).correr())
     except KeyboardInterrupt:

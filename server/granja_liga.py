@@ -168,6 +168,10 @@ CAT_SEMILLA = '農場種子'      # 農場種子
 PARCELAS = range(1, 201)                      # TAG 1..200 de farm.mpc
 PARCELAS_CULTIVO = range(1, 71)               # 60005; las 130 restantes son 60035.
 RADIO_PARCELA = 4
+# El cliente se detiene a cinco casillas del centro de la parcela 67
+# (log21/10/2026:74,28 frente a69,28). La parcela ocupa un rombo ancho;
+# no usar el radio de siembra, que rechazaba las tres acciones silenciosamente.
+RADIO_INTERACCION = 6
 
 
 def cultivo_de_semilla(item_id: int):
@@ -412,6 +416,8 @@ def plantar(ses, plot_id: int, crop_id: int = 1):
                  paquete_estado_cultivo(cuentas.db_obtener_cultivo(g['guild_id'], plot_id)))
         programar_cultivo(ses, plot_id, crop_id, now, madura_en, marchita_en)
     ses.enviar(clases.aviso(f"Planted {nombre} on plot {plot_id}!", tipo=0))
+    import app as _app_pl
+    _app_pl._pase_evento(ses, '種植農作物類')
     return True
 
 

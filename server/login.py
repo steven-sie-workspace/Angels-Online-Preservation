@@ -169,6 +169,20 @@ def flags_de_mapa(stage, base=b''):
     return struct.pack('<HI', 0x0014, flags) + resto
 
 
+def ficha_actual(p: Personaje) -> bytes:
+    """El 0x0002 del personaje tal como esta ahora, para reenviarlo en caliente.
+
+    Su manejador (FUN_005e9c90) solo vuelca los campos del personaje -- stats,
+    titulos (+0x6d0 / +0x750 -> FUN_005eb0b0 / FUN_004cfd80)... -- y no carga
+    el mapa, asi que sirve para que un titulo nuevo salga sin cambiar de mapa.
+    """
+    global _SEC
+    if _SEC is None:
+        _SEC = _cargar_secuencia()
+    base = next(m['datos'] for m in _SEC if m['opcode'] == 0x0002)
+    return _ficha(p, base)
+
+
 def secuencia(p: Personaje):
     """Devuelve [bytes] -- cada uno un sub-mensaje listo (opcode incluido)."""
     global _SEC
@@ -226,6 +240,20 @@ def secuencia(p: Personaje):
             import logros as _lg_sec
             salida.append(_lg_sec.paquete(p, getattr(p, 'logros_muertos', None) or {},
                                           ctx=getattr(p, '_logros_ctx', None)))
+        elif op == 0x0179 and getattr(p, '_amplify', None) is not None:
+            # PET AMPLIFY: la plantilla es la de un personaje sin casillas.
+            import amplify as _amp_sec
+            salida.append(_amp_sec.paquete(p._amplify, getattr(p, '_amplify_verdes', None)))
+        elif op in (0x016F, 0x018A) and getattr(p, '_bonos', None) is not None:
+            # LOGIN / ONLINE BONUS: la plantilla traia 1 dia y 0 minutos.
+            import bonos as _bn_sec
+            est = p._bonos
+            est.al_dia()
+            if op == 0x016F:
+                salida.append(_bn_sec.paquete_login(
+                    _bn_sec.dias_del_mes(getattr(p, 'logros_dias', None)), est.login))
+            else:
+                salida.append(_bn_sec.paquete_online(est.minutos, est.online))
         elif op == 0x005B:
             salida.append(_barra(p, base))
         elif op == 0x0014:
@@ -1296,6 +1324,10 @@ def poblar(stage: int, player_level=1):
                                      klass=e.get('klass', 200),
                                      direccion=e.get('direccion'),
                                      visible=e.get('visible', 1)))
+            if e.get('rotar_al_aparecer') and e.get('direccion') is not None:
+                # Algunos sprites necesitan actualizar la orientacion despues
+                # de crear su animacion, como los Raphael del Fighting Palace.
+                salida.append(rotar(e['entity_id'], e['direccion']))
             if 'Totem' in e['nombre']:
                 TOTEMS_PUESTOS[e['entity_id']] = e['nombre']
         for r in d43.get('recursos', []):
@@ -1328,7 +1360,12 @@ def poblar(stage: int, player_level=1):
     # servidor se caia al entrar en el Lyceum (KeyError 'hex').
     for e in d.get('spawns', []):
         if e.get('hex'):
-            salida.append(struct.pack('<H', 0x0008) + bytes.fromhex(e['hex']))
+            crudo = bytearray(bytes.fromhex(e['hex']))
+            if e.get('direccion') is not None:
+                # Una direccion explicita tambien debe aplicarse al spawn
+                # capturado: antes Astrologer ignoraba el campo del JSON.
+                crudo[33] = int(e['direccion']) & 0xFF
+            salida.append(struct.pack('<H', 0x0008) + bytes(crudo))
         else:
             salida.append(_npc_spawn(e['entity_id'], e['npc_type'],
                                      e['nombre'], _casilla_spawn(stage, e, d['spawns']),
@@ -1336,6 +1373,8 @@ def poblar(stage: int, player_level=1):
                                      klass=e.get('klass', 200),
                                      direccion=e.get('direccion'),
                                      visible=e.get('visible', 1)))
+        if e.get('rotar_al_aparecer') and e.get('direccion') is not None:
+            salida.append(rotar(e['entity_id'], e['direccion']))
     # Los recursos del mapa: vetas de cobre, arboles, hierbas, madrigueras.
     for e in d.get('recursos', []):
         if 'hex' in e:
@@ -1440,8 +1479,10 @@ def _ficha(p, base):
     import inventario as _inv
     _mej = getattr(p, 'mejoras', None)
     _buf = getattr(p, 'buffs', None)
-    hp_tope = _inv.vida_maxima(p.hp_max, p.habilidades, bolsa=p.inventario, mejoras=_mej, buffs=_buf, mp_max=p.mp_max)
-    mp_tope = _inv.mana_maximo(p.mp_max, p.habilidades, bolsa=p.inventario, mejoras=_mej, buffs=_buf)
+    hp_tope = _inv.vida_maxima(p.hp_max, p.habilidades, bolsa=p.inventario, mejoras=_mej, buffs=_buf, mp_max=p.mp_max,
+                              mascotas=getattr(p, 'mascotas', None))
+    mp_tope = _inv.mana_maximo(p.mp_max, p.habilidades, bolsa=p.inventario, mejoras=_mej, buffs=_buf,
+                              mascotas=getattr(p, 'mascotas', None))
     hp_val = 280 if (not p.habilidades and p.nivel == 1 and p.hp <= 205) else min(p.hp, hp_tope)
     hp_max_val = 280 if (not p.habilidades and p.nivel == 1 and p.hp_max <= 205) else hp_tope
     struct.pack_into('<IIII', st, 0, hp_val, hp_max_val, min(p.mp, mp_tope), mp_tope)

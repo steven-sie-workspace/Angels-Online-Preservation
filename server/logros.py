@@ -256,6 +256,21 @@ def bits_titulos(personaje) -> bytes:
     return bytes(b)
 
 
+CODIGO_TITULO_NUEVO = 56
+
+
+def paquete_titulo_nuevo(entidad, titulo, anadir=True) -> bytes:
+    """s2c 0x001D codigo 56: da (o quita) UN titulo sin tocar nada mas.
+
+    FUN_005f4d80 (hueco 0x4788 de la tabla de FUN_005fbdd0) llama a
+    FUN_004cfc00(titulo, b == 1), que enciende o apaga solo ese bit, y
+    refresca las paginas de titulos y de reputacion. El 0x0002 no vale para
+    esto: su manejador destruye y rehace el personaje del cliente y la
+    mochila y el equipo se quedaban en blanco (21/10/2026)."""
+    return _struct.pack('<HIBBII', 0x001D, int(entidad), 1, CODIGO_TITULO_NUEVO,
+                        int(titulo), 1 if anadir else 0)
+
+
 def paquete_titulo(entidad, titulo, es_yo) -> bytes:
     """s2c 0x001D codigo 57: el titulo que lleva puesto `entidad`."""
     return _struct.pack('<HIBBII', 0x001D, int(entidad), 1, CODIGO_TITULO,
@@ -387,10 +402,18 @@ def bono_reputacion(conseguidos) -> dict:
 def con_reputacion(buffs, personaje):
     """Los buffs del personaje mas el bono de reputacion como uno permanente."""
     bono = bono_reputacion(getattr(personaje, 'logros', None) or []) if personaje is not None else {}
-    if not bono:
+    # Y lo que suben para siempre las semillas / frutos (inventario.stats_permanentes_de).
+    perm = getattr(personaje, 'stats_permanentes', None) if personaje is not None else None
+    amp = getattr(personaje, 'stats_amplify', None) if personaje is not None else None
+    if not bono and not perm and not amp:
         return buffs
     out = dict(buffs or {})
-    out[CLAVE_REPUTACION] = dict(bono, fin=float('inf'))
+    if bono:
+        out[CLAVE_REPUTACION] = dict(bono, fin=float('inf'))
+    if perm:
+        out['permanentes'] = dict(perm, fin=float('inf'))
+    if amp:
+        out['pet_amplify'] = dict(amp, fin=float('inf'))
     return out
 
 
@@ -516,6 +539,8 @@ def medir(f, personaje, ctx):
         return max(c('obtiene:%d' % _num(p1)), 1 if tiene else 0), max(1, _num(p2, 1))
     if regla == '獲得特定道具次數':
         return c('obtiene:%d' % _num(p1)), max(1, _num(p2, 1))
+    if regla == '獲得特定法術次數':
+        return c('buff:%d' % _num(p1)), max(1, _num(p2, 1))
     if regla in ('使用物品編號和數量', '使用特定道具次數'):
         return c('usa:%d' % _num(p1)), max(1, _num(p2, 1))
     mascotas = ctx.get('mascotas') or []
