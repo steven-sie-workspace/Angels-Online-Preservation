@@ -21,6 +21,7 @@ import threading
 import time
 import logging
 import asyncio
+import atexit
 
 log = logging.getLogger('cuentas')
 
@@ -78,6 +79,14 @@ MAX_BACKUPS_CONSERVADOS = 10
 
 
 def _get_conn():
+    """Conexion para leer o escribir por cuenta propia: antes se escribe lo
+    que este en cola (ver _actualizar_personaje), para no leer una ficha vieja
+    ni pisar luego lo que se escriba por aqui."""
+    _vaciar_y_olvidar()
+    return _abrir()
+
+
+def _abrir():
     """Abre conexion a SQLite con protecciones contra cortes de luz."""
     BASE.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(str(DB_PATH), timeout=15.0)
@@ -277,6 +286,8 @@ def hacer_backup(motivo="auto") -> pathlib.Path:
     global _CAMBIOS_DESDE_BACKUP, _ULTIMO_BACKUP
     with _LOCK:
         try:
+            # Lo que este en cola entra en la copia.
+            vaciar_pendientes()
             BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
             ts = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
             backup_file = BACKUPS_DIR / f"cuentas_auto_{ts}.db"
@@ -290,11 +301,14 @@ def hacer_backup(motivo="auto") -> pathlib.Path:
             _ULTIMO_BACKUP = time.time()
             log.info(f"Backup automatico creado en {backup_file.name} (motivo: {motivo})")
             _limpiar_backups_antiguos()
-            _exportar_json_disco()
-            return backup_file
         except Exception:
             log.exception("Error al crear backup automatico de SQLite")
             return None
+    # El espejo, FUERA de _LOCK: escribir los 600 KB de cuentas.json con
+    # sangria cuesta ~200 ms y con el candado puesto el juego no podia
+    # guardar mientras tanto.
+    _exportar_json_disco()
+    return backup_file
 
 
 def _limpiar_backups_antiguos():
@@ -387,8 +401,10 @@ async def tarea_backup_periodico(intervalo_segundos=300):
         try:
             await asyncio.sleep(intervalo_segundos)
             if _CAMBIOS_DESDE_BACKUP > 0:
-                hacer_backup(motivo="intervalo_periodico")
+                # En otro hilo: en este paraba el juego cada cinco minutos.
+                await asyncio.to_thread(hacer_backup, "intervalo_periodico")
         except asyncio.CancelledError:
+            vaciar_pendientes()
             hacer_backup(motivo="cierre_servidor")
             break
         except Exception:
@@ -398,7 +414,8 @@ async def tarea_backup_periodico(intervalo_segundos=300):
 def cargar() -> dict:
     """Devuelve el arbol completo de cuentas y personajes desde SQLite."""
     with _LOCK:
-        con = _get_conn()
+        vaciar_pendientes()
+        con = _abrir()
         try:
             cur = con.cursor()
             cur.execute("SELECT usuario, password FROM cuentas ORDER BY usuario ASC")
@@ -494,9 +511,10 @@ def guardar_personaje_nuevo(usuario: str, p: dict):
             con.close()
 
 
-def _actualizar_personaje(usuario: str, char_id: int, mutador_fn):
+def _actualizar_personaje_directo(usuario: str, char_id: int, mutador_fn):
     """Modifica un personaje en SQLite bajo una transaccion atomica protegida."""
     with _LOCK:
+        _vaciar_y_olvidar(usuario)
         con = _get_conn()
         try:
             cur = con.cursor()
@@ -519,6 +537,196 @@ def _actualizar_personaje(usuario: str, char_id: int, mutador_fn):
             _notificar_cambio()
         finally:
             con.close()
+
+
+# GUARDAR SIN PARAR EL JUEGO. Cada hechizo guarda el personaje, y el guardado
+# hacia en el hilo del juego: abrir la base, leer y parsear la fila (~300 KB
+# de JSON con las mascotas y los buffs), volver a escribirla y esperar el
+# fsync de synchronous=FULL. Unos 50 ms por guardado, 240 si coincidia con un
+# backup, varias veces por segundo en combate: los tirones al lanzar hechizos
+# (sesion del 22/10/2026 08:58: 670 ms sin contestar despues de un buff).
+#
+# Ahora se sigue guardando en CADA llamada, igual de seguro, pero en dos
+# mitades:
+#   * En el hilo del juego, el mutador se aplica en el acto sobre una copia en
+#     memoria de la fila (asi la foto es la de ese instante) y, una vez por
+#     vuelta del bucle, se pasa a texto JSON (~16 ms con 300 KB).
+#   * El hilo 'escritor-cuentas' escribe ese texto con la misma transaccion y
+#     el mismo fsync que antes. Si llegan varios del mismo personaje mientras
+#     escribe, el ultimo ya lleva todo lo de los anteriores: va uno.
+#
+# El orden no se rompe: el escritor saca y escribe bajo _LOCK, y todo lo que
+# lee o escribe la fila por su cuenta (casa, card book, banco de liga,
+# lista de personajes, cargar...) primero vacia lo pendiente con
+# _vaciar_y_olvidar(). Lo que se arriesga: si el proceso MUERE de golpe, lo
+# que aun estaba en cola (los ultimos milisegundos). Un cierre normal o con
+# Ctrl+C lo escribe (tarea_backup_periodico y atexit).
+_CACHE_PJ = {}          # (usuario, ranura) -> {'datos', 'sucio', 'usado'}
+_ALIAS_PJ = {}          # (usuario, char_id) -> ranura
+_PENDIENTES = {}        # (usuario, ranura) -> (nombre, texto_json)
+_MUTEX_PEND = threading.Lock()
+_HAY_PENDIENTES = threading.Event()
+_HILO_ESCRITOR = [None]
+_SERIALIZAR_PROGRAMADO = [False]
+OLVIDAR_TRAS = 120.0    # s sin guardados para soltar la copia en memoria
+
+
+def _en_hilo_del_juego() -> bool:
+    """El bucle asyncio corre en el hilo principal; sin bucle (herramientas,
+    tests) se guarda como siempre, en el acto."""
+    if threading.current_thread() is not threading.main_thread():
+        return False
+    try:
+        asyncio.get_running_loop()
+        return True
+    except RuntimeError:
+        return False
+
+
+def _actualizar_personaje(usuario: str, char_id: int, mutador_fn):
+    """Aplica el mutador ya y deja la escritura al hilo escritor."""
+    if not _en_hilo_del_juego():
+        return _actualizar_personaje_directo(usuario, char_id, mutador_fn)
+    ranura = _ALIAS_PJ.get((usuario, char_id))
+    ent = _CACHE_PJ.get((usuario, ranura)) if ranura is not None else None
+    if ent is None:
+        with _LOCK:
+            con = _abrir()
+            try:
+                cur = con.cursor()
+                cur.execute("SELECT ranura, datos FROM personajes WHERE usuario = ? AND char_id = ?", (usuario, char_id))
+                row = cur.fetchone()
+                if not row:
+                    # Fallback: si char_id no coincide o hay 1 solo personaje para ese usuario
+                    cur.execute("SELECT ranura, datos FROM personajes WHERE usuario = ?", (usuario,))
+                    row = cur.fetchone()
+                    if not row:
+                        return
+            finally:
+                con.close()
+            ranura = row[0]
+            _ALIAS_PJ[(usuario, char_id)] = ranura
+            # La fila de la base vale solo si no hay ya una copia mas nueva
+            # (otro char_id que cae en la misma ranura).
+            ent = _CACHE_PJ.get((usuario, ranura))
+            if ent is None:
+                ent = {'datos': json.loads(row[1]), 'sucio': False, 'usado': 0.0}
+                _CACHE_PJ[(usuario, ranura)] = ent
+    try:
+        mutador_fn(ent['datos'])
+    except Exception:
+        if not ent['sucio']:
+            _CACHE_PJ.pop((usuario, ranura), None)      # como antes: la base no cambia
+        raise
+    ent['sucio'] = True
+    ent['usado'] = time.time()
+    _notificar_cambio()
+    if not _SERIALIZAR_PROGRAMADO[0]:
+        _SERIALIZAR_PROGRAMADO[0] = True
+        asyncio.get_running_loop().call_soon(_serializar_sucios)
+
+
+def _serializar_sucios():
+    """En el hilo del juego: pasa a texto las copias cambiadas y las encola."""
+    _SERIALIZAR_PROGRAMADO[0] = False
+    ahora = time.time()
+    hay = False
+    for clave, ent in list(_CACHE_PJ.items()):
+        if ent['sucio']:
+            texto = json.dumps(ent['datos'], ensure_ascii=False)
+            with _MUTEX_PEND:
+                _PENDIENTES[clave] = (ent['datos'].get('nombre', ''), texto)
+            ent['sucio'] = False
+            hay = True
+        elif ahora - ent['usado'] > OLVIDAR_TRAS:
+            with _MUTEX_PEND:
+                if clave in _PENDIENTES:
+                    continue
+            _CACHE_PJ.pop(clave, None)
+            for a in [a for a, r in _ALIAS_PJ.items() if (a[0], r) == clave]:
+                _ALIAS_PJ.pop(a, None)
+    if hay:
+        if _HILO_ESCRITOR[0] is None or not _HILO_ESCRITOR[0].is_alive():
+            _HILO_ESCRITOR[0] = threading.Thread(target=_trabajador_escritor,
+                                                 name='escritor-cuentas', daemon=True)
+            _HILO_ESCRITOR[0].start()
+        _HAY_PENDIENTES.set()
+
+
+def _escribir_pendientes(con=None):
+    """Saca lo pendiente y lo escribe en UNA transaccion. Llamar con _LOCK."""
+    with _MUTEX_PEND:
+        lote = list(_PENDIENTES.items())
+        _PENDIENTES.clear()
+    if not lote:
+        return
+    propia = con is None
+    if propia:
+        con = _abrir()
+    try:
+        for (usuario, ranura), (nombre, texto) in lote:
+            con.execute(
+                "UPDATE personajes SET nombre = ?, datos = ?, actualizado_en = CURRENT_TIMESTAMP WHERE usuario = ? AND ranura = ?",
+                (nombre, texto, usuario, ranura))
+        con.commit()
+    except Exception:
+        # Que no se pierda: vuelve a la cola salvo que ya haya uno mas nuevo.
+        try:
+            con.rollback()
+        except Exception:
+            pass
+        with _MUTEX_PEND:
+            for clave, valor in lote:
+                _PENDIENTES.setdefault(clave, valor)
+        raise
+    finally:
+        if propia:
+            con.close()
+
+
+def _trabajador_escritor():
+    con = None
+    while True:
+        _HAY_PENDIENTES.wait()
+        _HAY_PENDIENTES.clear()
+        try:
+            with _LOCK:
+                if con is None:
+                    con = _abrir()
+                _escribir_pendientes(con)
+        except Exception:
+            log.exception('No se pudo guardar un personaje; se reintenta')
+            try:
+                con.close()
+            except Exception:
+                pass
+            con = None
+            time.sleep(1.0)
+            _HAY_PENDIENTES.set()
+
+
+def vaciar_pendientes():
+    """Escribe ya todo lo que este en cola (y, en el hilo del juego, lo que
+    aun no se paso a texto). Vuelve cuando esta en disco."""
+    with _LOCK:
+        if threading.current_thread() is threading.main_thread():
+            _serializar_sucios()
+        _escribir_pendientes()
+
+
+def _vaciar_y_olvidar(usuario=None):
+    """Antes de leer o escribir filas por otro camino: todo a disco, y fuera
+    las copias en memoria de esa cuenta (o de todas) para releerlas luego."""
+    with _LOCK:
+        vaciar_pendientes()
+        if threading.current_thread() is threading.main_thread():
+            for clave in [c for c in _CACHE_PJ if usuario is None or c[0] == usuario]:
+                _CACHE_PJ.pop(clave, None)
+            for a in [a for a in _ALIAS_PJ if usuario is None or a[0] == usuario]:
+                _ALIAS_PJ.pop(a, None)
+
+
+atexit.register(vaciar_pendientes)
 
 
 def hash_de_auth(cuerpo: bytes) -> str:
@@ -547,7 +755,8 @@ def _personajes(con, usuario: str) -> list:
 
 def lista_de_personajes(usuario: str) -> list:
     with _LOCK:
-        con = _get_conn()
+        vaciar_pendientes()
+        con = _abrir()
         try:
             return _personajes(con, usuario)
         finally:

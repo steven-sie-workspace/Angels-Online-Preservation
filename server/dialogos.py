@@ -182,7 +182,9 @@ def _cargar_npcs():
     global _ENTIDADES_NPC
     if _ENTIDADES_NPC is not None:
         return _ENTIDADES_NPC
-    _ENTIDADES_NPC = {}
+    # Se llena en una local y se publica al final: lo precarga otro hilo al
+    # arrancar (_precalentar) y un clic en ese rato no debe ver media tabla.
+    tabla = {}
     plant = pathlib.Path(__file__).parent / 'plantillas'
     for f in plant.glob('*.json'):
         if f.name in ('dialogos_npc.json', 'tutorial.json', 'npc_por_mapa.json', 'lista_totems.json'):
@@ -193,7 +195,7 @@ def _cargar_npcs():
                 for sp in d['spawns']:
                     eid = sp.get('entity_id')
                     if eid and not sp.get('monstruo'):
-                        _ENTIDADES_NPC[eid] = {
+                        tabla[eid] = {
                             'nombre': sp.get('nombre', ''),
                             'sprite': sp.get('sprite', 0),
                             'stage': d.get('stage', 0),
@@ -208,14 +210,15 @@ def _cargar_npcs():
                 st_val = int(st_str) if st_str.isdigit() else 0
                 for idx, n in enumerate(npcs):
                     eid = 900 + idx
-                    if eid not in _ENTIDADES_NPC:
-                        _ENTIDADES_NPC[eid] = {
+                    if eid not in tabla:
+                        tabla[eid] = {
                             'nombre': n.get('nombre', ''),
                             'sprite': n.get('sprite', 0),
                             'stage': st_val,
                         }
         except Exception:
             pass
+    _ENTIDADES_NPC = tabla
     return _ENTIDADES_NPC
 
 

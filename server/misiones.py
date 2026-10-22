@@ -248,7 +248,8 @@ def stage_de_entidad(ent_id: int) -> int:
     """Devuelve el stage_id exacto donde se encuentra este NPC segun las plantillas."""
     global _NPC_STAGE_MAP
     if _NPC_STAGE_MAP is None:
-        _NPC_STAGE_MAP = {}
+        # Local y publicada al final, por la precarga en otro hilo.
+        tabla = {}
         plantillas_dir = pathlib.Path(__file__).parent / 'plantillas'
         for f in plantillas_dir.glob('*.json'):
             try:
@@ -257,9 +258,10 @@ def stage_de_entidad(ent_id: int) -> int:
                     st = int(d['stage'])
                     for s in d.get('spawns', []):
                         if isinstance(s, dict) and not s.get('monstruo') and 'entity_id' in s:
-                            _NPC_STAGE_MAP[int(s['entity_id'])] = st
+                            tabla[int(s['entity_id'])] = st
             except Exception:
                 pass
+        _NPC_STAGE_MAP = tabla
     return _NPC_STAGE_MAP.get(int(ent_id or 0), 0)
 
 

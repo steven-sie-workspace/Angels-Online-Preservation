@@ -330,6 +330,13 @@ def _portal_en(stage, tx, ty):
     return None
 
 
+# Nombres de los spawns por plantilla, y npc_por_mapa.json. Se leian y
+# parseaban del disco en CADA clic en una entidad (~45 ms con la plantilla de
+# un mapa grande, el juego parado mientras tanto).
+_NOMBRES_DE_PLANTILLA = {}
+_NPC_POR_MAPA = [None]
+
+
 def _nombre_entidad(ses, entity_id: int) -> str:
     """El nombre del NPC del mapa, para buscarle su dialogo."""
     totems_lyceum = {
@@ -359,25 +366,36 @@ def _nombre_entidad(ses, entity_id: int) -> str:
         st = ses.personaje.stage
         p_name = _lg.PLANTILLAS_POR_STAGE.get(st)
         if p_name:
-            import json
-            f_tmpl = pathlib.Path(__file__).parent / 'plantillas' / p_name
-            if f_tmpl.exists():
-                try:
-                    d_tmpl = json.loads(f_tmpl.read_text(encoding='utf-8'))
-                    for e in d_tmpl.get('spawns', []):
-                        if e.get('entity_id') == entity_id and e.get('nombre'):
-                            return e['nombre']
-                except Exception:
-                    pass
+            if p_name not in _NOMBRES_DE_PLANTILLA:
+                import json
+                nombres = {}
+                f_tmpl = pathlib.Path(__file__).parent / 'plantillas' / p_name
+                if f_tmpl.exists():
+                    try:
+                        d_tmpl = json.loads(f_tmpl.read_text(encoding='utf-8'))
+                        for e in d_tmpl.get('spawns', []):
+                            # El primero gana, como cuando se recorria la lista.
+                            if e.get('nombre') and e.get('entity_id') not in nombres:
+                                nombres[e.get('entity_id')] = e['nombre']
+                    except Exception:
+                        pass
+                _NOMBRES_DE_PLANTILLA[p_name] = nombres
+            if entity_id in _NOMBRES_DE_PLANTILLA[p_name]:
+                return _NOMBRES_DE_PLANTILLA[p_name][entity_id]
 
     # Los NPC de quest se numeran LOCALMENTE desde 900 en cada mapa. Hay que
     # resolverlos antes del censo global de dialogos: el 900 de Rainbow Town
     # es Past the Time Spirit, pero el mismo numero existe en el censo viejo
     # con otro nombre y terminaba abriendo el dialogo generico de Jade Tassel.
-    f_mapas = pathlib.Path(__file__).parent / 'plantillas' / 'npc_por_mapa.json'
-    if f_mapas.exists() and entity_id >= 900 and getattr(ses, 'personaje', None):
-        import json
-        d_mapas = json.loads(f_mapas.read_text(encoding='utf-8')).get('mapas', {})
+    if _NPC_POR_MAPA[0] is None:
+        f_mapas = pathlib.Path(__file__).parent / 'plantillas' / 'npc_por_mapa.json'
+        if f_mapas.exists():
+            import json
+            _NPC_POR_MAPA[0] = json.loads(f_mapas.read_text(encoding='utf-8')).get('mapas', {})
+        else:
+            _NPC_POR_MAPA[0] = {}
+    if _NPC_POR_MAPA[0] and entity_id >= 900 and getattr(ses, 'personaje', None):
+        d_mapas = _NPC_POR_MAPA[0]
         st_npcs = d_mapas.get(str(ses.personaje.stage), [])
         idx = entity_id - 900
         if 0 <= idx < len(st_npcs):
@@ -9312,6 +9330,16 @@ class Servidor:
                 data = await reader.read(65536)
                 if not data:
                     break
+                # Recien arrancado, lo que mande el cliente espera a que
+                # _precalentar acabe. Si no, el hilo del juego se ponia a
+                # cargar las MISMAS tablas a la vez que la precarga y peleando
+                # con ella por el GIL: 9.5 s parado en la lista de personajes
+                # y otros 7 s en el primer minuto (vigia, 22/10/2026 09:48).
+                # El cliente aguanta: en frio el login tardaba un minuto.
+                _listas = getattr(self, '_tablas_listas', None)
+                if _listas is not None and not _listas.is_set():
+                    log.info(f"[{addr}] esperando a que acabe la precarga de tablas")
+                    await _listas.wait()
                 grab.entrada(data)
                 for opcode, cuerpo in ses.alimentar(data):
                     ses.vistos[opcode] += 1
@@ -20123,6 +20151,8 @@ class Servidor:
 
     async def correr(self):
         import functools
+        _indexar_contenido()
+        self._tablas_listas = asyncio.Event()
         srv = await asyncio.start_server(
             functools.partial(self.cliente, rol='login'), self.host, self.port)
         log.info(f"servidor de LOGIN en {self.host}:{self.port}")
@@ -20207,13 +20237,99 @@ class Servidor:
         # bonos de equipo, logros...) se cargan ya, en otro hilo, para que el
         # primer jugador no espere: en frio entrar al mundo tardaba ~1 min.
         import threading as _th_pre
-        _th_pre.Thread(target=_precalentar, name='precalentar', daemon=True).start()
+        _bucle_pre = asyncio.get_running_loop()
+
+        def _precalentar_y_avisar():
+            try:
+                _precalentar()
+            finally:
+                _bucle_pre.call_soon_threadsafe(self._tablas_listas.set)
+        _th_pre.Thread(target=_precalentar_y_avisar, name='precalentar', daemon=True).start()
+        tareas.append(_vigilar_bucle())
 
         # El GM: por consola si se arranco desde una terminal, y por
         # data/gm.txt siempre.
         tareas.append(self._consola_gm())
         tareas.append(self._cola_gm())
         await asyncio.gather(*tareas)
+
+
+def _indexar_contenido():
+    """Un indice por 'id' en cada tabla de corpus/content.db, si falta.
+
+    La base del cliente viene SIN indices, y el servidor busca filas sueltas
+    por id en unos 25 sitios (magic, item..item9, monster, npc, drop_table).
+    Sin indice cada busqueda recorre la tabla entera: 26 ms en magic, 44 en
+    item, hasta 9 tablas por objeto equipado. Las primeras muertes de un mapa
+    dejaron el juego 7 s parado mirando los buffs uno por uno (vigia del
+    bucle, 22/10/2026 09:41:06). Se crean al arrancar para que vuelvan solos
+    si se regenera content.db; si ya estan, no cuesta nada.
+    """
+    import sqlite3
+    ruta = pathlib.Path(__file__).parent.parent / 'corpus' / 'content.db'
+    if not ruta.exists():
+        return
+    t0 = time.time()
+    try:
+        con = sqlite3.connect(str(ruta), timeout=30)
+        try:
+            tablas = [r[0] for r in con.execute(
+                "select name from sqlite_master where type='table'")]
+            hechos = []
+            for t in tablas:
+                cols = [c[1] for c in con.execute('pragma table_info("%s")' % t)]
+                if 'id' not in cols:
+                    continue
+                nombre = 'idx_%s_id' % t
+                if con.execute("select 1 from sqlite_master where type='index' and name=?",
+                               (nombre,)).fetchone():
+                    continue
+                con.execute('create index "%s" on "%s"(id)' % (nombre, t))
+                hechos.append(t)
+            con.commit()
+        finally:
+            con.close()
+        if hechos:
+            log.info('content.db: indices por id creados en %d tablas en %.1fs (%s)',
+                     len(hechos), time.time() - t0, ', '.join(hechos))
+    except Exception:
+        log.exception('content.db: no se pudieron crear los indices por id')
+
+
+# VIGIA DEL BUCLE. Todo el juego corre en un solo hilo: si algo se queda
+# pensando (leer 53 MB de plantillas la primera vez, esperar al disco...) se
+# para todo -- monstruos, hechizos, el propio personaje -- y desde el log no
+# se ve que fue. Un hilo aparte mira el latido del bucle y, si pasa de
+# PARON_AVISO sin latir, apunta en hestia.log lo que el hilo del juego esta
+# ejecutando en ese momento.
+PARON_AVISO = 0.5
+
+
+async def _vigilar_bucle():
+    import threading as _th_v
+    import traceback as _tb_v
+    latido = [time.monotonic()]
+    hilo_juego = _th_v.main_thread().ident
+
+    def _vigia():
+        parado_desde = None
+        while True:
+            time.sleep(0.1)
+            ahora = time.monotonic()
+            sin_latir = ahora - latido[0]
+            if sin_latir > PARON_AVISO and parado_desde is None:
+                parado_desde = latido[0]
+                frame = _sys_alias._current_frames().get(hilo_juego)
+                pila = ''.join(_tb_v.format_stack(frame)[-12:]) if frame else '?'
+                log.warning('JUEGO PARADO %.1f s, ejecutando:\n%s', sin_latir, pila)
+            elif sin_latir <= PARON_AVISO and parado_desde is not None:
+                log.warning('JUEGO PARADO %.1f s en total', latido[0] - parado_desde)
+                parado_desde = None
+
+    _th_v.Thread(target=_vigia, name='vigia-bucle', daemon=True).start()
+    while True:
+        latido[0] = time.monotonic()
+        await asyncio.sleep(0.1)
 
 
 def _precalentar():
@@ -20229,6 +20345,43 @@ def _precalentar():
         _cb_pre._datos(0)
         _cb_pre.datos_magia(1)          # la tabla magic entera (logros al entrar)
         _sk_pre.nivel_de_magia(1)
+        # Recorren las 346 plantillas (53 MB) la primera vez que se pulsa una
+        # entidad: 4 s y 3 s con el juego parado (sesion del 22/10/2026
+        # 09:30:15, 10.9 s sin contestar a un clic en un objeto de mapa).
+        import dialogos as _dlg_pre
+        _dlg_pre._cargar_npcs()
+        _mis.stage_de_entidad(0)
+        # Los eventos de los mapas (eventos.json): 0.9 s parado en el primer
+        # paso despues de arrancar.
+        import eventos as _ev_pre
+        _ev_pre._datos()
+        # Lo que el vigia vio cargarse en el primer minuto de juego: las
+        # habilidades y las dos manos de cada item, y los drops.
+        import clases as _cl_pre2
+        _cl_pre2.skill_de_item(0)
+        _cl_pre2.es_dos_manos(1)
+        _cb_pre._cargar_drops_plantilla()
+        # El botin de la primera muerte: es_de_tropa vuelve a recorrer todas
+        # las plantillas (3.5 s parado al matar, vigia 22/10/2026 09:55:51).
+        # Se tira el botin de un bicho de verdad para calentar todo el camino.
+        _cb_pre.es_jefe(0)
+        _cb_pre.es_de_tropa(0)
+        try:
+            _cb_pre.botin_items(9835, nombre='Cloud Thunderer', nivel=170)
+        except Exception:
+            pass
+        # Y la paja del Lyceum, que en la primera muerte leia monster.xml
+        # del cliente entero (2.3 s parado, vigia 22/10/2026 10:00:35). Los
+        # otros XML grandes que se leen jugando, de paso.
+        try:
+            import types as _ty_pre
+            import house_services as _hs_pre
+            import lyceum_services as _ly_pre
+            _ly_pre.straw_drop_monstruo(199, _ty_pre.SimpleNamespace(npc_type=9835, nivel=0))
+            _hs_pre.xml_rows('magic.xml')
+            _hs_pre.xml_rows('material.xml')
+        except Exception:
+            pass
         p = None
         for cta in (cuentas.cargar().get('cuentas') or {}).values():
             for pj in cta.get('personajes') or []:
@@ -20246,6 +20399,13 @@ def _precalentar():
                 _cl_pre.arbol(p.habilidades, banco=getattr(p, 'banco_habilidades', None))
             except Exception:
                 pass
+            # Los hechizos aprendidos, que _logros_ctx repasa uno por uno al
+            # entrar: 1.3 s parado en el login la primera vez.
+            for _h_pre in (getattr(p, 'hechizos_aprendidos', None) or []):
+                try:
+                    _cb_pre.datos_magia(int(_h_pre))
+                except Exception:
+                    pass
         log.info('tablas precargadas en %.1fs', time.time() - t0)
     except Exception:
         log.exception('no se pudieron precargar las tablas')
