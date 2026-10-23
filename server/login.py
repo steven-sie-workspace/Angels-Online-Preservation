@@ -28,6 +28,7 @@ from dataclasses import dataclass, field
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'proto'))
 from codec import Msg
+import nombres_cliente as _nombres_cliente
 import messages  # noqa: registra los esquemas
 
 log = logging.getLogger('app')
@@ -444,7 +445,7 @@ def _monster_spawn(entity_id, npc_type, nombre, tile, sprite=0):
     """
     b = bytearray(63)
     struct.pack_into('<IIII', b, 0, entity_id, 0, tile[0], tile[1])
-    n = str(nombre).encode('ascii', 'replace')[:16]
+    n = _nombres_cliente.en_paquete(nombre, npc_type)
     b[16:16 + len(n)] = n
     SPRITES = {19: 42107, 7: 42041, 1: 42055, 2: 42056, 3: 42057, 4: 42058, 224: 42107}
     sprite_id = sprite or SPRITES.get(npc_type) or sprite_de(npc_type, 42107)
@@ -473,7 +474,7 @@ def spawn_invocacion(entity_id: int, npc_type: int, nombre: str, tile, sprite: i
     """
     b = bytearray(64)
     struct.pack_into('<IIII', b, 0, entity_id, 0, tile[0], tile[1])
-    n = str(nombre).encode('ascii', 'replace')[:16]
+    n = _nombres_cliente.en_paquete(nombre, npc_type)
     b[16:16 + len(n)] = n
     b[32] = 0
     b[33] = 0
@@ -691,7 +692,7 @@ def _totem_spawn(entity_id: int, npc_type: int, nombre: str, tile: tuple) -> byt
     """Arma un NPC_SPAWN (0x0008) identico al de lyceum.json para los totems de faccion."""
     b = bytearray(63)
     struct.pack_into('<IIII', b, 0, entity_id, 0, tile[0], tile[1])
-    n = str(nombre).encode('ascii', 'replace')[:16]
+    n = _nombres_cliente.en_paquete(nombre, npc_type)
     b[16:16 + len(n)] = n
     b[33] = 0x06
     struct.pack_into('<H', b, 34, 60241)
@@ -719,7 +720,7 @@ def _npc_spawn(entity_id, npc_type, nombre, tile, sprite=0, klass=200,
     # mapa de escena. Mandabamos 1 para todo, asi que los totems tenian el
     # cartel pegado encima.
     struct.pack_into('<IIII', b, 0, entity_id, visible, tile[0], tile[1])
-    n = str(nombre).encode('ascii', 'replace')[:16]
+    n = _nombres_cliente.en_paquete(nombre, npc_type)
     b[16:16 + len(n)] = n
     if not sprite:
         sprite = 40001

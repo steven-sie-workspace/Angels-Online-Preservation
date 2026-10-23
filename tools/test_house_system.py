@@ -8,6 +8,11 @@ from unittest import mock
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'server')))
 
 import casas
+import nombres_cliente
+
+# Se buscan NPC por su nombre en los bytes del 0x0008: en ingles, sea cual
+# sea el language.ini del cliente.
+nombres_cliente.ACTIVO = False
 import dialogos
 import eventos
 import eventos_mundo

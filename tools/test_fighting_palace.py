@@ -5,6 +5,11 @@ import pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'server'))
 import login
+import nombres_cliente
+
+# Los nombres se leen de los bytes del 0x0008: en ingles, sea cual sea el
+# language.ini del cliente.
+nombres_cliente.ACTIVO = False
 import dialogos
 import combate
 

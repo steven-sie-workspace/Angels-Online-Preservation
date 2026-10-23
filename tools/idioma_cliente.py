@@ -108,6 +108,14 @@ def vigente(cliente, nombre):
 #              data1.pak SETTING\BIG5\<fichero> (Taiwan, mismo formato que
 #              setting\eng y mismos ids). La guarda es un atributo que tiene
 #              que valer lo mismo alli y en el ingles de hoy.
+#   por_nombre atributo del nombre. Global dejo en ingles cientos de nombres
+#              en su tabla china (la copia de un evento, "Bloody Sickle"):
+#              un texto suyo sin letra del idioma cuenta como que no trae, y
+#              lo que siga en ingles se busca 1) por el MISMO nombre ingles
+#              en las tablas por_nombre (registros ya traducidos de IGG y
+#              pares ENG/<L> de Global), si al menos el 80% dice lo mismo, y
+#              2) solo cht: el texto de Global GB del mismo id (con su guarda)
+#              pasado a tradicional con un mapa sacado de Global GB/BIG5.
 _ITEMS = ['ITEM.XML'] + [f'ITEM{i}.XML' for i in range(2, 10)]
 _N = [f'{i:02d}' for i in range(1, 9)]
 # Lo que se ve de una mision. Fuera quedan 承接人員 y 可否重接, que el DEFINE
@@ -139,11 +147,11 @@ TABLAS = [
     dict(ficheros=['NPC.XML'], etiqueta='npc', textos=['STR_NPC.XML'],
          prefijo=1200000000, campos={'文字1': '名稱'},
          guarda=(['NPC.XML'], '圖號', 'sprite_id'),
-         respaldo=('NPC.XML', ['名稱'], '圖號')),
+         respaldo=('NPC.XML', ['名稱'], '圖號'), por_nombre='名稱'),
     dict(ficheros=['MONSTER.XML'], etiqueta='npc', textos=['STR_MONSTER.XML'],
          prefijo=1200000000, campos={'文字1': '名稱'},
          guarda=(['MONSTER.XML'], '圖號', 'sprite_id'),
-         respaldo=('MONSTER.XML', ['名稱'], '圖號')),
+         respaldo=('MONSTER.XML', ['名稱'], '圖號'), por_nombre='名稱'),
     # stage.xml lo vuelve a escribir el servidor al cambiar de estacion
     # (cliente_local.aplicar_modo_estacion), tambien las copias de cada idioma.
     dict(ficheros=['STAGE.XML'], etiqueta='場景', textos=['STR_STAGE.XML'],
@@ -289,7 +297,8 @@ def _numeros(texto):
 
 def traducir(ingles: str, etiqueta: str, textos: dict, guarda: dict = None,
              attr_guarda=None, juntos=None, clave='編號', clave_guarda=None,
-             completo=None, numeros=(), valores=(), respaldo=None):
+             completo=None, numeros=(), valores=(), respaldo=None,
+             escritura=None, extra=None):
     """El XML de IGG con los textos de Global; todo lo demas igual.
 
     Un texto solo entra si sus %s/%d/... son los mismos y en el mismo orden
@@ -303,6 +312,10 @@ def traducir(ingles: str, etiqueta: str, textos: dict, guarda: dict = None,
     traducen con un diccionario sacado de los registros que cuadran y se
     aplican a TODOS, para no partir una categoria en una pestana inglesa y
     otra china.
+
+    Con `escritura` (regex de las letras del idioma), un registro de Global
+    sin ninguna cuenta como que no trae. `extra` ({id: textos}) es lo ultimo
+    que se mira, tras Global y data1.
     """
     cuenta = {'registros': 0, 'traducidos': 0, 'formato distinto': 0,
               'sin texto': 0, 'guarda distinta': 0, 'incompleto': 0,
@@ -322,7 +335,10 @@ def traducir(ingles: str, etiqueta: str, textos: dict, guarda: dict = None,
             mio = _buscar(t, attr)
             if not mio or mio.group(1) != suyo:
                 return None
-        return {k: v for k, v in r.items() if k != '__guarda__'}
+        r = {k: v for k, v in r.items() if k != '__guarda__'}
+        if escritura and not any(escritura.search(v) for v in r.values()):
+            return None
+        return r
 
     def registro(t):
         """(id, textos) si el registro es el mismo en los dos; False si la guarda
@@ -332,12 +348,15 @@ def traducir(ingles: str, etiqueta: str, textos: dict, guarda: dict = None,
             return None, None
         rid = int(sid.group(1))
         nuevos = textos.get(rid)
+        if nuevos and escritura and not any(escritura.search(v) for v in nuevos.values()):
+            nuevos = None
+        ultimo = (extra or {}).get(rid)
         if nuevos and guarda is not None:
             mio = _buscar(t, attr_guarda)
             suyo = (guarda.get(rid) or {}).get(clave_guarda)
             if mio and suyo is not None and mio.group(1) != suyo:
-                return rid, de_respaldo(t, rid) or False
-        return rid, nuevos or de_respaldo(t, rid)
+                return rid, de_respaldo(t, rid) or ultimo or False
+        return rid, nuevos or de_respaldo(t, rid) or ultimo
 
     # Diccionario de categorias: valor de IGG -> el valor de Global que le
     # toca al menos en el 80% de los registros. Por debajo (el "World" de IGG
@@ -446,6 +465,102 @@ def ficheros_generados():
     return [f for tabla in TABLAS for f in tabla['ficheros']]
 
 
+# Letras de chino o japones: un nombre "traducido" sin ninguna sigue en ingles.
+_ESCRITURA = re.compile(r'[぀-ヿ㐀-鿿ｦ-ﾟ]')
+# Y en chino no se rellena con nada que traiga kana ("福のの袋" en Global GB).
+_KANA = re.compile(r'[぀-ヿｦ-ﾟ]')
+
+
+def _nombres(etiqueta, attr, texto):
+    """{id: nombre} de un XML de IGG."""
+    salida = {}
+    for t in re.findall(f'<{etiqueta}\\b[^>]*/>', texto):
+        sid, n = _buscar(t, '編號'), _buscar(t, attr)
+        if sid and n and sid.group(1).isdigit():
+            salida[int(sid.group(1))] = html.unescape(n.group(1))
+    return salida
+
+
+_S2T = {}
+
+
+def a_tradicional(texto):
+    """Simplificado -> tradicional, caracter a caracter, con el mapa que sale de
+    juntar los textos GB y BIG5 de Global de igual largo por id. None si
+    queda algo que el big5 del cliente (cp950) no tiene."""
+    if not _S2T:
+        votos = collections.defaultdict(collections.Counter)
+        nombres = {n for pak in abrir_paks(GLOBAL) for n in pak.entradas
+                   if n.startswith(f'SETTING{BS}GB{BS}STRING{BS}')}
+        for n in sorted(nombres):
+            gb, b5 = _global([n]), _global([n.replace(f'{BS}GB{BS}', f'{BS}BIG5{BS}')])
+            for rid, r in gb.items():
+                for k, s in r.items():
+                    t = (b5.get(rid) or {}).get(k)
+                    if k.startswith('文字') and s and t and len(s) == len(t) and s != t:
+                        for a, b in zip(s, t):
+                            votos[a][b] += 1
+        _S2T.update({a: c.most_common(1)[0][0] for a, c in votos.items()})
+    salida = ''.join(_S2T.get(c, c) for c in texto)
+    try:
+        salida.encode('cp950')
+    except UnicodeEncodeError:
+        return None
+    return salida
+
+
+def rellenos(codigo, tablas, ingleses, hechos):
+    """{fichero: {id: {attr: nombre}}} para los registros de las tablas
+    por_nombre que siguen en ingles tras la primera pasada (`hechos`)."""
+    votos = collections.defaultdict(collections.Counter)
+    pendientes = []
+    for tabla, g in tablas:
+        attr = tabla['por_nombre']
+        for f in tabla['ficheros']:
+            loc = _nombres(tabla['etiqueta'], attr, hechos[f])
+            for t in re.findall(f'<{tabla["etiqueta"]}\\b[^>]*/>', ingleses[f][0][1]):
+                sid, n = _buscar(t, '編號'), _buscar(t, attr)
+                if not sid or not n or not sid.group(1).isdigit():
+                    continue
+                rid, n = int(sid.group(1)), html.unescape(n.group(1))
+                if _ESCRITURA.search(loc.get(rid, '')) and (codigo == 'jpn' or not _KANA.search(loc[rid])):
+                    votos[' '.join(n.lower().split())][loc[rid]] += 1
+                elif _ESCRITURA.search(n) is None:
+                    pendientes.append((tabla, g, f, rid, n, t))
+    salida = collections.defaultdict(dict)
+    cuenta = collections.Counter()
+    gb = {}
+    for tabla, g, f, rid, n, tag in pendientes:
+        attr = tabla['por_nombre']
+        c = votos.get(' '.join(n.lower().split()))
+        if c and c.most_common(1)[0][1] >= 0.8 * sum(c.values()):
+            salida[f][rid] = {attr: c.most_common(1)[0][0]}
+            cuenta['mismo nombre'] += 1
+            continue
+        if codigo != 'cht':
+            continue
+        if id(tabla) not in gb:
+            texto = next(k for k, v in tabla['campos'].items() if v == attr)
+            gb[id(tabla)] = {r: v[attr] for r, v in textos_global(
+                'GB', tabla['textos'], tabla['prefijo'], {texto: attr}).items() if v.get(attr)}
+        s = gb[id(tabla)].get(rid)
+        if not s or not _ESCRITURA.search(s) or _KANA.search(s):
+            continue
+        if g is not None:
+            # la guarda de la tabla, como en traducir: si falta en uno, pasa
+            mio = _buscar(tag, tabla['guarda'][1])
+            clave = tabla['guarda'][2] if len(tabla['guarda']) > 2 else tabla['guarda'][1]
+            suyo = (g.get(rid) or {}).get(clave)
+            if mio and suyo is not None and mio.group(1) != suyo:
+                continue
+        t = a_tradicional(s)
+        if t:
+            salida[f][rid] = {attr: t}
+            cuenta['de GB'] += 1
+    print(f'    nombres que Global dejo en ingles: {len(pendientes)}, rellenados {dict(cuenta)}')
+    return salida
+
+
 def generar(cliente):
     """{nombre en el pak: bytes} para los tres idiomas."""
     man_raw, man_pak = vigente(cliente, f'SETTING{BS}SYSTEM_ENG.XML')
@@ -464,22 +579,34 @@ def generar(cliente):
         ficheros[f'SETTING{BS}SYSTEM_{codigo.upper()}.XML'] = \
             man_bom + manifiesto(man, codigo, charset, fuente).encode('utf-8')
         print(f'  {codigo} (Global {carpeta}):')
-        informe = []
-        for tabla, g in zip(TABLAS, guardas):
+
+        def pasar(tabla, g, extra=None):
             textos = textos_global(carpeta, tabla['textos'], tabla['prefijo'], tabla['campos'])
             # Global primero; data1 donde Global no trae o su guarda no cuadra.
             respaldo = (textos_data1(cliente, tabla)
                         if codigo == 'cht' and tabla.get('respaldo') else None)
-            total = {}
+            salida = {}
             for f in tabla['ficheros']:
                 (bom, ingles), pak = ingleses[f]
-                nuevo, cuenta, distintos = traducir(
+                salida[f] = (bom,) + traducir(
                     ingles, tabla['etiqueta'], textos, g,
                     tabla['guarda'][1] if g is not None else None, tabla.get('juntos'),
                     tabla.get('clave', '編號'),
                     tabla['guarda'][2] if g is not None and len(tabla['guarda']) > 2 else None,
                     list(tabla['campos'].values()) if tabla.get('completo') else None,
-                    tabla.get('numeros', ()), tabla.get('valores', ()), respaldo)
+                    tabla.get('numeros', ()), tabla.get('valores', ()), respaldo,
+                    _ESCRITURA if tabla.get('por_nombre') else None, (extra or {}).get(f))
+            return salida
+
+        # Las tablas por_nombre van dos veces: la primera da los nombres ya
+        # traducidos con que rellenar los que siguen en ingles.
+        por_nombre = [(tabla, g) for tabla, g in zip(TABLAS, guardas) if tabla.get('por_nombre')]
+        hechos = {f: r[1] for tabla, g in por_nombre for f, r in pasar(tabla, g).items()}
+        extra = rellenos(codigo, por_nombre, ingleses, hechos)
+        informe = []
+        for tabla, g in zip(TABLAS, guardas):
+            total = {}
+            for f, (bom, nuevo, cuenta, distintos) in pasar(tabla, g, extra).items():
                 ficheros[f'SETTING{BS}{codigo.upper()}{BS}{f}'] = bom + nuevo.encode('utf-8')
                 for k, v in cuenta.items():
                     total[k] = total.get(k, 0) + v
