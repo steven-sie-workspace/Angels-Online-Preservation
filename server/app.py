@@ -19752,6 +19752,21 @@ class Servidor:
                     log.info(f"[{addr}] ataque a {parametro} ignorado: es el "
                              f"contraataque automatico del cliente")
                     return
+                # CLIC DERECHO = SOLO SELECCIONAR. El clic derecho manda solo
+                # este 0x0c; el izquierdo manda ademas el 0x0005 sobre el bicho
+                # (andando antes hasta el si esta lejos), y ese es el que
+                # empieza el combate. Medido en 127_0_0_1_16769_20261023_101156:
+                # clic derecho t=15.98 y 23.31 (solo 0x0c), clic izquierdo
+                # t=20.10 (0x0c, 0x0004 hacia el, 0x0007 y 0x0005). Pegando con
+                # el 0x0c, un bicho solo seleccionado se llevaba el golpe en
+                # cuanto se acercaba, porque el cliente lo reenvia cada ~1,43 s
+                # y otra vez al entrar en alcance. Asi que el 0x0c solo sigue
+                # pegando al bicho con el que ya se esta peleando.
+                if (_m0c is not None
+                        and parametro != getattr(ses, 'objetivo_actual', None)):
+                    log.info(f"[{addr}] {parametro} solo seleccionado: el "
+                             f"combate lo empieza el clic izquierdo (0x0005)")
+                    return
                 if getattr(ses, 'modo_magia', False):
                     if not _clic_para_pegar(ses, parametro, _ant_0c, _ahora_0c):
                         if _m0c is not None and getattr(_m0c, 'vivo', False):
