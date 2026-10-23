@@ -74,8 +74,10 @@ MODO = 'antigua'
 # Los campos de la guerra antigua. Sunflower Plain (7), Foggy Forest (20),
 # Mysterious Garden (22) y Megalith Plain (28) tambien tenian totem en Celestia,
 # pero el usuario los deja como zonas de entrenamiento.
-# Casilla del totem de cada campo, medida en Celestia (0x012E, 20/10/2026).
-TOTEM_CAMPO = {8: (93, 176), 9: (147, 100), 11: (196, 56), 12: (288, 11),
+# Casillas medidas en Celestia (0x012E, 20/10/2026), salvo campo 8:
+# ajuste visual propuesto por el usuario el 21/10: (93,176) -> (92,174).
+# Confirmado por el usuario en pantalla; no desplazar los otros campos.
+TOTEM_CAMPO = {8: (92, 174), 9: (147, 100), 11: (196, 56), 12: (288, 11),
                15: (151, 156), 16: (162, 88), 17: (48, 95), 21: (153, 104)}
 # El totem es el monstruo 21397 "Totem Lv 1" (el mismo en los doce campos de
 # Celestia); el nivel lo sube la liga con ofrendas (ventana 0x012F).
@@ -573,6 +575,20 @@ def spawn_totem_campo(m) -> bytes:
     struct.pack_into('<H', b, 34, sprite_totem(m.stage))
     b[38] = 0 if liga_duena(m.stage) else 8
     struct.pack_into('<H', b, 45, int(getattr(m, 'npc_type', TOTEM_TIPO_CAMPO)))
+    # El cartel es la ventana 0x2fda (REA 0064ab90):
+    #   +40 nivel (+0x24c); el cartel pinta nivel + 1, por eso va nivel - 1.
+    #   barra roja 0x2fdd: vida +63 de un maximo +67 (en %, como el 0x0013).
+    #   barra azul 0x2fde: puntos +71 de los +75 que pide el siguiente nivel.
+    # El cliente lee hasta el +79; a la plantilla capturada le faltaba un
+    # byte, la vida quedaba con maximo 0 (sin barra roja) y la azul llena
+    # (21/10/2026).
+    if len(b) < 79:
+        b.extend(bytes(79 - len(b)))
+    nivel, puntos = nivel_totem(m.stage)
+    struct.pack_into('<I', b, 40, max(0, int(nivel) - 1))
+    vida = int(getattr(m, 'porcentaje', 100) or 0)
+    struct.pack_into('<IIII', b, 63, max(0, min(100, vida)), 100,
+                     int(puntos), puntos_para_subir(nivel))
     return struct.pack('<H', 0x012E) + bytes(b)
 
 
