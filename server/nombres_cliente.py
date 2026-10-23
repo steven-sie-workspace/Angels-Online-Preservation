@@ -207,11 +207,11 @@ def precargar():
     _cargar(esperar=True)
 
 
-def _cortar(texto: str, codec: str) -> bytes:
+def _cortar(texto: str, codec: str, largo: int = LARGO) -> bytes:
     salida = b''
     for c in texto:
         b = c.encode(codec, errors='replace')
-        if len(salida) + len(b) > LARGO:
+        if len(salida) + len(b) > largo:
             break
         salida += b
     return salida
@@ -261,9 +261,42 @@ def traducido(texto: str, habilidad: bool = False):
     return None
 
 
-def texto(texto, defecto='ascii', habilidad=False) -> bytes:
-    """Los bytes de un %s de cartel: traducido si se puede, si no como antes."""
-    local = traducido(texto, habilidad)
+def texto(texto, defecto='ascii', habilidad=False, largo=None) -> bytes:
+    """Los bytes de un %s de cartel: traducido si se puede, si no como antes.
+    Un texto que ya viene en el idioma del cliente (de `elegir`) va en su
+    charset. Con `largo`, cortado a esos bytes sin partir un caracter."""
+    t = str(texto)
+    local = traducido(t, habilidad)
+    if local is None and _estado['codec'] and not t.isascii():
+        local = t
     if local is not None:
-        return local.encode(_estado['codec'], errors='replace')
-    return str(texto).encode(defecto, 'replace')
+        b = _cortar(local, _estado['codec'], largo) if largo else             local.encode(_estado['codec'], errors='replace')
+    else:
+        b = t.encode(defecto, 'replace')
+    return b[:largo] if largo else b
+
+
+def codificar(texto, defecto='latin-1', largo=None) -> bytes:
+    """Solo el charset, sin traducir nada: un texto que no es ASCII (una frase
+    de `elegir`) va en el del cliente; lo demas como antes."""
+    t = str(texto)
+    if ACTIVO and not t.isascii():
+        _cargar()
+        if _estado['codec']:
+            return _cortar(t, _estado['codec'], largo) if largo else                 t.encode(_estado['codec'], errors='replace')
+    b = t.encode(defecto, 'replace')
+    return b[:largo] if largo else b
+
+
+def idioma():
+    """'CHT', 'CHS' o 'JPN' segun el language.ini del cliente; None en ingles."""
+    if not ACTIVO:
+        return None
+    _cargar()
+    return _estado['firma'][0][0] if _estado['codec'] and _estado['firma'] and _estado['firma'][0] else None
+
+
+def elegir(ingles: str, por_idioma: dict) -> str:
+    """Una frase propia del servidor (sin texto en el cliente) en el idioma del
+    cliente: `por_idioma` es {'CHT': ..., 'CHS': ..., 'JPN': ...}."""
+    return (por_idioma or {}).get(idioma()) or ingles

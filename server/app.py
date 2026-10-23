@@ -2830,6 +2830,44 @@ FRASES_LORDS_DEFEAT = {
     18: "The Earth Lord has crumbled to dust!",
 }
 
+# Las frases de los Lords son del servidor, no del cliente: no hay texto
+# oficial que traducir, asi que van escritas aqui por idioma (lo elige
+# _frase_lord con nombres_cliente.idioma). {n} es el nombre del Lord en el
+# idioma del cliente; 0 es la frase para un Lord sin frase propia.
+FRASES_LORDS_SPAWN_LOCAL = {
+    'CHT': {15: "感受呼嘯狂風的憤怒吧！", 16: "在熊熊烈焰面前顫抖吧！",
+            17: "沉入冰冷潮水的深淵吧！", 18: "遠古的大地因我的怒火而震動！",
+            0: "感受元素的力量吧！"},
+    'CHS': {15: "感受呼啸狂风的愤怒吧！", 16: "在熊熊烈焰面前颤抖吧！",
+            17: "沉入冰冷潮水的深渊吧！", 18: "远古的大地因我的怒火而震动！",
+            0: "感受元素的力量吧！"},
+    'JPN': {15: "吹き荒れる烈風の怒りを思い知れ！", 16: "燃え盛る業火の前に震えるがいい！",
+            17: "凍てつく潮の底へ沈め！", 18: "古の大地が我が怒りに震える！",
+            0: "元素の力を思い知れ！"},
+}
+FRASES_LORDS_DEFEAT_LOCAL = {
+    'CHT': {15: "{n}消散於微風之中！", 16: "{n}的火焰已被撲滅！",
+            17: "{n}化為潮水消逝了！", 18: "{n}崩解成了塵土！", 0: "{n}已被擊敗！"},
+    'CHS': {15: "{n}消散于微风之中！", 16: "{n}的火焰已被扑灭！",
+            17: "{n}化为潮水消逝了！", 18: "{n}崩解成了尘土！", 0: "{n}已被击败！"},
+    'JPN': {15: "{n}はそよ風の中に消え去った！", 16: "{n}の炎は消し止められた！",
+            17: "{n}は潮の中へと還っていった！", 18: "{n}は塵と化した！", 0: "{n}を倒した！"},
+}
+# El cartel de aparicion: {m} es el mapa.
+AVISO_LORD_LOCAL = {
+    'CHT': "{n}出現在{m}（{x}, {y}）！",
+    'CHS': "{n}出现在{m}（{x}, {y}）！",
+    'JPN': "{n}が{m}（{x}, {y}）に現れた！",
+}
+
+
+def _frase_lord(tabla_local, ingles, lord_type, **campos):
+    """La frase en el idioma del cliente, o `ingles` si va en ingles."""
+    import nombres_cliente as _nc_l
+    por_idioma = tabla_local.get(_nc_l.idioma()) or {}
+    frase = por_idioma.get(lord_type) or por_idioma.get(0)
+    return frase.format(**campos) if frase else ingles
+
 _SIG_LORD_PLAYGROUND = [97_000_000]
 
 
@@ -2877,11 +2915,20 @@ def _invocar_lord_playground(ses, lord_type: int, lord_nombre: str, m_muerto, ad
 
     sp_pkg = _lg._npc_spawn(lord_eid, lord_type, nombre, spawn_pos, sprite=sprite, klass=1)
 
+    import nombres_cliente as _nc_l
+    nombre_local = _nc_l.traducido(nombre) or nombre
     aviso_texto = f"The {nombre} has appeared in {nombre_mapa} ({spawn_pos[0]}, {spawn_pos[1]})!"
+    _aviso_local = AVISO_LORD_LOCAL.get(_nc_l.idioma())
+    if _aviso_local:
+        aviso_texto = _aviso_local.format(n=nombre_local,
+                                          m=_nc_l.traducido(nombre_mapa) or nombre_mapa,
+                                          x=spawn_pos[0], y=spawn_pos[1])
     aviso_pkg = _cl.aviso(aviso_texto, tipo=0, msg_id=_cl.MSG_TEXTO)
 
-    frase_lord = FRASES_LORDS_SPAWN.get(lord_type, "Feel the elemental power!")
-    chat_pkg = _decir(lord_eid, nombre, frase_lord)
+    frase_lord = _frase_lord(FRASES_LORDS_SPAWN_LOCAL,
+                             FRASES_LORDS_SPAWN.get(lord_type, "Feel the elemental power!"),
+                             lord_type)
+    chat_pkg = _decir(lord_eid, nombre_local, frase_lord)
 
     paquetes = [sp_pkg, aviso_pkg, chat_pkg]
     ses.enviar_inmediato(*paquetes)
@@ -2937,10 +2984,11 @@ def _procesar_baja_elfo_playground(ses, m, addr):
 def _procesar_muerte_lord_playground(ses, m, addr):
     """Notifica la caida de un Elemental Lord en Playground."""
     import clases as _cl
-    frase_derrota = FRASES_LORDS_DEFEAT.get(
-        m.npc_type,
-        f"The {m.nombre} has been defeated!"
-    )
+    import nombres_cliente as _nc_l
+    frase_derrota = _frase_lord(
+        FRASES_LORDS_DEFEAT_LOCAL,
+        FRASES_LORDS_DEFEAT.get(m.npc_type, f"The {m.nombre} has been defeated!"),
+        m.npc_type, n=_nc_l.traducido(m.nombre) or m.nombre)
     aviso_pkg = _cl.aviso(frase_derrota, tipo=0, msg_id=_cl.MSG_TEXTO)
     ses.enviar_inmediato(aviso_pkg)
     for comp in _companeros(ses):
@@ -6383,9 +6431,12 @@ def _decir(eid, nombre, texto):
     Magic Kichen Path ("Too hot!", 64958) llega justo asi, como 0x0017 con la
     entidad y el nombre del propio jugador.
     """
-    n = (nombre or '').encode('latin-1', 'replace')[:16]
+    import nombres_cliente as _nc_d
+    # Un nombre o una frase ya en el idioma del cliente (los Lords de los
+    # Playground) va en su charset; lo ASCII, como siempre.
+    n = _nc_d.codificar(nombre or '', largo=16)
     return (struct.pack('<HI', 0x0017, int(eid)) + n + bytes(17 - len(n))
-            + (texto or '').encode('latin-1', 'replace')[:200] + b'\x00')
+            + _nc_d.codificar(texto or '', largo=200) + b'\x00')
 
 
 def _hablar_jugador(ses, texto):
