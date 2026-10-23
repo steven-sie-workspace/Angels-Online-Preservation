@@ -30,6 +30,7 @@ ayuda lo confirma), asi que se pueden calcular, pero aca todavia no se hace.
 import pathlib
 import re
 import struct
+import nombres_cliente as _nombres_cliente
 
 PAKS = pathlib.Path('G:/extracted_paks')
 MSG_HABILIDAD = 333        # "aprendiste una habilidad"
@@ -162,8 +163,8 @@ def aviso_doble(msg_id: int, s1: str, s2: str = '', tipo: int = 2) -> bytes:
     """
     nul = bytes([0])
     return (struct.pack('<HHB', 0x000D, msg_id, tipo)
-            + s1.encode('latin-1', 'replace') + nul
-            + s2.encode('latin-1', 'replace') + nul
+            + _nombres_cliente.texto(s1, 'latin-1', habilidad=True) + nul
+            + _nombres_cliente.texto(s2, 'latin-1', habilidad=True) + nul
             + nul)
 
 
@@ -373,7 +374,9 @@ def aviso(texto: str, tipo: int = 7, msg_id: int = MSG_TEXTO) -> bytes:
     dos primeros bytes del cuerpo (el id de mensaje, 333) se leian como
     si fueran el opcode y salia un 0x014D que no existe.
     """
-    n = texto.encode('ascii', 'replace')
+    # El %s en el idioma del cliente si es un nombre que tiene ("Blue Potion",
+    # "555 Gold"): la plantilla ya sale en chino y el nombre no.
+    n = _nombres_cliente.texto(texto, habilidad=msg_id in (MSG_HABILIDAD, MSG_HECHIZO))
     return (struct.pack('<H', 0x000D)
             + struct.pack('<HB', msg_id, tipo) + n + bytes(3))
 

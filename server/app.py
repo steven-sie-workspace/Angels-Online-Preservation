@@ -20614,6 +20614,10 @@ def main():
         paks_cliente.asegurar_extraidos()
     except Exception:
         log.exception('no se pudieron sacar las tablas del cliente')
+    # Los nombres en el idioma del cliente se cargan ya: tardan un par de
+    # segundos y, si no, se los comia el primer spawn con el juego parado.
+    import nombres_cliente
+    nombres_cliente.precargar()
     try:
         asyncio.run(Servidor(a.host, a.port, a.fport, a.wport).correr())
     except KeyboardInterrupt:

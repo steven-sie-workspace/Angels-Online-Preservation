@@ -1366,6 +1366,11 @@ def poblar(stage: int, player_level=1):
                 # Una direccion explicita tambien debe aplicarse al spawn
                 # capturado: antes Astrologer ignoraba el campo del JSON.
                 crudo[33] = int(e['direccion']) & 0xFF
+            # El nombre de la captura es el ingles: en el idioma del cliente
+            # si lo tiene (Director Wolay salia en ingles en chino).
+            if e.get('npc_type') is not None and len(crudo) >= 33:
+                n = _nombres_cliente.en_paquete(e['nombre'], e['npc_type'])
+                crudo[16:33] = n.ljust(17, bytes(1))
             salida.append(struct.pack('<H', 0x0008) + bytes(crudo))
         else:
             salida.append(_npc_spawn(e['entity_id'], e['npc_type'],
