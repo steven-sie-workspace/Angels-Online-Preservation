@@ -137,6 +137,12 @@ TABLAS = [
     dict(ficheros=['PET.XML'], etiqueta='pet', textos=['STR_PET.XML'],
          prefijo=1210000000, campos={'文字1': '名稱'},
          guarda=(['PET.XML'], '圖號1')),
+    # Las habilidades de mascota (Healing -> 治療術) que salen en su ficha; los
+    # hechizos de cada nivel ya van en magic.xml.
+    dict(ficheros=['PETSKILL.XML'], etiqueta='petskill', textos=['STR_PETSKILL.XML'],
+         prefijo=1230000000, campos={'文字1': '名稱'},
+         guarda=(['PETSKILL.XML'], '技能1級'),
+         respaldo=('PETSKILL.XML', ['名稱'], '技能1級')),
     # Textos de ventanas y botones. Solo se cambian title/tooltext que IGG ya
     # tenga: uno que Global ponga y IGG no, no se anade (la ventana es la de IGG).
     dict(ficheros=[f'WNDTEXT0{i}.XML' for i in range(1, 6)], etiqueta='window',
@@ -356,6 +362,15 @@ def traducir(ingles: str, etiqueta: str, textos: dict, guarda: dict = None,
             suyo = (guarda.get(rid) or {}).get(clave_guarda)
             if mio and suyo is not None and mio.group(1) != suyo:
                 return rid, de_respaldo(t, rid) or ultimo or False
+        if nuevos and respaldo and not completo:
+            # Campo a campo: Global trae el nombre del 1406 (銅質怪物徽章) pero no
+            # su descripcion, y data1 si. Los `acompanan` no: van con el
+            # principal de Global o vacios.
+            viejo = de_respaldo(t, rid) or {}
+            faltan = {a: v for a, v in viejo.items() if a not in acompanan
+                      and _ESCRITURA.search(v) and not _ESCRITURA.search(nuevos.get(a, ''))}
+            if faltan:
+                nuevos = {**nuevos, **faltan}
         return rid, nuevos or de_respaldo(t, rid) or ultimo
 
     # Diccionario de categorias: valor de IGG -> el valor de Global que le

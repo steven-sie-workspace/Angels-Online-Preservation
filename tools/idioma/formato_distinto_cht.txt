@@ -176,45 +176,9 @@ ITEM.XML 3825 說明定義
 ITEM.XML 3826 說明定義
   eng: Right click to obtain a level 55 superior weapon(Trial) for 7 days.
   cht: /c$2%s/c*\n按右鍵使用，可獲得一把55級頂級武器七日體驗版
-ITEM.XML 4591 說明定義
-  eng: Open it to get one of the following things randomly:Skill Crystal, Super Broadcasting, Exp Stone 2, Great Red Potion*50, Great Blue Potion*50, Safe's Key(7 days), Broadcasting*2, Mark Stone, Energy Crystal, Small Lucky Card, Double Exp Card, Double Skill Card, Big-2 Card 1, Bingo Card 1, Othello Card 1, 5 in a row Card 1, Angel Gift Card 50000, SP Power Scroll, Swiftness Scroll, or Mark Portal Scroll.
-  cht: /c$2%s/c*
-ITEM.XML 4592 說明定義
-  eng: Open it to get one of the following things randomly:Role Card, Divorce Requisition, Luxury Wedding Ticket, Brute's Egg, Pestle, Recovery Notice*2, Death Notice*2, Christmas Male Suit Egg, Christmas Female Suit Egg, Fly Book*6, Summon Book*6, Hallowmas Male Suit Egg, Halloween Female Suit Egg, Super Red Potion*50, Super Blue Potion*50, Super Broadcasting, Angel Amulet, Diamond Bag, Attack Scroll*10, or Spell Attack Scroll*10.
-  cht: /c$2%s/c*
-ITEM.XML 4593 說明定義
-  eng: Open it to get one of the following things randomly:Lvl 70 Weapon Box, Lvl 70 Armor Box, Stance: Panther Killing 5, Lvl 60 Weapon Box, Lvl 60 Armor Box, Swift Turtle, Lvl 4 Energy Core, Lvl 4 Fast Gear, Nature's Egg, Gold Card 4, Artificer Business Box, Warrior Victory Box, Mage Victory Box, Artificer Power Box, Superior Power Box, Safe's Key(for ever), Stuff Showing Box, Pestle*3, Ride Feed*2, or Pet Feed.
-  cht: /c$2%s/c*
-ITEM.XML 4690 說明定義
-  eng: Open it to get one of the following things randomly:Black Fight Lizard,Blue Evil Cat,Wild Cat Robot,Silver Card 3,Intensified Chain 2,Fast Gear 2,Purple Evil Cat,Red Lizard,Lvl1 Time limit Gift Box,Flawed Purple Gem,Lvl1 Rare Defence Gift Box,Monster Breath(1 day),Mighty Fuel 1,Treasure Map Piece 3,Facture Speedup Card,Low-level Exp Stone,Mark Portal Scroll,Swiftness Scroll or Angel Ticket 30 Thousand.
-  cht: /c$2%s/c*
-ITEM.XML 4691 說明定義
-  eng: Open it to get one of the following things randomly:Flame Warrior,Evil Lazard,Wild Cat Robot,Silver Card 3,Selected Red Lizard,Selected Purple Evil Cat,Blood Dog Battle Robot,Lvl2 Time limit Gift Box,Common Card 3,Flawed Purple Gem,Defective Orange Gem,Lvl1 Rare Defence Gift Box,Treasure Map Piece 4,Mighty Fuel 1,Monster Breath(1 day),Pet's Assault Potion,Pet's Defence Potion,Vegetable Juice,Mango Juice, or Angel Ticket 50 Thousand.
-  cht: /c$2%s/c*
-ITEM.XML 4692 說明定義
-  eng: Open it to get one of the following things randomly:Night Cat,Icy Lizard,Weighty Cat Boots,Top Red Lizard,Top Purple Evil Cat,Bad Dog Robot 3,Lvl3 Time limit Gift Box,Lvl3 Rare Defence Gift Box,Treasure Map Piece 6,Mighty Fuel 3,Common Card 3,Ruby,Sapphire,Mighty Fuel 1,Monster Breath(1 day),Collection Speedup Card,Facture Speedup Card,Defense Scroll,Spell Defense Scroll or Angel Ticket 100 Thousand.
-  cht: /c$2%s/c*
-ITEM.XML 4693 說明定義
-  eng: Open it to get one of the following things randomly:Red Stiff Beetle,Red Circus Elephant,Red Repair Duck Robot,Green Stiff Beetle,Green Circus Elephant,Blue Repair Duck Robot,Lvl4 Time limit Gift Box,Lvl3 Rare Defence Gift Box,Treasure Map Piece 6,Mighty Fuel 3,Common Card 3,Ruby,Sapphire,Mighty Fuel 2,Monster Breath(7 days),Collection Speedup Card,Facture Speedup Card,Attack Scroll,Spell Attack Scroll or Angel Ticket 200 Thousand.
-  cht: /c$2%s/c*
 ITEM.XML 4699 說明定義
   eng: Right click to use it and obtain Lvl 70 top weapon for (7-day) trial
   cht: /c$2%s/c*\n按右鍵使用，可獲得一把70級頂級武器七日體驗版
-ITEM.XML 5679 說明定義
-  eng: Open to get one of the following things randomly: Black Fight Lizard, Blue Evil Cat, Wild Cat Robot, SiLvl er Card 3, Intensified Chain 2, Fast Gear 2, Purple Evil Cat, Red Lizard, Lvl 1 Time limit Gift Box, Flawed Purple Gem, Defective Orange Gem, Lvl 1 Rare Defence Gift Box, Monster Breath(1 day), Mighty Fuel 1,Pirate Treasure Map Piece 3, Facture Speedup Card, Low-level Exp Stone, Mark Portal Scroll, Swiftness Scroll, or Angel Ticket 30 Thousand
-  cht: /c$2%s/c*
-ITEM.XML 5680 說明定義
-  eng: Open it to get one of the following things randomly: Flame Warrior, Evil Lazard, Wild Cat Robot, SiLvl er Card 3, Selected Red Lizard, Selected Purple Evil Cat, Blood Dog Battle Robot, Lvl 2 Time limit Gift Box, Common Card 3, Flawed Purple Gem, Defective Orange Gem, Lvl 1 Rare Defence Gift Box, Pirate Treasure Map Piece 4, Mighty Fuel 1, Monster Breath(1 day), Pet's Assault Potion, Pet's Defence Potion, Vegetable Juice, Mango Juice, or Angel Ticket 50 Thousand
-  cht: /c$2%s/c*
-ITEM.XML 5681 說明定義
-  eng: Open to get one of the following things randomly: Night Cat, Icy Lizard, Weighty Cat Boots, Top Red Lizard, Top Purple Evil Cat, Bad Dog Robot 3, Lvl 3 Time limit Gift Box, Lvl 3 Rare Defence Gift Box, Pirate Treasure Map Piece 6, Mighty Fuel 3, Common Card 3, Ruby, Sapphire, Mighty Fuel 1, Monster Breath(1 day), Collection Speedup Card, Facture Speedup Card, Defense Scroll, Spell Defense Scroll, or Angel Ticket 100 Thousand
-  cht: /c$2%s/c*
-ITEM.XML 5682 說明定義
-  eng: Open to get one of the following things randomly: Red Stiff Beetle, Red Circus Elephant, Red Repair Duck Robot, Green Stiff Beetle, Green Circus Elephant, Blue Repair Duck Robot, Lvl 4 Time limit Gift Box, Lvl 3 Rare Defence Gift Box, Pirate Treasure Map Piece 6, Mighty Fuel 3, Common Card 3, Ruby, Sapphire, Mighty Fuel 2, Monster Breath(7 days), Collection Speedup Card, Facture Speedup Card, Attack Scroll, Spell Attack Scroll, or Angel Ticket 200 Thousand
-  cht: /c$2%s/c*
-ITEM.XML 6936 說明定義
-  eng: Requires 5 free slots in your backpack to open. right click to obtain:Gravitational Consideration,Gravitational Truth,Gravitational Guide,Gravitational Trace,and Gravitational Outer Space
-  cht: /c$2%s/c*
 ITEM.XML 8637 說明定義
   eng: Open it to get one of the following things randomly: Scorching Racing Crash Helmet, Scorching Racing Uniform, Scorching Racing Gloves, Scorching Racing Boots, Wing-footed Racing Crash Helmet, Wing-footed Racing Uniform, Wing-footed Racing Gloves, Wing-footed Racing Boots, Off-road Racing Crash Helmet, Off-road Racing Uniform, Off-road Racing Gloves, Off-road Racing Boots, Cherry Parasol, Ice Blue Parasol, Orange Parasol, Crystal-clear Champagne, Glaring Champagne or Riedel Grape Champagne
   cht: /c$2%s/c*
