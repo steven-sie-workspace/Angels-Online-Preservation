@@ -200,28 +200,34 @@ ALMACEN_INICIAL = {}
 # nivel bajo se nota, pero a nivel 300, con 121.440 de MP, llenar la barra a
 # seis por segundo son CINCO HORAS Y MEDIA.
 #
-# Ahora es un porcentaje del maximo, y el porcentaje sube con el nivel. Se
-# mantiene el minimo plano de antes para que a nivel 1 no regenere menos de
-# lo que regeneraba.
-#
-# De pie hay que llevar dos segundos quieto y fuera de combate; sentado
-# (tecla Insert) el tick es cada segundo y el porcentaje mucho mayor.
+# Ahora es un porcentaje del maximo, con el minimo plano de antes como suelo.
 #
 #   por tick = maximo * (base + nivel * por_nivel) / 100
 #
-# A nivel 1 de pie sale 0,5% cada dos segundos y sentado 2% cada segundo. A
-# nivel 300, 2% y 8%: la barra de MP se llena en unos 70 segundos de pie y en
-# unos 13 sentado.
-REGEN_PIE_BASE = 0.5          # % del maximo, a nivel 1
-REGEN_PIE_POR_NIVEL = 0.005   # % que se suma por cada nivel
-REGEN_SENTADO_BASE = 2.0
-REGEN_SENTADO_POR_NIVEL = 0.02
-REGEN_MINIMO_HP_PIE = 6       # los valores planos de antes, como suelo
+# MEDIDO EN VENUS (Global oficial, 23/10/2026; ver
+# docs/REGEN_MEDIDA_VENUS_2026-10-23.md): un personaje de nivel 57 con 2447
+# de HP y 1178 de MP recupera +53 HP y +27 MP por tick (2,17% y 2,29%), LO
+# MISMO sentado que de pie. Lo que cambia es cada cuanto: sentado (tecla
+# Insert) cada segundo, de pie cada dos y solo quieto y fuera de combate
+# (eso lo lleva app._bucle_regeneracion). Asi que se pone el 2,2% en las dos
+# posturas y sin subida por nivel: vacio a lleno en ~45 s sentado y ~90 s de
+# pie.
+#
+# Antes de pie era 0,5% + 0,005% por nivel (0,79% a nivel 57, la tercera
+# parte de lo medido) y sentado 2% + 0,02% por nivel (11,4% a nivel 471).
+# Con un solo personaje medido no se sabe aun que mueve la cantidad (nivel,
+# 體質/心靈, alguna habilidad); cuando se sepa, se cambia aqui.
+REGEN_PIE_BASE = 2.2          # % del maximo por tick
+REGEN_PIE_POR_NIVEL = 0.0     # % que se suma por cada nivel
+REGEN_SENTADO_BASE = 2.2
+REGEN_SENTADO_POR_NIVEL = 0.0
+# Los valores planos de antes, como suelo. Iguales en las dos posturas,
+# porque en Venus el tick es el mismo; sentado ya gana por ir el doble de
+# rapido (antes el suelo sentado era 12 para que sentarse sirviera de algo).
+REGEN_MINIMO_HP_PIE = 6
 REGEN_MINIMO_MP_PIE = 6
-REGEN_MINIMO_HP_SENTADO = 12
-# Sentado el MP tenia el mismo suelo que de pie, seis, asi que a nivel 1
-# sentarse no servia de nada para el mana. Se sube a doce, como el HP.
-REGEN_MINIMO_MP_SENTADO = 12
+REGEN_MINIMO_HP_SENTADO = 6
+REGEN_MINIMO_MP_SENTADO = 6
 
 
 def regenera(maximo: int, nivel: int, sentado: bool, es_hp: bool) -> int:
@@ -321,3 +327,8 @@ QUITAR_LOGO_ARRANQUE = True
 # cliente. Se deja un skill.xml suelto en el cliente, y para deshacerlo
 # basta borrarlo.
 RAMAS_SIN_EXCLUSION = True
+
+# El Angel Guardian (Alt+R) esconde "HP/MP por debajo de  % sentarse" en el
+# cliente de USA (IGG). Esto mete en update26.pak un SCRIPT\AUTOFIGHT.L que
+# no las esconde. Para deshacerlo: False y sacar ese archivo del pak.
+DESCANSO_ANGEL_GUARDIAN = True

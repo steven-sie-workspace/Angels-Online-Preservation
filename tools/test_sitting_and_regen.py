@@ -61,8 +61,8 @@ def test_sitting_toggle():
     op, eid, tgt, act = struct.unpack('<HIII', raw)
     assert op == 0x000A and act == 8, f"Should send 0x000A action 8 (sit down), got op={hex(op)} act={act}"
 
-    # 2. Press Insert while sitting
-    srv.manejar(ses, 0x0016, None, {}, addr, cuerpo=struct.pack('<IB', 4, 0))
+    # 2. Press Insert while sitting (the client sends action 5, stand up)
+    srv.manejar(ses, 0x0016, None, {}, addr, cuerpo=struct.pack('<IB', 5, 0))
     assert ses.sentado is False, "Player should be standing"
     raw = ses.salida.pop(0)
     op, eid, tgt, act = struct.unpack('<HIII', raw)

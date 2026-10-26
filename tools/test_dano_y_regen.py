@@ -66,12 +66,18 @@ def test_la_defensa_sigue_contando():
     assert flojo > duro >= 1, (flojo, duro)
 
 
-def test_regeneracion_sube_con_el_nivel():
-    """El porcentaje crece, y sentado siempre es mas que de pie."""
+def test_regeneracion_como_en_venus():
+    """Medido en Venus (docs/REGEN_MEDIDA_VENUS_2026-10-23.md): nivel 57 con
+    2447 HP y 1178 MP recupera +53 HP y +27 MP por tick, lo mismo sentado
+    que de pie (sentado solo hace tick el doble de seguido)."""
+    for sentado in (True, False):
+        hp = configuracion.regenera(2447, 57, sentado, True)
+        mp = configuracion.regenera(1178, 57, sentado, False)
+        assert abs(hp - 53) <= 1 and abs(mp - 27) <= 1, (sentado, hp, mp)
     for nivel, maximo in ((1, 280), (100, 20000), (300, 121440)):
         pie = configuracion.regenera(maximo, nivel, False, False)
         sentado = configuracion.regenera(maximo, nivel, True, False)
-        assert sentado > pie, (nivel, pie, sentado)
+        assert sentado == pie, (nivel, pie, sentado)
     # A nivel alto tiene que ser cuestion de minutos, no de horas: con los +6
     # planos de antes, llenar 121.440 de MP eran cinco horas y media.
     pie300 = configuracion.regenera(121440, 300, False, False)
@@ -83,7 +89,7 @@ def test_regeneracion_sube_con_el_nivel():
 def test_a_nivel_1_no_regenera_menos_que_antes():
     """El suelo plano: nadie puede salir perdiendo con el cambio."""
     assert configuracion.regenera(280, 1, False, True) >= 6
-    assert configuracion.regenera(280, 1, True, True) >= 12
+    assert configuracion.regenera(280, 1, True, True) >= 6
     assert configuracion.regenera(154, 1, False, False) >= 6
     assert configuracion.regenera(154, 1, True, False) >= 6
 

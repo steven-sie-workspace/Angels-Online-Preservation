@@ -9519,7 +9519,8 @@ class Servidor:
         dos segundos quieto y fuera de combate, y el tick es cada dos.
 
         Cuanto se recupera lo decide configuracion.regenera(): un porcentaje
-        del maximo que sube con el nivel, no una cantidad fija. Antes eran +6
+        del maximo (el mismo por tick sentado y de pie, medido en Venus),
+        no una cantidad fija. Antes eran +6
         MP y +12 HP siempre, y a nivel 300, con 121.440 de MP, eso son cinco
         horas y media de estar quieto para llenar la barra.
         """
@@ -20183,14 +20184,23 @@ class Servidor:
                 _poner_alma(ses, True)
                 log.info(f"[{addr}] pasa a alma en stage {ses.personaje.stage}")
                 return
-            if accion == 4 and ses.personaje:
+            if accion in (4, 5) and ses.personaje:
+                # SENTARSE (4) / LEVANTARSE (5). No es un interruptor: el
+                # cliente dice lo que quiere. La tecla Insert (Angel.exe
+                # 0x5BED00) manda 4 si esta de pie y 5 si esta sentado, y el
+                # descanso del Angel Guardian (0x55A34C) manda 4 con poca
+                # HP/MP y 5, una vez por segundo hasta que se le conteste,
+                # cuando ya esta lleno. Antes se tomaba el 4 como interruptor
+                # y el 5 se ignoraba: el personaje no se levantaba nunca solo.
                 if getattr(ses, 'puesto', None):
                     return
                 yo = ses.personaje.entity_id
-                ses.sentado = not getattr(ses, 'sentado', False)
+                antes = getattr(ses, 'sentado', False)
+                ses.sentado = accion == 4
                 act_code = 8 if ses.sentado else 0
                 ses.enviar(struct.pack('<HIII', 0x000A, yo, 0, act_code))
-                log.info(f"[{addr}] personaje {'se sento' if ses.sentado else 'se levanto'} (accion={act_code})")
+                if ses.sentado != antes:
+                    log.info(f"[{addr}] personaje {'se sento' if ses.sentado else 'se levanto'} (accion={act_code})")
                 return
             if accion == 8 and ses.personaje:
                 # ABANDONAR / BORRAR MISION (game.deletequest en Angel.exe 0x584ae0 -> 0x614da0)
@@ -20815,6 +20825,8 @@ class Servidor:
                 _cl_loc.quitar_logo_arranque()
             if getattr(_cf_logo, 'RAMAS_SIN_EXCLUSION', True):
                 _cl_loc.quitar_exclusion_ramas()
+            if getattr(_cf_logo, 'DESCANSO_ANGEL_GUARDIAN', True):
+                _cl_loc.descanso_angel_guardian()
             _cl_loc.parchear_launcher()
             _srvs_launcher = await _cl_loc.iniciar_servidores_launcher()
             for _sl in _srvs_launcher:

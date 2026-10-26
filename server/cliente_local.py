@@ -467,9 +467,10 @@ def registrar_medalla_en_servidor():
             pass
 
 
-def actualizar_pak_cliente(pak_path: pathlib.Path, reemplazos: dict) -> bool:
+def actualizar_pak_cliente(pak_path: pathlib.Path, reemplazos: dict, anadir: bool = False) -> bool:
     """Reemplaza archivos dentro de un archivo .pak (formato OD\\x05\\x06 de Angel.exe).
     reemplazos: {'MAP\\\\MAP041.MPC': bytes_nuevos, 'SETTING\\\\ENG\\\\ITEM9.XML': bytes_nuevos}
+    Con anadir=True, los que el pak no trae se meten nuevos; si no, se ignoran.
     """
     if not pak_path.exists():
         return False
@@ -503,6 +504,20 @@ def actualizar_pak_cliente(pak_path: pathlib.Path, reemplazos: dict) -> bool:
         entradas.append((off, fn_len, ex_len, cm_len, key))
         off += 46 + fn_len + ex_len + cm_len
 
+    # Los nuevos van al final del directorio con la cabecera de la primera
+    # entrada como plantilla, y luego se ordena por nombre como lo deja
+    # tools/idioma_cliente.escribir_pak.
+    vistos = {e[4] for e in entradas}
+    nuevos = [k for k in mapa_norm if k not in vistos] if anadir else []
+    for key in nuevos:
+        nb = key.encode('ascii')
+        reg = bytearray(cd[:46]) + nb
+        struct.pack_into('<HHH', reg, 28, len(nb), 0, 0)
+        entradas.append((len(cd), len(nb), 0, 0, key))
+        cd.extend(reg)
+        pendientes[key] = (mapa_norm[key], zlib.crc32(mapa_norm[key]) & 0xFFFFFFFF)
+        total_entries += 1
+
     if not pendientes:
         return True
 
@@ -518,6 +533,9 @@ def actualizar_pak_cliente(pak_path: pathlib.Path, reemplazos: dict) -> bool:
             # Actualizar crc (+16), csize (+20), usize (+24) y lhoff (+42) en la entrada del Central Directory
             struct.pack_into('<III', cd, off + 16, nuevo_crc, len(comp_bytes), len(nuevo_raw))
             struct.pack_into('<I', cd, off + 42, nuevo_lhoff)
+    if nuevos:
+        cd = bytearray(b''.join(cd[o:o + 46 + f + x + c]
+                                for o, f, x, c, _ in sorted(entradas, key=lambda e: e[4])))
 
     # Comprimir el nuevo Central Directory con zlib estandar y XOR 0x7A en el primer byte
     cd_comp = bytearray(zlib.compress(bytes(cd)))
@@ -1110,6 +1128,108 @@ def quitar_logo_arranque() -> bool:
         return True
     except Exception as e:
         log.warning('no se pudo vaciar el logo: %s' % e)
+        return False
+
+
+# EL DESCANSO AUTOMATICO DEL ANGEL GUARDIAN (守護精靈, Alt+R).
+#
+# La ventana trae "HP/MP por debajo de  % sentarse" (ids 991/992 y sus
+# casillas 988/989 de wnd01.xml), pero SCRIPT\AUTOFIGHT.L, al cargarla, hace
+#
+#     if game.isdef("__USA") then  -- apaga las dos opciones y las esconde
+#
+# y el cliente de IGG es el de USA. El script es bytecode de Lua 5.1 y
+# "__USA" sale una sola vez, como constante de 6 bytes (con el \0): se cambia
+# por "__USX", que no esta definido, y el if no entra nunca. AUTOFIGHT.L vive
+# en UPDATE5.PAK, de formato viejo; la copia arreglada va a update26.pak, que
+# es el de numero mas alto y el que manda.
+#
+# El fondo de la ventana (SHAPE\WND01\W089_03.SHP, el de UPDATE8.PAK) es el
+# de USA y no trae pintadas las casillas de esa fila: se copian las de la
+# fila de abajo ("HP por encima", 993/990), que estan en el mismo sitio
+# respecto a su control. El .SHP es 'TLHS' con una sola tira de 413 pixeles
+# (indices de paleta) por fila, asi que se escribe encima sin recomprimir.
+SCRIPT_ANGEL = 'SCRIPT\\AUTOFIGHT.L'
+_USA_LUA = b'\x04\x06\x00\x00\x00__USA\x00'
+_SIN_USA_LUA = b'\x04\x06\x00\x00\x00__USX\x00'
+FONDO_ANGEL = 'SHAPE\\WND01\\W089_03.SHP'
+# (x, y, ancho, alto) de origen -> [(x, y) de destino]
+_CASILLAS_ANGEL = (
+    ((8, 410, 12, 12), [(8, 391), (194, 391)]),       # check de 993 -> 991, 992
+    ((65, 409, 24, 14), [(65, 390), (250, 390)]),     # campo de 990 -> 988, 989
+)
+
+
+def _casillas_fondo_angel(raw: bytes) -> bytes:
+    """W089_03.SHP con las casillas de HP/MP por debajo pintadas."""
+    if raw[:4] != b'TLHS' or struct.unpack_from('<II', raw, 20) != (413, 435):
+        return raw
+    # Solo las filas que se tocan (385..424); las del centro, donde estan las
+    # listas, llevan varias tiras.
+    filas = {}
+    for y in range(385, 425):
+        off = struct.unpack_from('<I', raw, 80 + y * 4)[0]
+        ancho, x, src = struct.unpack_from('<hhI', raw, off)
+        fin = struct.unpack_from('<h', raw, off + 10)[0]
+        if (ancho, x, fin) != (413, 0, -1):
+            return raw                  # no es el fondo que se conoce
+        filas[y] = src
+    nuevo = bytearray(raw)
+    fondo = raw[filas[395] + 100]
+    for (x0, y0, an, al), destinos in _CASILLAS_ANGEL:
+        for xd, yd in destinos:
+            for dy in range(al):
+                trozo = raw[filas[y0 + dy] + x0: filas[y0 + dy] + x0 + an]
+                d = filas[yd + dy] + xd
+                if nuevo[d:d + an] not in (trozo, bytes([fondo]) * an):
+                    return raw          # ahi ya hay otra cosa pintada
+                nuevo[d:d + an] = trozo
+    return bytes(nuevo)
+
+
+def _vigente_bytes(ruta_cli: pathlib.Path, nombre: str) -> bytes:
+    """El archivo tal como lo ve el cliente: el del pak de numero mas alto."""
+    import nombres_cliente
+    import paks_cliente
+    for pak in reversed(nombres_cliente._paks(ruta_cli)):
+        with open(pak, 'rb') as f:
+            f.seek(-22, 2)
+            eocd = bytearray(f.read(22))
+            for i in range(4, 22):
+                eocd[i] ^= (3 * i - 91) & 0xFF
+            cd_off = struct.unpack_from('<I', eocd, 16)[0]
+            f.seek(cd_off)
+            cola = nombres_cliente._Cola(cd_off, f.read())
+            for n, crc, csize, usize, lhoff in paks_cliente._directorio(cola):
+                if n.upper() == nombre.upper():
+                    f.seek(lhoff)
+                    return zlib.decompressobj(-15).decompress(f.read(csize))
+    return b''
+
+
+def descanso_angel_guardian() -> bool:
+    """Ensena las opciones de sentarse con poca HP/MP del Angel Guardian."""
+    ruta_cli = ruta_cliente()
+    pak = ruta_cli / 'update26.pak'
+    if not pak.exists():
+        return False
+    try:
+        poner = {}
+        raw = _vigente_bytes(ruta_cli, SCRIPT_ANGEL)
+        if raw.count(_USA_LUA) == 1:
+            poner[SCRIPT_ANGEL] = raw.replace(_USA_LUA, _SIN_USA_LUA)
+        elif _SIN_USA_LUA not in raw:
+            return False                  # un script que no se conoce
+        raw = _vigente_bytes(ruta_cli, FONDO_ANGEL)
+        fondo = _casillas_fondo_angel(raw)
+        if fondo != raw:
+            poner[FONDO_ANGEL] = fondo
+        if poner:
+            actualizar_pak_cliente(pak, poner, anadir=True)
+            log.info('Angel Guardian: descanso con poca HP/MP visible (%s)' % ', '.join(poner))
+        return True
+    except Exception as e:
+        log.warning('no se pudo arreglar el descanso del Angel Guardian: %s' % e)
         return False
 
 
