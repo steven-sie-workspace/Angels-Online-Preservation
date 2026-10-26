@@ -255,6 +255,8 @@ def _award(s):
     """Progress is saved once; item prizes stay pending for the teacher."""
     import cuentas,clases,combate,configuracion,app,recent_mall
     if getattr(s,'mapa_cargando',False) or getattr(s,'muerto',False):return
+    if not cuentas.leer('SELECT 1 FROM elementary_results WHERE owner=? AND character=? AND awarded=0 LIMIT 1',
+                        (s.usuario.casefold(),s.personaje.char_id)):return
     with cuentas._LOCK,cuentas._get_conn() as con:
         _schema(con)
         rows=con.execute('SELECT run,payload FROM elementary_results WHERE owner=? AND character=? AND awarded=0',

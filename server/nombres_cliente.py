@@ -245,19 +245,29 @@ def traducido(texto: str, habilidad: bool = False):
     _cargar()
     if not _estado['codec']:
         return None
-    d = _estado['textos']
-    if habilidad:
-        d = {**d, **_estado['habilidades']}
+    # Sin fusionar los diccionarios: {**textos, **habilidades} copiaba 44000
+    # entradas en cada llamada, y la skill exp llama dos veces por golpe.
+    textos, habs = _estado['textos'], _estado['habilidades']
+
+    def buscar(nombre):
+        k = _clave(nombre)
+        if habilidad and k in habs:
+            return habs[k]
+        return textos.get(k)
+
     t = str(texto).strip()
-    if _clave(t) in d:
-        return d[_clave(t)]
+    local = buscar(t)
+    if local is not None:
+        return local
     m = _ORO.match(t)
     if m:
         return f'{m.group(1)} {_estado["oro"]}'
     for patron in _CANTIDAD:
         m = patron.match(t)
-        if m and _clave(m.group('nombre')) in d:
-            return t[:m.start('nombre')] + d[_clave(m.group('nombre'))] + t[m.end('nombre'):]
+        if m:
+            local = buscar(m.group('nombre'))
+            if local is not None:
+                return t[:m.start('nombre')] + local + t[m.end('nombre'):]
     return None
 
 

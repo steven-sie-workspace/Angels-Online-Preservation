@@ -97,6 +97,32 @@ def _abrir():
     return con
 
 
+_CON_LECTURA = {}
+
+
+def leer(sql, args=()):
+    """Una consulta de SOLO LECTURA para los relojes de cada segundo, sin
+    _LOCK, sin vaciar la cola y sin olvidar las fichas en memoria.
+
+    elementary._award y competicion_premios.entregar miraban cada segundo, y
+    por cada jugador, si habia premios con _get_conn() bajo _LOCK: escribian
+    la cola con fsync, tiraban la cache de fichas (280 KB de JSON a releer en
+    el siguiente cambio) y, si el hilo de respaldo tenia _LOCK, el juego se
+    quedaba esperando a que acabara la copia: tirones cada pocos segundos
+    (hestia.log, 26/10/2026 12:36). Con WAL esta lectura no espera a nadie.
+    Una tabla aun sin crear cuenta como "nada pendiente".
+    """
+    hilo = threading.get_ident()
+    con = _CON_LECTURA.get(hilo)
+    if con is None:
+        con = _CON_LECTURA[hilo] = sqlite3.connect(str(DB_PATH), timeout=15.0)
+        con.execute('PRAGMA busy_timeout = 10000;')
+    try:
+        return con.execute(sql, args).fetchall()
+    except sqlite3.OperationalError:
+        return []
+
+
 def _init_db():
     with _LOCK:
         BASE.mkdir(parents=True, exist_ok=True)

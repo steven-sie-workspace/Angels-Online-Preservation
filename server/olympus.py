@@ -368,9 +368,8 @@ def tick(ses):
     if p.stage not in STAGES:
         ses._olympus_run=None;return
     if not rid:return
-    with cuentas._get_conn() as con:
-        row=con.execute('SELECT fin,restante FROM olympus_runs WHERE id=? AND usuario=? AND char_id=?',
-                        (rid,ses.usuario,p.char_id)).fetchone()
+    row=(cuentas.leer('SELECT fin,restante FROM olympus_runs WHERE id=? AND usuario=? AND char_id=?',
+                      (rid,ses.usuario,p.char_id)) or [None])[0]
     if row and row[1] is None and time.time()>=row[0]:
         ses.enviar(struct.pack('<H',0x016B))
         app._viajar_por_portal(ses,'olympus',{'destino':41,'llegada':eventos.casillas_de_tag(41,1)[0]})

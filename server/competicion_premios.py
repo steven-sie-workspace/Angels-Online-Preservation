@@ -185,6 +185,11 @@ def entregar(ses, automatico=False, stage=None):
     if not p or not getattr(ses, 'usuario', None) or getattr(ses, 'mapa_cargando', False):
         return 0
     c._cargar()
+    states="('pendiente','sin_tabla')" if not automatico and stage==240 else "('pendiente')"
+    # Cada segundo desde competiciones.reloj: sin premios no se toca _LOCK (ver cuentas.leer).
+    if not cuentas.leer("SELECT 1 FROM competiciones_premios WHERE char_id=? AND estado IN "+states+" LIMIT 1",
+                        (p.char_id,)):
+        return 0
     entregadas = 0
     compat_entregada = False
     exp_entregada, skills_entregadas = 0, {}
@@ -195,7 +200,6 @@ def entregar(ses, automatico=False, stage=None):
             # This also handles databases created before any round has ended.
             con.execute('CREATE TABLE IF NOT EXISTS competiciones_premios '
                         '(ronda TEXT, char_id INTEGER, estado TEXT, plan TEXT, PRIMARY KEY(ronda,char_id))')
-            states="('pendiente','sin_tabla')" if not automatico and stage==240 else "('pendiente')"
             claims = con.execute("SELECT ronda,plan,estado FROM competiciones_premios WHERE char_id=? AND estado IN "+states,
                                  (p.char_id,)).fetchall()
             if not claims:

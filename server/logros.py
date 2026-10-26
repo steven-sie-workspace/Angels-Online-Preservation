@@ -67,9 +67,21 @@ def puntos_de(conseguidos) -> int:
 
 def titulos_de(conseguidos) -> list:
     """Los titulos que desbloquean esos logros."""
-    ids = set(int(x) for x in (conseguidos or []))
-    return sorted({int(f['titulo']) for f in tabla()
-                   if f.get('id') in ids and f.get('titulo')})
+    # Indice hecho una vez: recorrer las 4351 filas costaba 1 ms, y se llama
+    # desde _vida_max/_mana_max (reputacion) en cada paso de la regeneracion.
+    global _TITULOS_POR_ID
+    if _TITULOS_POR_ID is None:
+        _TITULOS_POR_ID = {}
+        for f in tabla():
+            if f.get('titulo'):
+                _TITULOS_POR_ID.setdefault(f.get('id'), set()).add(int(f['titulo']))
+    titulos = set()
+    for x in set(int(x) for x in (conseguidos or [])):
+        titulos |= _TITULOS_POR_ID.get(x, set())
+    return sorted(titulos)
+
+
+_TITULOS_POR_ID = None
 
 
 # --------------------------------------------------------------- reglas

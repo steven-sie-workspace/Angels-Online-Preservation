@@ -13536,7 +13536,12 @@ class Servidor:
                             buff_entry['fin'] = time.time() + buff_dur_s
                             buff_entry['mag'] = mag
                             buff_entry['es_transform'] = mag.get('es_transformacion', False)
-                            if mag.get('trans_sprite'):
+                            # Solo las transformaciones: trans_sprite es el 動態參數1 de
+                            # CUALQUIER magia (en Merlin's Circle V es el hechizo hijo,
+                            # 5931), y contaba cada buff como transformacion: el 0x0155
+                            # entero (7 KB) en cada lanzamiento y el cliente se quedaba
+                            # congelado rehaciendo la ventana de logros (26/10/2026).
+                            if mag.get('trans_sprite') and mag.get('es_transformacion'):
                                 buff_entry['trans_sprite'] = int(mag['trans_sprite'])
                                 _logros_contar(ses, 'transforma:%d' % int(mag['trans_sprite']), addr=addr)
                             if mag.get('es_melee_trans'):
