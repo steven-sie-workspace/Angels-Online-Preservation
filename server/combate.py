@@ -312,7 +312,8 @@ NIVEL_MAXIMO = 471
 
 def nivel_maximo() -> int:
     """El nivel mas alto al que se puede subir."""
-    return NIVEL_MAXIMO
+    _cargar_curva_nivel()
+    return min(600,max(_CURVA_NIVEL)) if _CURVA_NIVEL else NIVEL_MAXIMO
 
 
 def exp_para_nivel(nv: int) -> int:
@@ -532,6 +533,33 @@ def casilla_de_aparicion(stage, tile, npc_type=None, otros=None):
     if c is None:
         c = _tr.casilla_cercana(stage, x, y)
     return list(c) if c else [x, y]
+
+
+def con_atacante(ses,callback):
+    """Bind delayed hits to their caster, not the last socket/AI tick."""
+    def ejecutar(*args,**kwargs):
+        previous=ATACANTE[0]
+        ATACANTE[0]=ses
+        try:return callback(*args,**kwargs)
+        finally:ATACANTE[0]=previous
+    return ejecutar
+
+
+def rehidratar_transformaciones(buffs):
+    """Restore XML-derived modifiers in saved/legacy shape buffs, no recast."""
+    for bid,entry in (buffs or {}).items():
+        if not isinstance(entry,dict) or entry.get('fin',0)<=time.time():continue
+        if not (entry.get('es_transform') or (entry.get('mag') or {}).get('es_transformacion')):continue
+        mag=datos_magia(int(bid))
+        if not mag.get('es_transformacion'):continue
+        entry.pop('mp',None);entry.pop('hp',None)  # Spell costs are not max-stat bonuses.
+        entry['mag']=mag;entry['es_transform']=True
+        entry['trans_sprite']=mag.get('trans_sprite',0)
+        entry['es_melee_trans']=bool(mag.get('es_melee_trans'))
+        for key in ('atk_pct','def_pct','matk_pct','mdef_pct','hp_pct','mp_pct','mp_to_hp_pct'):
+            if key in mag:entry[key]=mag[key]
+        entry['atk_speed']=mag.get('atk_speed_bonus',0)
+    return buffs
 
 
 class Monstruo:
@@ -791,7 +819,7 @@ class Monstruo:
 
     def toca_reaparecer(self) -> bool:
         return (not self.vivo and self.muerto_en
-                and time.time() - self.muerto_en >= SEGUNDOS_REAPARICION)
+                and time.time() - self.muerto_en >= getattr(self,'daily_respawn',SEGUNDOS_REAPARICION))
 
     def revivir(self):
         """Vuelve a la vida cerca de su sitio, no clavado en el mismo punto."""
@@ -1078,7 +1106,7 @@ def _nivel_plausible(lista_raw, nivel_monstruo: int) -> bool:
     return mediana * 2 >= int(nivel_monstruo or 0)
 
 
-def botin_items(npc_type: int, nombre: str = '', nivel: int = 0) -> list:
+def botin_items(npc_type: int, nombre: str = '', nivel: int = 0, buffs=None) -> list:
     """Items que suelta el monstruo de drops_monstruos.json o content.db con multiplicador de drops."""
     global _DROPS_CACHE, _MON_INFO_CACHE, _DROP_OFICIAL_CACHE
     if npc_type in _DROPS_CACHE:
@@ -1197,7 +1225,7 @@ def botin_items(npc_type: int, nombre: str = '', nivel: int = 0) -> list:
     if jefe_garantizado:
         drops.append(random.choice(candidatos))
         return drops
-    prob = min(0.95, 0.90 * configuracion.multiplicador_drop())
+    prob = min(0.95, 0.90 * configuracion.multiplicador_drop(buffs))
     if random.random() < prob:
         drops.append(random.choice(candidatos))
     return drops
@@ -1471,6 +1499,14 @@ def datos_magia(magic_id: int) -> dict:
                 any(k in nom_l for k in ('ghostly swordsman', 'shadow clone', 'avatar', 'putridox', 'minotaur', 'leech', 'azrael', 'muncher', 'totem', '1otem'))
             ) and not d.get('魔法狀態') and not ('soul shield' in nom_l) and not res.get('es_brand') and not (13595 <= magic_id <= 13599) and (d.get('變身型') != '是') and not ('shift' in nom_l and target == '自己')
             res['es_invocacion'] = bool(res['invoca_npc'] > 0 and is_real_summon)
+            # Formula29 is Avatar, not a self-buff. Parameter2 is clone power,
+            # NOT summon lifetime; lifetime comes from duration like the tooltip.
+            res['es_clon'] = res['formula']==29 and res['invoca_npc'] in (6269,6270)
+            if res['es_clon']:
+                res['es_invocacion'] = True
+                res['clon_sustituto'] = res['invoca_npc']==6269
+                res['clon_poder'] = _num(d.get('動態參數2'),0)
+                res['dur_invoca'] = max(1,res['dur_ms']//1000)
 
             # Robos de HP y MP (Forbidden Curse / Formula 39 y Bloodthirst Arrow / Formula 24)
             if res['formula'] in (24, 39) or (5116 <= magic_id <= 5120) or ('forbidden curse' in nom_l) or ('bloodthirst arrow' in nom_l):
@@ -1877,15 +1913,10 @@ def datos_invocacion(npc_type: int) -> dict:
                 if val is not None and str(val).strip().isdigit() and int(val) > 0:
                     sks.append(int(val))
             nom_raw = str(r[0] or 'Summon')
-            # Solo reemplazar sufijos de rango I..V (T..X en Big5) si estan al final o aislados
-            import re
+            # Repair only damaged Big5 pairs. A plain English "V" is
+            # already rank5: replacing it with "III" mislabels every Star V.
             for k_b5, k_num in (('\ufffdT', ' I'), ('\ufffdU', ' II'), ('\ufffdV', ' III'), ('\ufffdW', ' IV'), ('\ufffdX', ' V')):
                 nom_raw = nom_raw.replace(k_b5, k_num)
-            nom_raw = re.sub(r'\bT\b', 'I', nom_raw)
-            nom_raw = re.sub(r'\bU\b', 'II', nom_raw)
-            nom_raw = re.sub(r'\bV\b', 'III', nom_raw)
-            nom_raw = re.sub(r'\bW\b', 'IV', nom_raw)
-            nom_raw = re.sub(r'\bX\b', 'V', nom_raw)
             nom_limpio = nom_raw.encode('ascii', 'ignore').decode('ascii').strip() or 'Summon'
             if '1otem' in nom_limpio:
                 nom_limpio = nom_limpio.replace('1otem', 'Totem')

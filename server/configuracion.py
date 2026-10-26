@@ -6,6 +6,10 @@ sin tener que modificar la logica del servidor.
 """
 import datetime
 
+# Horarios del cliente, interpretados en hora LOCAL del servidor como Totem War.
+# La duracion de Angel Arena es compatibilidad, no un dato oficial verificado.
+DURACION_ANGEL_ARENA_MIN = 30
+
 # Reconstruccion de servicios Lyceum: las probabilidades no vienen en los
 # XML publicos. Son parametros de compatibilidad, NO tasas oficiales IGG.
 ASTRO_PESOS_NORMAL = (1, 1, 1)  # intensidades I / II / III
@@ -128,11 +132,12 @@ def multiplicador_skill_exp(buffs: dict = None) -> float:
     return m
 
 
-def multiplicador_drop() -> float:
+def multiplicador_drop(buffs: dict = None) -> float:
     """Calcula el multiplicador total de drops."""
     m = TASA_DROP_BASE
     if es_fin_de_semana():
         m *= 1.5
+    m += pct_buffs(buffs, 'drop_extra_pct', '\u6389\u5bf6\u52a0\u500d') / 100
     return m
 
 

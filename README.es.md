@@ -18,6 +18,53 @@ una suposición, lo dice.
 
 ## Estado real
 
+Olympus: Olly/Ozzy, canjes, mapas 217/332 con oleadas por piso y registros de
+Omos conectados a rankings. Item Mall: catalogo depurado excluyendo bolsas de evento/ligadas,
+piedras 5X y objetos con icono de interrogacion rojo (9407..9416); huevos de clase (80489..80495)
+ordenados al principio; compras/regalos y Store Cabinet con 1.000.000 AG iniciales. Star Blessing
+incluye mejoras, 27 recetas, longitud S2C 0x017F y correspondencia matriz/cartas/almacen corregidas,
+y uso atomico de Star Keys. Auto Divine llena las cartas de una en una; costes nativos,
+tiradas IV/V gratis, Stardust y premios de Bingo contrastados con capturas.
+Bolsas de venta verificadas de2025 en On Sale/Fashion/Bubble; Top Sale usa compras locales.
+Scrolls de ciudad, marcas Mark/Maple persistentes y libros de viaje de equipo atomicos.
+Daily Events: dos juegos distintos por dia en una rotacion semanal local
+configurable (42 filas por tramos), entrada automatica al tramo de nivel correspondiente,
+apertura atomica simultanea de los 4 tramos de nivel, entrega periodica de EXP (escalada por nivel hasta ~2M) y Skill EXP (~100)
+mediante avisos oficiales de sistema sin numeros flotantes de combate falso, aparicion y retorno por faccion en Swindle World
+(Aurora 97,158; Beasts 95,51; Steel 305,52; Shadow 303,155) con sus salidas dedicadas, anuncios deslizantes superiores
+tipo /notice al abrir registro, empezar combate y finalizar evento, warps de salida transitables hacia
+Angel Lyceum (radio 2, con salida bajo el arco de trebol en 28,25 para Training City) y preservacion del retorno original
+a la base al abrir cofres.
+Comandos GM: /daily start y /daily enter. No se recuperaron los horarios ni probabilidades del servidor original.
+Angel Lyceum: NPCs restaurados
+Astral Angel (canje de Star Keys 393), Party Angel (cajas renewal y canje 245), Chat Bubble Exchange
+(grupos 559, 570), Fashionable (recetas de vouchers) y Reissue Angel.
+Party Angel aplica Archangel's Secret original durante 12 horas; Compensation Angel retirado.
+[Fuentes, pruebas y limites](docs/MALL_STAR_FURNITURE_DAILY_2026-10-24.md).
+
+Arena/Holy: controles GM de registro/entrada/inicio, Arena todos contra todos
+(eliminatorias opcionales), Holy naranja/azul, minas y salidas originales,
+observadores ocultos, chat de equipo y achievements originales persistentes.
+[Correcciones de runtime, piedras y EXP propia configurable](docs/HOLY_RUNTIME_Y_PASES_2026-10-22.md).
+[Dialogos reales del proxy y correccion de entrada con guardado real](docs/DIALOGOS_COMPETICIONES_PROXY_2026-10-22.md):
+comparacion semantica de inventario, confirmacion antes de cobrar y tasas4M/8M.
+[Guia de pruebas y limites de premios oficiales](docs/ARENA_HOLY_LOGROS_Y_PRUEBAS_2026-10-22.md).
+
+Outpost 47/48: PvP permanente y portales originales restaurados. Correcciones
+de Wolay, parametros de nombre, carga de mapas e invocaciones PvP/desconexion:
+[detalle y pruebas](docs/OUTPOST_Y_RUNTIME_2026-10-22.md).
+
+Supreme Power activa la etiqueta PLV sin cambiar nivel real ni ranuras.
+Restaurados Blessing Angel y el dialogo de viaje de BattlefieldAngel.
+Arena y Holy Battlefield tienen rondas persistentes, inscripciones, PvP propio
+y comandos GM separados. Holy incluye captura de cristales. Horarios del XML
+en hora local del servidor. Holy incorpora construccion persistente, estatuas
+y bloqueo de puertas. Trabajo aun incompleto: sin apertura automatica y con
+rondas GM con entrada normal (gold/piedra) hasta completar los premios oficiales. Los premios semanales de Olympus y las
+transferencias Census siguen pendientes.
+Ver [comandos, mapas y limites](docs/COMPETICIONES_GM_2026-10-22.md).
+Ver [alcance y reglas originales](docs/PLV_Y_COMPETICIONES_2026-10-22.md).
+
 Totem de Crashing Hillock en `(92,174)`, confirmado en el juego por el usuario.
 Se retira el experimento de sombra sin cambiar las reglas de guerra.
 Ver [posicion y restauracion visual](docs/TOTEM_SOMBRA_2026-10-21.md).

@@ -16,7 +16,52 @@ a guess, it says so.
 
 ---
 
+Arena/Holy: GM registration/join/begin controls, free-for-all Arena by default
+(optional brackets), orange/blue Holy teams, original mines and exits,
+hidden spectators, team chat and original achievement rules are connected.
+[Runtime fixes, timed passes and configurable custom EXP](docs/HOLY_RUNTIME_Y_PASES_2026-10-22.md).
+[Measured proxy dialogues and real-save admission fixes](docs/DIALOGOS_COMPETICIONES_PROXY_2026-10-22.md):
+semantic inventory checks, confirmation before charging, and4M/8M fees.
+[Testing guide and official reward-data limits](docs/ARENA_HOLY_LOGROS_Y_PRUEBAS_2026-10-22.md).
+
+Outpost 47/48 now has permanent faction PvP and original portals. Wolay,
+name parameters, map-loading races and summon PvP/disconnect cleanup are covered
+in the [runtime notes and verification](docs/OUTPOST_Y_RUNTIME_2026-10-22.md).
+
 ## Actual state
+
+Olympus: Olly/Ozzy, exchanges, maps 217/332 with per-floor waves, and Omos results
+connected to rankings. Item Mall: cleaned catalog excluding event/bound bags, 5X stones,
+and placeholder question-mark items (9407..9416); class eggs (80489..80495) sorted first;
+purchases/gifts and Store Cabinet with 1,000,000 initial AG. Star Blessing has native state,
+upgrades, 27 recipes, corrected S2C 0x017F length and matrix/draw/storage mapping, and atomic Star Key draws.
+Auto Divine fills outcomes one card at a time; native Coin costs, free IV/V draws,
+Stardust and screenshot Bingo rewards are connected. Latest verified 2025 Mall
+root bags populate On Sale/Fashion/Bubble; Top Sale uses local purchase history.
+City scrolls, persistent Mark/Maple destinations and party travel books are handled atomically.
+Daily Events: two distinct games per day in a configurable local weekly rotation (42 bracket rows);
+atomic simultaneous opening of all 4 level tiers, automatic character level bracket routing on entry,
+periodic EXP (scaled with level up to ~2M) and Skill EXP (~100) delivered via standard system notices without false combat float numbers,
+faction-specific platform spawns and returns in Swindle World (Aurora 97,158; Beasts 95,51; Steel 305,52; Shadow 303,155) with dedicated exit portals,
+top rolling banner announcements (/notice style) for registration start, battle start, and event completion, visible and walkable
+exit warps back to Angel Lyceum (radius 2, with Training City exit under the clover archway at 28,25),
+and preservation of the original chest return mechanic upon opening.
+Use /daily start and /daily enter for GM checks. Original server schedules and draw odds remain unavailable.
+Angel Lyceum: restored missing NPCs Astral Angel (Star Key exchange 393), Party Angel (renewal gifts & exchange 245),
+Chat Bubble Exchange (groups 559, 570), Fashionable (voucher recipes), and Reissue Angel.
+Party Angel applies the original 12-hour Archangel's Secret; Compensation Angel is removed.
+[Sources, tests and limits](docs/MALL_STAR_FURNITURE_DAILY_2026-10-24.md).
+
+Supreme Power now enables the client's PLV label without changing the real
+level or adding skill slots. Blessing Angel and BattlefieldAngel's lobby
+dialogue are restored. Arena/Holy Battlefield now have persistent rounds,
+registration, isolated PvP and separate GM commands; Holy includes crystal
+capture. XML schedules use server local time. Holy buildings now have
+persisted construction and gate collision rules.
+This is unfinished work: production scheduling is disabled and GM rounds are
+GM tests with normal gold/stone admission until the official reward pipeline is completed. Olympus weekly prizes and Census
+transfers remain pending. See [commands and limits](docs/COMPETICIONES_GM_2026-10-22.md).
+See [implementation scope and original competition rules](docs/PLV_Y_COMPETICIONES_2026-10-22.md).
 
 Crashing Hillock's totem is now at `(92,174)`, validated in game by the user.
 The unsuccessful shadow experiment is rolled back without changing war rules.

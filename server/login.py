@@ -108,6 +108,9 @@ class Personaje:
     emotes: set = field(default_factory=set)            # {emote_id, ...} adquiridos mediante tarjetas
     quick_emotes: dict = field(default_factory=lambda: {0: -1, 1: -1, 2: -1, 3: -1})  # {slot 0..3: emote_id o -1}
     contadores: dict = field(default_factory=dict)      # {'mata:<npc_type>': n} para los logros
+    chat_filtros: dict = field(default_factory=dict)  # tab0..3 -> native mask
+    star_blessing: dict = field(default_factory=dict)
+    travel_mark: dict = field(default_factory=dict)
 
 
 def _cargar_secuencia():
@@ -376,6 +379,8 @@ def secuencia(p: Personaje):
     # Emotes rapidos (Alt+1..Alt+4) en ranuras 0..3:
     import presencia as _pr
     salida.append(_pr.paquete_quick_emotes(p.entity_id, getattr(p, 'quick_emotes', None) or {}))
+    salida.extend(__import__('chat_filtros').paquetes(p))
+    salida.append(__import__('star_blessing').paquete(p))
     return salida
 
 
@@ -778,7 +783,10 @@ def portales_de(stage: int):
     if not base_hex:
         return []
     salida = []
-    for por in cfg.get('mapas', {}).get(str(stage), []):
+    portals=list(cfg.get('mapas', {}).get(str(stage), []))
+    used={tuple(row['tile']) for row in portals}
+    portals.extend(row for row in __import__('daily_events').portales(stage) if tuple(row['tile']) not in used)
+    for por in portals:
         if not por.get('dibujar'):
             continue
         b = bytearray(bytes.fromhex(base_hex))
@@ -820,6 +828,7 @@ def _map_object_spawn(entity_id: int, sprite: int, tile: tuple, direccion: int =
 # faltaba en la de la IA. El Lyceum y el Fighting Palace NO van aqui:
 # se tratan aparte y cada consumidor los anade si los necesita.
 PLANTILLAS_POR_STAGE = {
+    114 : 'sign_up_office.json',          # NPC originales de map114.mpc; torneos aun no habilitados.
     50: 'territory_area_1.json',
     100: 'territory_area_2.json',
     117: 'territory_area_3.json',
@@ -1169,6 +1178,8 @@ PLANTILLAS_POR_STAGE = {
 }
 
 
+PLANTILLAS_POR_STAGE.update({stage:'daily_%d.json'%stage for stage in __import__('daily_events').STAGES})
+
 HOUSE_INTERACTIVE_IDS = tuple(
     [260300, 262501, 701, 702, 703, 720, 721, 723, 731]
     + list(range(500020, 500030))
@@ -1246,6 +1257,12 @@ def poblar(stage: int, player_level=1):
     if stage == 500:
         return interactivos_casa(player_level)
     salida = npc_de_los_xml(stage)
+    import olympus
+    salida += olympus.poblar(stage)
+    import recent_mall
+    salida += recent_mall.poblar(stage)
+    import competiciones
+    salida += competiciones.poblar(stage)
     import territorios_liga
     if stage in territorios_liga.AREAS:
         salida += territorios_liga.paquetes(stage)
@@ -1419,7 +1436,8 @@ def _ficha(p, base):
     d['tile_x'], d['tile_y'] = p.tile_x, p.tile_y
     # Bit 0x80000000 permite que el cliente ejecute los botones de WND_HOUSEINFO (Show, Take Back, Decorate)
     # y valida la condicion (*(_DWORD *)(player + 480) & 0x80000000) en Angel.exe (sub_5BA840..sub_5BA8F0)
-    d['flags'] = 0x80000000
+    import supremo as _su_ficha
+    d['flags'] = _su_ficha.estado(p)
     if getattr(p, 'alma', False):
         # Bit de alma (+0x1e0): sub_5E9C90 le pone el cuerpo de alma.
         d['flags'] |= 0x08000000
