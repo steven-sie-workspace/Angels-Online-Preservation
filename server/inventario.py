@@ -124,6 +124,38 @@ def instancia_nueva() -> bytes:
     return struct.pack('<II', _CORRELATIVO[0], int(time.time()))
 
 
+def instancias_del_personaje(personaje, inicial=None):
+    """One runtime ID map shared by scene loading and inventory updates."""
+    ids = getattr(personaje, '_instancias', None)
+    if ids is None:
+        ids = inicial if inicial is not None else {}
+        personaje._instancias = ids
+    return ids
+
+
+def sincronizar_instancias(personaje):
+    """Give every occupied slot its own ID, avoiding already placed furniture."""
+    # Angel.exe usefurniture (5C7AB0/5C8350) selects a QWORD instance ID.
+    # Falling back to instancia_de(char_id, item_id) hides every same-type
+    # copy when just one is placed. Map loads must preserve the live IDs.
+    ids = instancias_del_personaje(personaje)
+    house = getattr(personaje, 'casa', None) or {}
+    placed = house.get('placed_furniture', []) if isinstance(house, dict) else []
+    used = {struct.pack('<Q', int(e['item_uid'])) for e in placed if e.get('item_uid')}
+    for slot, item in sorted(personaje.inventario.items(), key=lambda row: int(row[0])):
+        slot = int(slot)
+        if not item and slot != RANURA_ORO:
+            continue
+        uid = ids.get(slot)
+        if not isinstance(uid, bytes) or len(uid) != 8 or not any(uid) or uid in used:
+            uid = instancia_nueva()
+            while uid in used:
+                uid = instancia_nueva()
+            ids[slot] = uid
+        used.add(uid)
+    return ids
+
+
 def es_apilable(item_id: int) -> bool:
     """Si varias unidades de ese item comparten una sola casilla."""
     if not item_id or int(item_id) <= 0:
@@ -202,14 +234,8 @@ def ranura_de_instancia(instancias, instancia: bytes, bolsa=None,
     for ranura, inst in (instancias or {}).items():
         if bytes(inst)[:8] == instancia[:8]:
             return int(ranura)
-    # Respaldo: la derivacion vieja, instancia_de(char_id, item_id).
-    #
-    # La secuencia de entrada al mundo manda el inventario SIN instancias, y
-    # entonces cada entrada cae en esa derivacion. El cliente se queda con
-    # esos ocho bytes y los devuelve al vender, mientras que aqui se buscaba
-    # solo en el mapa de instancias nuevas: no casaba ninguna y no se vendia
-    # nada. Se reconocio comparando: el cliente mandaba ...5af6ad6a y
-    # instancia_de(char, 2) termina exactamente en 5af6ad6a.
+    # Compatibility for older packets and auxiliary legacy deliveries. Scene
+    # loading now sends the actual per-slot IDs, shared with inventory updates.
     if bolsa and char_id:
         for ranura, item_id in bolsa.items():
             if instancia_de(char_id, int(item_id)) == instancia[:8]:
@@ -1679,6 +1705,11 @@ def look_de_burbuja(item_id: int) -> int:
     return _BURBUJA_LOOK_CACHE.get(int(item_id), 0)
 
 
+def es_carta(item_id: int) -> bool:
+    """True si el item es una carta coleccionable (卡片)."""
+    return categoria_item(item_id) == '卡片' or categoria_de(item_id) == '卡片'
+
+
 def es_ranura_valida(item_id: int, ranura: int) -> bool:
     """Verifica si un item puede colocarse en esa ranura especifica para evitar pisar armadura real con fashion."""
     if ranura == 558:  # Equip Pet; la elegibilidad de la ficha se valida en app
@@ -1709,6 +1740,9 @@ def es_ranura_valida(item_id: int, ranura: int) -> bool:
     # 7. Bolsa de Fashion (176..275): SOLO ropa de fashion (紙娃娃)
     if 176 <= ranura <= 275:
         return es_item_fashion(item_id)
+    # 7a. Bolsa de Cartas (276..375): SOLO cartas coleccionables (卡片)
+    if 276 <= ranura <= 375:
+        return es_carta(item_id)
     # 7b. Ranura de escritura de casa (376)
     if ranura == 376:
         return int(item_id) in (10115, 10116, 10117, 17934, 17935, 17936, 17937, 20076) or categoria_item(item_id) == '房屋'

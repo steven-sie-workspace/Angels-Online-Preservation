@@ -321,7 +321,7 @@ def _portal_en(stage, tx, ty):
         # menu que hay -- el de Shuwa Market a Siam Square y el de Bayan
         # Village -- no abrian el cuadro NUNCA: el servidor ni siquiera los
         # encontraba al pisarlos.
-        if por.get('destino') is None and not por.get('preguntar'):
+        if por.get('destino') is None and not por.get('preguntar') and not por.get('evento_cliente'):
             continue
         # Radio propio si lo trae. El radio 1 global pide estar justo encima,
         # y eso no vale para todos: el tornado de Mushroom hacia Jade Vale
@@ -800,11 +800,17 @@ def _cant_de(ses, ranura: int) -> int:
 
 
 def _instancias(ses) -> dict:
-    """El id de instancia de ocho bytes de cada casilla ocupada."""
+    """The same per-character runtime IDs used by login.secuencia."""
+    import inventario as inv
     m = getattr(ses, 'instancias', None)
+    p = getattr(ses, 'personaje', None)
+    if p is not None:
+        initial = m if getattr(ses, '_instancias_personaje', p) is p else None
+        m = inv.instancias_del_personaje(p, initial)
+        ses._instancias_personaje = p
     if m is None:
         m = {}
-        ses.instancias = m
+    ses.instancias = m
     return m
 
 
@@ -6424,19 +6430,14 @@ def _sacar_de_veta(ses, addr, stage, ent, mat, mid):
     cuenta[0] += 1
     if mat['limite'] and cuenta[0] >= mat['limite']:
         cuenta[1] = time.time()
-    total = sum(pr for _it, pr in mat['items']) + int(mat.get('no_produce') or 0)
-    tirada = random.randint(1, max(1, total))
-    dado = None
-    for it, pr in mat['items']:
-        tirada -= pr
-        if tirada <= 0:
-            dado = it
-            break
+    dado = __import__('gathering_rewards').roll(mat)
     if dado is not None:
         r = _meter(ses, int(dado), 1)
         if r is None:
             ses.enviar(_cl_r.aviso('Your backpack is full.', tipo=0))
             cuenta[0] -= 1
+            if cuenta[0] < mat['limite']:
+                cuenta[1] = 0.0
             return False
         ses.enviar(*_refrescar(ses, [r]))
         ses.enviar(_cl_r.aviso(_nombre_item(int(dado)), tipo=0, msg_id=_cl_r.MSG_ITEM))
@@ -6479,6 +6480,8 @@ def _sacar_de_veta(ses, addr, stage, ent, mat, mid):
         _guardar_bolsa(ses, ses.personaje.char_id)
     log.info('[%s] veta %s (%s) en %s: %s, %d/%d', addr, ent, mat['nombre'], stage,
              dado, cuenta[0], mat['limite'])
+    if mat['limite'] and cuenta[0] >= mat['limite']:
+        __import__('gathering_nodes').depleted(ses, stage, ent, mat, cuenta)
     return not (mat['limite'] and cuenta[0] >= mat['limite'])
 
 
@@ -6846,6 +6849,7 @@ def _poner_generado(ses, eid, npc_type, tile, zona):
         ses.monstruos = {}
     ses.monstruos[eid] = m
     ses.enviar(_lg_g._npc_spawn(eid, npc_type, nombre, tuple(tile), sprite=sprite, klass=1))
+    __import__('nightmare_cave').created(ses, m)
     frase = _texto_string(FRASE_AL_SALIR.get(int(npc_type), 0)) if int(npc_type) in FRASE_AL_SALIR else ''
     if frase:
         _hablar_monstruo(ses, m, frase)
@@ -8077,9 +8081,7 @@ def _sanear_escrituras(p, usuario, addr=None):
     mochila, y si la casilla 376 tiene otra escritura que la de la casa, la
     casa pasa a ser la de la casilla (la que el jugador ve puesta)."""
     import casas as _cs_s
-    bolsa = getattr(p, 'inventario', None)
-    if not bolsa:
-        return
+    bolsa = getattr(p, 'inventario', None) or {}
     cambiado = False
     for r in sorted(k for k in list(bolsa) if _cs_s.SLOT_FURN_INI <= int(k) <= _cs_s.SLOT_MOB_FIN):
         if _cs_s.es_deed_item(bolsa[r]):
@@ -8091,17 +8093,20 @@ def _sanear_escrituras(p, usuario, addr=None):
             log.info('[%s] %s: escritura %s sacada de la casilla de muebles %s a la %s',
                      addr, p.nombre, bolsa[libre], r, libre)
     puesta = bolsa.get(_cs_s.SLOT_DEED)
-    if puesta and _cs_s.es_deed_item(puesta) and isinstance(getattr(p, 'casa', None), dict):
-        if int(p.casa.get('deed_id') or 0) != int(puesta):
-            log.info('[%s] %s: la casa pasa de %s a %s (la escritura puesta)',
-                     addr, p.nombre, p.casa.get('deed_id'), puesta)
-            p.casa['deed_id'] = int(puesta)
-            c_act = _cs_s._CASAS_ACTIVAS.get(int(p.char_id))
-            if c_act is not None:
-                c_act.deed_id = int(puesta)
+    raw = getattr(p, 'casa', None)
+    if isinstance(raw, dict) and (raw or (puesta and _cs_s.es_deed_item(puesta))):
+        casa = _cs_s.obtener_o_crear_casa(p.char_id, p.nombre, raw_data=raw)
+        if puesta and _cs_s.es_deed_item(puesta):
+            casa.deed_id = int(puesta)
+        canonical = casa.serializar()
+        if any(raw.get(k) != canonical[k] for k in ('owner_id', 'owner_name', 'house_name', 'deed_id')):
+            # Repair the character's own record, preserving unknown legacy
+            # house fields along with all furniture, pets and upgrades.
+            p.casa = {**raw, **canonical}
             if usuario:
-                cuentas.guardar_casa(usuario, p.char_id,
-                                     c_act or _cs_s.obtener_o_crear_casa(p.char_id, p.nombre, raw_data=p.casa))
+                cuentas.guardar_casa(usuario, p.char_id, p.casa)
+            log.info('[%s] %s: casa vinculada a char_id=%s, escritura=%s',
+                     addr, p.nombre, p.char_id, casa.deed_id)
     if cambiado and usuario:
         cuentas.guardar_inventario(usuario, p.char_id, p.inventario, p.cantidades)             if hasattr(cuentas, 'guardar_inventario') else None
 
@@ -8488,6 +8493,8 @@ def _recorrer_dialogo_mapa(ses, addr, stage, nodo):
     if not p:
         return False
     arbol = _dm._arbol(stage)
+    if __import__('nightmare_cave').before_dialogue(ses, int(stage), int(nodo)):
+        return True
     if __import__('recent_mall').antes_dialogo(ses,int(stage),int(nodo)):
         return True
     if __import__('olympus').antes_dialogo(ses,int(stage),int(nodo)):
@@ -10874,7 +10881,7 @@ class Servidor:
                 p._amplify_verdes = _amplify_refrescar(ses, enviar=False)
             except Exception:
                 log.exception('amplify antes de entrar')
-            for sub in secuencia(p):
+            for sub in __import__('gathering_nodes').scene(ses, secuencia(p)):
                 ses.enviar(sub)
             # El inventario va dentro de la secuencia de entrada: el 0x001A
             # se arma con el del personaje, asi que cada item ya sale en su
@@ -12350,7 +12357,7 @@ class Servidor:
                     _entrar_en_sala(ses, addr)
                     import granja_liga as _fl
                     ses.enviar(*_fl.poblar_cultivos(ses))
-                ses.enviar(*_lg.poblar(p.stage))
+                ses.enviar(*__import__('gathering_nodes').scene(ses, _lg.poblar(p.stage)))
                 # PRESENCIA: aqui, y no al mandar el 0x000C, porque hasta
                 # este momento el cliente no tiene el mapa cargado y los
                 # spawns que lleguen antes se pierden.
@@ -14745,7 +14752,7 @@ class Servidor:
                 _iv2.marcar_alma(getattr(ses, 'inventario', None), True)
             ses.monstruos = _monstruos_de(p.stage)
             # Cargar la secuencia completa oficial del nuevo mapa (aparicion, capas, barra, stats, spawns y atributos)
-            for sub in _lg2.secuencia(p):
+            for sub in __import__('gathering_nodes').scene(ses, _lg2.secuencia(p)):
                 ses.enviar(sub)
             __import__('elementary').loaded(ses)
             __import__('league_war').loaded(ses)
@@ -15762,7 +15769,7 @@ class Servidor:
             destino, origen = struct.unpack_from('<HH', cuerpo, 1)
             cuantas = struct.unpack_from('<I', cuerpo, 5)[0]
             bolsa = getattr(ses, 'inventario', {})
-            if origen not in bolsa or destino in bolsa or cuantas < 1:
+            if origen not in bolsa or destino in bolsa or cuantas < 1 or not _iv.es_ranura_valida(bolsa[origen], destino):
                 log.warning(f"[{addr}] separar invalido: {origen} -> {destino} "
                             f"x{cuantas}")
                 return
@@ -16726,45 +16733,13 @@ class Servidor:
             # Reconcile the placed list with the dedicated Furniture bag.
             # This makes Save atomic and prevents both duplication and loss.
             _old_entries = list(_c.placed_furniture)
-            _old_counts = collections.Counter(e['item_id'] for e in _old_entries)
-            _new_counts = collections.Counter(e['item_id'] for e in _entries)
-            _add = _new_counts - _old_counts
-            _remove = _old_counts - _new_counts
-            _free_defaults = {9954: 1, 14660: 1}
-            _need = collections.Counter()
-            for _iid, _qty in _add.items():
-                _gratis = min(_qty, _free_defaults.get(_iid, 0)) if _old_counts[_iid] == 0 else 0
-                if _qty > _gratis:
-                    _need[_iid] = _qty - _gratis
-            _furn_slots = list(range(_cs.SLOT_FURN_INI, _cs.SLOT_FURN_FIN + 1))
-            _available = collections.Counter()
-            for _slot in _furn_slots:
-                if _slot in ses.inventario:
-                    _available[int(ses.inventario[_slot])] += _cant_de(ses, _slot)
-            if any(_available[_iid] < _qty for _iid, _qty in _need.items()):
-                log.warning('[%s] savefurniture intento colocar muebles no poseidos: %s',
-                            addr, dict(_need - _available))
-                ses.enviar(_cl.aviso("The furniture layout was not saved: missing item.", tipo=7, msg_id=_cl.MSG_TEXTO))
+            try:
+                _consume_plan, _return_entries = __import__('furniture_items').plan_layout(
+                    ses, _old_entries, _entries)
+            except ValueError as _err:
+                log.warning('[%s] savefurniture: %s', addr, _err)
+                ses.enviar(_cl.aviso(str(_err), tipo=0))
                 return
-            _consume_plan = []
-            for _iid, _qty in _need.items():
-                _left = _qty
-                for _slot in _furn_slots:
-                    if _left <= 0:
-                        break
-                    if int(ses.inventario.get(_slot, 0)) != _iid:
-                        continue
-                    _take = min(_left, _cant_de(ses, _slot))
-                    _consume_plan.append((_slot, _take))
-                    _left -= _take
-            _return_entries = []
-            _remaining_remove = _remove.copy()
-            for _entry in _old_entries:
-                _iid = _entry['item_id']
-                if _remaining_remove[_iid] > 0:
-                    _remaining_remove[_iid] -= 1
-                    if _iid not in _free_defaults:
-                        _return_entries.append(_entry)
             _occupied = sum(1 for s in range(_cs.SLOT_FURN_INI, _cs.SLOT_FURN_FIN + 1)
                             if s in ses.inventario)
             _slots_freed = sum(1 for s, n in _consume_plan
@@ -16776,6 +16751,9 @@ class Servidor:
             _inv_before = dict(ses.inventario)
             _qty_before = dict(_cantidades(ses))
             _inst_before = dict(_instancias(ses))
+            _mej_before = __import__('copy').deepcopy(getattr(ses.personaje, 'mejoras', {}) or {})
+            _house_before = __import__('copy').deepcopy(ses.personaje.casa)
+            _name_before = _c.house_name
             _touched = set()
             try:
                 for _slot, _take in _consume_plan:
@@ -16793,7 +16771,7 @@ class Servidor:
                     ses.inventario[_slot] = _entry['item_id']
                     _cantidades(ses).pop(_slot, None)
                     _uid = int(_entry.get('item_uid') or 0)
-                    _instancias(ses)[_slot] = struct.pack('<Q', _uid) if _uid else bytes(8)
+                    _instancias(ses)[_slot] = struct.pack('<Q', _uid) if _uid else __import__('inventario').instancia_nueva()
                     _touched.add(_slot)
                 if _nom_raw and any(ch.isalnum() for ch in _nom_raw):
                     _c.house_name = _nom_raw[:16].strip()
@@ -16812,7 +16790,9 @@ class Servidor:
                 _instancias(ses).clear()
                 _instancias(ses).update(_inst_before)
                 _c.placed_furniture = _old_entries
-                ses.personaje.casa = _c.serializar()
+                _c.house_name = _name_before
+                ses.personaje.mejoras = _mej_before
+                ses.personaje.casa = _house_before
                 log.exception('[%s] savefurniture rollback', addr)
                 ses.enviar(_cl.aviso("The furniture layout could not be saved.", tipo=0))
                 return
@@ -18690,6 +18670,9 @@ class Servidor:
 
 
 
+            if ses.personaje and __import__('nightmare_cave').pulsar(ses, ent, addr):
+                return
+
             # Los dialogos del tutorial van por entity_id (19 Raphael, 20
             # Interface Tutor, 21 Angel Aide) y esos numeros SE REPITEN en
             # otros mapas: en el Lyceum la 19 es el Magic Seller, la 20 el Bao
@@ -19133,6 +19116,9 @@ class Servidor:
             return
         if (opcode==0x000B and ses.rol=='mundo'
                 and __import__('competicion_dialogos').continuar(ses,d.get('valor',1) if d else 1)):
+            return
+        if (opcode == 0x000B and ses.rol == 'mundo'
+                and __import__('nightmare_cave').choose(ses, d.get('valor', 1) if d else 1)):
             return
         _dlm = getattr(ses, 'dlg_mapa', None)
         if (opcode == 0x000B and ses.rol == 'mundo' and _dlm
