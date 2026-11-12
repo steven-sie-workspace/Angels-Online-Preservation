@@ -115,12 +115,24 @@ def leer(sql, args=()):
     quedaba esperando a que acabara la copia: tirones cada pocos segundos
     (hestia.log, 26/10/2026 12:36). Con WAL esta lectura no espera a nadie.
     Una tabla aun sin crear cuenta como "nada pendiente".
+
+    La conexion de cada hilo va con su ruta: si DB_PATH cambia (los tests
+    ponen una base nueva en cada uno) se abre otra, en vez de seguir leyendo
+    la base de antes.
     """
     hilo = threading.get_ident()
-    con = _CON_LECTURA.get(hilo)
-    if con is None:
-        con = _CON_LECTURA[hilo] = sqlite3.connect(str(DB_PATH), timeout=15.0)
+    ruta = str(DB_PATH)
+    par = _CON_LECTURA.get(hilo)
+    if par is None or par[0] != ruta:
+        if par is not None:
+            try:
+                par[1].close()
+            except Exception:
+                pass
+        con = sqlite3.connect(ruta, timeout=15.0)
         con.execute('PRAGMA busy_timeout = 10000;')
+        _CON_LECTURA[hilo] = par = (ruta, con)
+    con = par[1]
     try:
         return con.execute(sql, args).fetchall()
     except sqlite3.OperationalError:
