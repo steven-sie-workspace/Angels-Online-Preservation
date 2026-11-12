@@ -73,6 +73,8 @@ def _items():
 _CATEGORY={**{k:0 for k in ('\u528d','\u5200','\u65a7','\u939a','\u69cd','\u6756','\u5f13\u7bad','\u5f48\u5f13','\u5f71\u5203')},
            '\u982d\u98fe':1,'\u8863\u670d':2,'\u624b\u5957':3,'\u9774\u5b50':4,
            '\u5ea7\u9a0e':5,'\u6a5f\u7532':5,'\u62ab\u98a8':6,'\u76fe':6}
+# Las tablas IGG/TW usan ambas grafias para botas y martillos.
+_CATEGORY.update({'鞋子':4,'錘':0})
 
 
 def descripcion(item_id,extra=None):
@@ -83,7 +85,10 @@ def descripcion(item_id,extra=None):
         return _apariencia(row)
     category=_CATEGORY.get(row.get('\u7269\u54c1\u985e\u5225'))
     if category is None:return None
-    color={'':0,'\u767d':0,'\u85cd':1,'\u9ec3':2}.get(row.get('\u984f\u8272',''))
+    #5f5be0: the Robot page only has Blue (0) and Yellow (1); the others
+    # are White (0), Blue (1), Yellow (2).
+    colors={'\u85cd':0,'\u9ec3':1} if category==5 else {'':0,'\u767d':0,'\u85cd':1,'\u9ec3':2}
+    color=colors.get(row.get('\u984f\u8272',''))
     level=int(row.get('\u7269\u54c1\u7b49\u7d1a') or 0)
     if color is None or level<=0 or int(row.get('\u6301\u7e8c\u6642\u9593') or 0)>0:return None
     slot=(3,1,2,5,6,8,7)[category]
@@ -98,9 +103,8 @@ def descripcion(item_id,extra=None):
     #folds accuracy into the right-hand attack, which must be removed here.
     stat_sum+=delta.get('atk_r',0)-(2*delta.get('accuracy',0) if category==0 else 0)
     weight=(225,45,72,32,30,100,75)[category]
-    multiplier=(1,2,5)[color]
-    if category==5:multiplier=(2,5,0)[color]
-    if not multiplier:return None
+    #705d50 adds 1 to the Robot color before705e40 (1,2,5): Blue 2, Yellow 5.
+    multiplier=(1,2,5)[color+1 if category==5 else color]
     value=math.ceil((level*level*.3+stat_sum)*weight*.01*.0072)*multiplier
     bucket=0 if level<100 else min(4,(level-100)//20+1)
     return category,color,bucket,max(1,min(0x1ffff,int(value)))
@@ -137,7 +141,25 @@ def valor_de(item_id,extra=None):
     return desc[3] if desc else 0
 
 
+def normalizar(valores):
+    """Robots saved before the 5f5be0 color fix: Blue went in the Yellow row
+    (color 1, x5) and Yellow in a row the client lacks (color 2, x10). Moves
+    them to Blue 0 (x2) / Yellow 1 (x5) and recomputes the page totals."""
+    valores=dict(valores or {})
+    if '_entries' not in valores or valores.get('_robot_color'):return valores
+    records=[]
+    for r in valores['_entries']:
+        r=list(r)
+        if r[0]==5 and r[1]==1:r[1],r[4]=0,max(1,r[4]//5*2)
+        elif r[0]==5 and r[1]==2:r[1],r[4]=1,max(1,r[4]//10*5)
+        records.append(r)
+    valores['_entries']=records;valores['_robot_color']=1
+    for index,key in enumerate(CATEGORIAS):valores[key]=sum(r[4] for r in records if r[0]==index)
+    return valores
+
+
 def registros(valores):
+    valores=normalizar(valores)
     if '_entries' in valores:return [list(r) for r in valores['_entries']]
     # Older saves only retained category totals. Represent those totals as
     # legacy cells instead of erasing previously earned points on migration.
@@ -152,7 +174,7 @@ def registros(valores):
 
 def paquete(personaje):
     """S2C0156: expansion mask,u16 count per category,packed32-bit cells."""
-    values=getattr(personaje,'album',None) or {};records=registros(values)
+    values=normalizar(getattr(personaje,'album',None) or {});records=registros(values)
     counts=[0]*8;words=[]
     for category in range(8):
         rows=[r for r in records if r[0]==category]
@@ -166,7 +188,7 @@ def registrar(ses,slot):
     import app,clases,recent_mall
     item=ses.inventario.get(slot)
     def reject(text):ses.enviar(clases.aviso(text,tipo=0));return False
-    if not 20<=slot<160:return reject('Move the item to your backpack before adding it to the Album.')
+    if not 20<=slot<=app._tope_bolsa(ses.inventario):return reject('Move the item to your backpack before adding it to the Album.')
     if (__import__('arena_premios_compat').es_premio(ses,slot)
             or __import__('item_mall').es_temporal(ses,slot)
             or __import__('furniture_items').protegido(ses,slot)):
@@ -176,7 +198,7 @@ def registrar(ses,slot):
     category,color,bucket,value=description
     updated=[]
     def collect(con,data):
-        values=dict(data.get('album') or {});records=registros(values)
+        values=normalizar(data.get('album') or {});records=registros(values)
         limit=5 if int(values.get('_expanded',0))&(1<<(color+4*category)) else 4
         cells={r[3]:r for r in records if r[:3]==[category,color,bucket]}
         if category==7:
@@ -206,8 +228,46 @@ def registrar(ses,slot):
     return True
 
 
+LLAVE_EXPANSION = 21101  # Collection Box Key
+
+
+def expandir(ses, categoria, color):
+    """C2S 0x002F [u8 0x34][u32 categoria][u32 color]: el boton "Add more
+    Grids" (game.buycltnslot, 0x59A800). Gasta una Collection Box Key y abre
+    el quinto grid de esa subcategoria. El cliente mira el bit
+    color+4*categoria de la mascara de S2C0156 (0x4A5A40)."""
+    import app, clases, recent_mall
+    def reject(text):
+        ses.enviar(clases.aviso(text, tipo=0)); return False
+    # Robot no tiene blanco; Apariencia no usa grids de nivel.
+    if not (0 <= categoria < 7 and 0 <= color <= 2) or (categoria == 5 and color == 0):
+        return reject('This Album category cannot be expanded.')
+    bit = 1 << (color + 4 * categoria)
+    if int(normalizar(getattr(ses.personaje, 'album', None) or {}).get('_expanded', 0)) & bit:
+        return reject('The Expansion Grid of this category is already open.')
+    tope = app._tope_bolsa(ses.inventario)
+    slot = next((s for s in sorted(ses.inventario)
+                 if 20 <= s <= tope and ses.inventario.get(s) == LLAVE_EXPANSION), None)
+    if slot is None:
+        return reject('You need a Collection Box Key to open the Expansion Grid.')
+    updated = []
+    def abrir(con, data):
+        values = normalizar(data.get('album') or {})
+        if int(values.get('_expanded', 0)) & bit:
+            raise recent_mall.Rechazo('The Expansion Grid of this category is already open.')
+        values['_expanded'] = int(values.get('_expanded', 0)) | bit
+        data['album'] = values; updated.append(values)
+    try:
+        recent_mall.cambiar(ses, {slot: 1}, [], transaccion=abrir)
+    except recent_mall.Rechazo as exc:
+        return reject(str(exc))
+    ses.personaje.album = updated[0]
+    ses.enviar(paquete(ses.personaje), clases.aviso('The Expansion Grid of the Album has been opened.', tipo=0))
+    return True
+
+
 def bono_buff(personaje):
-    raw=bonos(getattr(personaje,'album',None) or {})
+    raw=bonos(normalizar(getattr(personaje,'album',None) or {}))
     aliases={'dfs':'def','rigor':'hit','agilidad':'eva','hp':'hp_bonus','mp':'mp_bonus',
              'critico':'crit','peso':'carga','res_con':'res_body','res_spr':'res_mind',
              'res_rayo':'res_lightning','res_fuego':'res_fire','res_hielo':'res_ice',

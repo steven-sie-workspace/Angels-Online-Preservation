@@ -187,6 +187,10 @@ def _datos(npc_type: int):
                     # Protector y Earl Makice 12, Rock Slarm 5. Es el "Agr.
                     # Yes" de las tablas de la wiki.
                     'agro': max(0, _n(d.get('主動'))),
+                    'hechizos': [h for h in (_n(d.get('攻擊法術%d' % k)) for k in (1, 2, 3, 4)) if h],
+                    'curas': [h for h in (_n(d.get('補血法術%d' % k)) for k in (1, 2)) if h],
+                    'pasivas': [h for h in (_n(d.get('常駐法術%d' % k)) for k in (1, 2)) if h],
+                    'prob_hechizo': _n(d.get('施展機率')),
                     'res_lightning': _n(d.get('res_lightning')),
                     'res_fire': _n(d.get('res_fire')),
                     'res_ice': _n(d.get('res_ice')),
@@ -305,9 +309,10 @@ def exp_para_mascota(nv: int, tipo: str = 'A') -> int:
 
 
 # El tope de nivel. El juego tecnicamente llega a 600, pero la curva de
-# level.xml acaba en 471 y de ahi en adelante no hay datos: se queda en 471,
-# que es hasta donde se puede saber cuanta experiencia pide cada nivel.
-NIVEL_MAXIMO = 471
+# level.xml acaba en 481 (TW update32 anadio 472-481; antes acababa en 471) y
+# de ahi en adelante no hay datos: se queda en 481, que es hasta donde se
+# puede saber cuanta experiencia pide cada nivel.
+NIVEL_MAXIMO = 481
 
 
 def nivel_maximo() -> int:
@@ -332,7 +337,7 @@ def exp_para_nivel(nv: int) -> int:
         return int(nv * 120)
     ultimo = max(curva)
     if nv > ultimo:
-        # La curva de level.xml acaba en 471 y el tope del juego es 600. El
+        # La curva de level.xml acaba en 481 y el tope del juego es 600. El
         # respaldo que habia (nivel * 120) daba 72.000 para el nivel 600,
         # o sea que se subia de golpe. Se extrapola con el salto de los dos
         # ultimos niveles, que es lo unico que se puede hacer sin datos.
@@ -601,6 +606,7 @@ class Monstruo:
         # Las Lilys no se mueven de su lugar pero atacan a distancia como arqueros
         self.es_estatico = ('lily' in nombre.lower() or self.move_speed == 0)
         self.muerto_en = None
+        self.vida_combate = 0
         self.en_combate_con = None
         self.ultimo_ataque = 0.0
         # Efectos que le aplicaron los ataques del jugador. El stun y el
@@ -633,6 +639,7 @@ class Monstruo:
         self.rotten_atk = d.get('rotten_atk', 0)
         self.rotten_prob = d.get('rotten_prob', 0)
         self.captura_fallida_en = None
+        self.capturado_en = None
 
     def registrar_dano(self, cantidad: int, es_pet: bool = False):
         """Acumula el dano real infligido al monstruo (jugador/invocacion/charmed vs mascota)."""
@@ -694,6 +701,14 @@ class Monstruo:
                                 'paralizado', 'atado'):
             self.aturdido_hasta = max(self.aturdido_hasta, fin)
             return 'aturdido'
+        # Silencio (Remove Magic...) y sello (Silencing Chop...): ahora que
+        # los monstruos lanzan hechizos, les impiden los de MP / las posturas.
+        if ef.get('estado') == 'silenciado':
+            self.silencio_hasta = max(getattr(self, 'silencio_hasta', 0), fin)
+            return 'silenciado'
+        if ef.get('estado') == 'sellado':
+            self.sello_hasta = max(getattr(self, 'sello_hasta', 0), fin)
+            return 'sellado'
         if ef.get('hp_tick', 0) < 0:
             self.sangra_hasta = max(self.sangra_hasta, fin)
             self.sangra_cada = max(1, ef.get('intervalo') or 1)
@@ -709,6 +724,9 @@ class Monstruo:
 
     def tick_sangrado(self):
         """Cuanto dano por sangrado toca ahora, o 0."""
+        if (int(getattr(self, 'npc_type', 0) or 0) in INMUNES_A_JUGADORES
+                and time.time() >= getattr(self, 'vulnerable_hasta', 0)):
+            return 0
         ahora = time.time()
         if ahora >= self.sangra_hasta or not self.sangra_hp:
             return 0
@@ -750,8 +768,14 @@ class Monstruo:
 
     def recibir(self, ataque: int, es_magico: bool = False, mult: float = 1.0, var_pct: float = 0.05, es_pet: bool = False) -> int:
         """Aplica el dano y devuelve cuanto pego de verdad."""
+        # El Lion Dragon de Gulp Room solo recibe dano mientras le dura la
+        # explosion de un barril (ver INMUNES_A_JUGADORES).
+        if (int(getattr(self, 'npc_type', 0) or 0) in INMUNES_A_JUGADORES
+                and time.time() >= getattr(self, 'vulnerable_hasta', 0)):
+            return 0
         now = time.time()
-        mit_pct = 0
+        # Pasivas del monstruo (Battle Aura...): mitigacion siempre puesta.
+        mit_pct = mitigacion_pasiva(getattr(self, 'npc_type', 0) or 0)[1 if es_magico else 0]
         if hasattr(self, 'debuffs') and self.debuffs:
             for bid, bdata in list(self.debuffs.items()):
                 if bdata.get('fin', 0) > now:
@@ -824,9 +848,25 @@ class Monstruo:
     def revivir(self):
         """Vuelve a la vida cerca de su sitio, no clavado en el mismo punto."""
         import random as _r
+        self.vida_combate = getattr(self, 'vida_combate', 0) + 1
         self.hp = self.hp_max
         self.muerto_en = None
-        if getattr(self, 'es_estatico', False) or getattr(self, 'move_speed', 50) == 0 or getattr(self, 'move_range', 6) <= 0:
+        puntos = getattr(self, 'daily_puntos', None)
+        if puntos:
+            # Cofres de Quick Reflexes: no andan, pero vuelven CERCA de su
+            # punto nativo del mapa (tag 70), a 3 casillas como mucho.
+            import transitable as _tr
+            st = getattr(self, 'stage', None)
+            bx, by = puntos[0]
+            self.tile_x, self.tile_y = bx, by
+            for _ in range(10):
+                tx = max(0, bx + _r.randint(-RADIO_COFRE_DAILY, RADIO_COFRE_DAILY))
+                ty = max(0, by + _r.randint(-RADIO_COFRE_DAILY, RADIO_COFRE_DAILY))
+                if st is None or _tr.se_pisa(st, tx, ty):
+                    self.tile_x, self.tile_y = tx, ty
+                    break
+            self.spawn_x, self.spawn_y = self.tile_x, self.tile_y
+        elif getattr(self, 'es_estatico', False) or getattr(self, 'move_speed', 50) == 0 or getattr(self, 'move_range', 6) <= 0:
             self.tile_x = self.spawn_x
             self.tile_y = self.spawn_y
         else:
@@ -858,6 +898,7 @@ class Monstruo:
         if hasattr(self, 'debuffs') and self.debuffs:
             self.debuffs.clear()
         self.captura_fallida_en = None
+        self.capturado_en = None
 
 
 
@@ -1114,6 +1155,14 @@ _DROPS_PONDERADOS_JEFES = {
     422: (3, ((3040, 1, 981481), (5919, 1, 18519))),
     424: (3, ((3040, 1, 990741), (5921, 1, 9259))),
     426: (3, ((3040, 1, 99537), (5920, 1, 463))),
+    # Cofres de Daily Events: su fila de serv_drop.xml tal cual (個數 tiradas,
+    # prob/factor; las prob suman justo el factor, asi que siempre sale algo).
+    # Sin esto pasaban por la probabilidad normal de botin y no daban nada.
+    # 9223 Completion Treasure Box, 9224 Swindle King's Chest, 9234 Quick Hand
+    # Treasure Box (Quick Reflexes).
+    9223: (1, ((22250, 200, 75), (22250, 100, 125), (22250, 50, 250), (22250, 10, 1000), (22250, 5, 2000), (22250, 1, 6550))),
+    9224: (1, ((22250, 200, 25), (22250, 100, 30), (22250, 50, 70), (22250, 25, 150), (22250, 10, 275), (22250, 5, 450))),
+    9234: (1, ((10117, 1, 4), (17958, 1, 100), (9953, 1, 100), (2002, 1, 500), (3121, 1, 500), (4457, 1, 500), (7094, 1, 500), (3696, 1, 4000), (510, 1, 4000), (508, 1, 4000), (3384, 1, 4000), (3805, 1, 7500), (3807, 1, 7500), (3806, 1, 7500), (3808, 1, 7500), (3468, 1, 8000), (3467, 1, 8000), (1356, 1, 8000), (1357, 1, 8000), (22250, 1, 19796))),
 }
 
 
@@ -1378,6 +1427,7 @@ def datos_magia(magic_id: int) -> dict:
             # 不能對玩家施放: el hechizo no se puede usar contra jugadores (71 en
             # magic.xml). Lo mira pvp_liga.atacar.
             res['no_jugadores'] = d.get('不能對玩家施放') == '是'
+            res['no_monstruos'] = d.get('不能對怪物施放') == '是'
             res['hijo_area'] = _num(d.get('轉嫁法術'), 0) if res['multi_golpe_area'] else 0
             res['sigilo'] = d.get('魔法狀態') == '潛行'
             res['esquiva_fis'] = _num(d.get('物理迴避'), 0)
@@ -1429,6 +1479,12 @@ def datos_magia(magic_id: int) -> dict:
             res['dano_var'] = _num(d.get('傷害變數'), 0)
             res['dano_coef'] = _num(d.get('傷害係數'), 0)
             res['formula'] = _num(d.get('公式'), 0)
+            if res['formula'] == 58:
+                # Healing Cross I..V: cura fija + porcentaje de MATK,
+                # limitada a un porcentaje de la vida maxima del receptor.
+                res['cura_base'] = _num(d.get('動態參數1'), 0)
+                res['cura_coef'] = _num(d.get('動態參數2'), 0)
+                res['cura_tope_pct'] = _num(d.get('動態參數3'), 100)
 
             target = str(d.get('對象') or '')
             desc = str(d.get('desc') or d.get('說明') or '')
@@ -1774,6 +1830,9 @@ def datos_magia(magic_id: int) -> dict:
 
             # Curacion directa solo si es un hechizo curativo real (ej. Cure Spell, Holy Light, Angel Prayer, Tears of Life, Mighty Cure)
             res['es_cura'] = (not res['es_invocacion']) and (not res['es_encanto']) and (not res['es_panico']) and (not res['es_debuff']) and (not res.get('es_brand')) and (
+                res['formula'] in (58, 71) or
+                (res['formula'] == 1 and target == '角色' and res['hp'] > 0
+                 and d.get('HP定義') == '數值' and res['dur_ms'] == 0) or
                 any(k in nom_l for k in ('cure spell', 'mighty cure', 'holy light', 'angel prayer', 'tears of life', "angel's tears")) or
                 ('restores hp' in desc_l and 'speed' not in desc_l and 'injury' not in nom_l and 'song' not in nom_l)
             ) and d.get('攻擊型') != '是'
@@ -1845,6 +1904,16 @@ def datos_magia(magic_id: int) -> dict:
             pass
     _MAGIC_CACHE[magic_id] = res
     return res
+
+
+def curacion_de_magia(magia, ataque_magico=0, hp_max=0):
+    """Potencia de cura; el limite de Healing Cross pertenece al receptor."""
+    if magia.get('formula') == 58:
+        amount = max(0, int(magia.get('cura_base', 0)))
+        amount += max(0, int(ataque_magico)) * max(0, int(magia.get('cura_coef', 0))) // 100
+        cap = max(0, int(hp_max)) * max(0, min(100, int(magia.get('cura_tope_pct', 100)))) // 100
+        return min(amount, cap)
+    return max(10, abs(magia.get('hp', 0)))
 
 
 # Stats oficiales extraidos directamente de monster.xml (update26/setting/eng/monster.xml)
@@ -2459,6 +2528,8 @@ PROB_SKILL_EXP = 0.55
 # para que no pasearan cuatro veces mas. En monster.xml el Little Slarm trae
 # move_range=2 y apenas se despega del sitio.
 RANGO_PASEO_MIN = 9
+# Quick Reflexes: a cuantas casillas de su punto puede reaparecer un cofre.
+RADIO_COFRE_DAILY = 3
 PROB_PASEO = 0.055
 
 # Hasta cuantas casillas te persigue un monstruo al que le pegaste. Son
@@ -2555,6 +2626,78 @@ CADENCIA_MONSTRUO_MIN = 0.40
 # velocidad 50 el mapa se veia quieto comparado con el suyo.
 PASO_PASEO_MAX = 3
 VELOCIDAD_PASEO = 75
+
+# PERSECUCION SIN PARONES. Medido en las capturas del oficial (logs/proxy,
+# 16.829 tramos de persecucion encadenados, 10/11/2026):
+# - el monstruo avanza a unos 2x su velocidad del 0x0005 en pixeles/s
+#   (distancia euclidea; mediana 2,11). Con 1x el tramo duraba el doble de lo
+#   que tarda el cliente: llegaba a B y se quedaba quieto media espera.
+# - el siguiente tramo sale poco antes de acabar el actual y su origen es
+#   DONDE VA el monstruo en ese momento (pixel interpolado), no el destino
+#   anterior: el cliente no salta ni se para.
+FACTOR_VELOCIDAD_PERSECUCION = 2.0
+ANTICIPO_PERSECUCION = 0.3
+# El oficial renueva el tramo cada ~0,6 s y cuando al anterior aun le quedan
+# ~0,7 s de recorrido (mediana de 53.461 tramos; factor de velocidad 2,00):
+# el monstruo nunca llega a pararse en el destino. Por eso los tramos son
+# largos (PASOS_PERSECUCION casillas) y se renuevan pronto, desde donde va.
+PERIODO_PERSECUCION = 0.6
+PASOS_PERSECUCION = 5
+
+
+def duracion_persecucion(cur, dst, spd):
+    """Segundos que tarda el cliente en ir de `cur` a `dst` (pixeles)."""
+    d = ((dst[0] - cur[0]) ** 2 + (dst[1] - cur[1]) ** 2) ** 0.5
+    return d / (FACTOR_VELOCIDAD_PERSECUCION * max(1, spd))
+
+
+def espera_persecucion(dur):
+    """Segundos hasta pedir el siguiente tramo: PERIODO_PERSECUCION como
+    mucho, y antes si el tramo es corto (duracion menos ANTICIPO_PERSECUCION,
+    sin bajar de la mitad)."""
+    return min(PERIODO_PERSECUCION, max(dur * 0.5, dur - ANTICIPO_PERSECUCION))
+
+
+def casilla_de_pixel(px):
+    """La casilla mas cercana a un pixel (x, y), con enteros."""
+    return ((px[0] + 16) // 32, (px[1] + 16) // 32)
+
+
+def tramo_en_curso(m):
+    """(tramo, espera) del ultimo movimiento programado del monstruo.
+
+    - persecucion: su tramo y `reemitir_paso` (el siguiente sale antes);
+    - paseo: su tramo y 0, porque al entrar en combate NO espera a acabar el
+      paseo ni su pausa (antes tardaba hasta ~2 s en reaccionar);
+    - otro: (None, proximo_paso)."""
+    pp = getattr(m, 'proximo_paso', 0)
+    mov = getattr(m, 'mov_persecucion', None)
+    if mov and mov[5] == pp:
+        return mov, getattr(m, 'reemitir_paso', 0)
+    pa = getattr(m, 'mov_paseo', None)
+    if pa and pa[6] == pp:
+        return pa[:6], 0.0
+    return None, pp
+
+
+def fin_de_paso(m):
+    """Desde cuando puede pegar: al llegar. La pausa del paseo no cuenta."""
+    pp = getattr(m, 'proximo_paso', 0)
+    pa = getattr(m, 'mov_paseo', None)
+    if pa and pa[6] == pp:
+        return pa[5]
+    return pp
+
+
+def origen_persecucion(mov, ahora, defecto):
+    """Pixel donde va el monstruo: interpolado en su tramo de persecucion
+    `mov` = (t0, cx, cy, dx, dy, fin) si sigue en curso; si no, `defecto`."""
+    if not mov or ahora >= mov[5] or mov[5] <= mov[0]:
+        return defecto
+    f = max(0.0, (ahora - mov[0]) / (mov[5] - mov[0]))
+    return (int(round(mov[1] + (mov[3] - mov[1]) * f)), int(round(mov[2] + (mov[4] - mov[2]) * f)))
+
+
 SEGUNDOS_ENTRE_PASEOS = 5.6
 
 # Cuanto tarda un monstruo en recorrer una casilla, y cuanto descansa entre
@@ -2591,6 +2734,231 @@ def segundos_de_recorrido(cur_x, cur_y, dst_x, dst_y, speed) -> float:
 # 951 manda su 0x000B a los 951..1118 ms, y otro con 774 a los 783..786 ms.
 # Antes el dano del monstruo se aplicaba en el acto mientras el cliente aun
 # reproducia el golpe, por eso los numeros no cuadraban con la animacion.
+# HECHIZOS DE LOS MONSTRUOS. monster.xml trae 攻擊法術1..4 (2.547 monstruos),
+# 補血法術1..2 (curas, 25), 常駐法術1..2 (pasivas, 709) y 施展機率 solo en 10
+# (todos 100): el resto no dice cada cuanto, asi que se usa
+# PROB_HECHIZO_MONSTRUO cada ESPERA_HECHIZO_MONSTRUO segundos.
+# - de dano (es_ataque): en vez del golpe, tambien a distancia;
+# - maldiciones (es_debuff con duracion): solo al JUGADOR y si no la lleva ya;
+# - curas: sobre si mismo por debajo de la mitad de la vida;
+# - pasivas: de momento solo la mitigacion (phys_mit_pct / mag_mit_pct, la
+#   Battle Aura de 246 monstruos), siempre puesta. Las demas (velocidad de
+#   ataque, Barbed Armor) no se aplican.
+# Medido en logs/proxy (11/11/2026, solo 12 casos): mediana 1,67 s entre
+# hechizos del mismo monstruo y ~1 golpe normal en medio.
+PROB_HECHIZO_MONSTRUO = 50
+ESPERA_HECHIZO_MONSTRUO = 1.5
+# Un hechizo de DANO con duracion (55: Silence, veneno...) deja ademas su
+# efecto al impactar, si dura al menos esto (ms).
+DUR_MIN_EFECTO_HECHIZO = 2000
+_HECHIZOS_MON = {}
+_PASIVAS_MON = {}
+
+
+def _dot_de_hechizo(hid, mg):
+    """El dano por tiempo que deja un hechizo de dano (su 轉嫁法術 con HP
+    negativo y duracion): {id, hp, dur_ms, intervalo} o None. 290 hechizos
+    de monstruo lo llevan (Corrosion Claw I: 12 cada 2 s durante 10 s)."""
+    # De efecto_secundario (轉嫁法術), no de sub_spell: el Great Chop I del
+    # Slave Driver (3538 -> 3539, 13 cada 2 s) no lleva sub_spell.
+    sec = efecto_secundario(hid) or {}
+    sub, hp, dur = int(sec.get('magia') or 0), int(sec.get('hp_tick') or 0), int(sec.get('dur_ms') or 0)
+    if not sub or hp >= 0 or dur <= 0:
+        return None
+    return {'id': sub, 'hp': -hp, 'dur_ms': dur, 'intervalo': max(1, int(sec.get('intervalo') or 0))}
+
+
+_INTERVALOS_MAGIA = None
+
+
+def intervalo_de_magia(magic_id):
+    """作用間隔 de magic.xml (segundos entre tics), 0 si no lleva."""
+    global _INTERVALOS_MAGIA
+    if _INTERVALOS_MAGIA is None:
+        _INTERVALOS_MAGIA = {}
+        db = pathlib.Path(__file__).parent.parent / 'corpus' / 'content.db'
+        if db.exists():
+            con = sqlite3.connect(db)
+            for i, v in con.execute('select id, "作用間隔" from magic where "作用間隔" is not null'):
+                try:
+                    _INTERVALOS_MAGIA[int(i)] = int(float(v))
+                except (TypeError, ValueError):
+                    pass
+            con.close()
+    return _INTERVALOS_MAGIA.get(int(magic_id), 0)
+
+
+# Estados de control que deja un hechizo de monstruo al jugador:
+# 1 = no puede atacar ni lanzar nada; 2 = silencio (沉默, Silence y Demon
+# Sealed): no lanza HECHIZOS (los de MP); 3 = sello (封招, Action Sealed): no
+# usa POSTURAS (los de SP). Como lo describe la guia de la wiki.
+CONTROL_POR_ESTADO = {'aturdido': 1, 'congelado': 1, 'paralizado': 1, 'atado': 1,
+                      'miedo': 1, 'silenciado': 2, 'sellado': 3}
+
+
+def control_de_magia(magic_id):
+    """El control del 魔法狀態 PROPIO del hechizo (Demon Sealed III, 937:
+    沉默), o 0."""
+    h = _magic_xml().get(int(magic_id)) or {}
+    return CONTROL_POR_ESTADO.get(ESTADOS.get(h.get('魔法狀態') or '', ''), 0)
+
+
+def es_postura(magic_id):
+    """Las posturas (stances) gastan SP; los hechizos, MP."""
+    d = datos_magia(magic_id) or {}
+    return bool(int(d.get('sp') or 0) or int(d.get('cost_sp') or 0))
+
+
+def armas_requeridas(magic_id):
+    """Las categorias de arma que pide la habilidad (裝備限制1/2 de
+    magic.xml: 弓箭 arco, 彈弓 honda, 劍, 刀, 影刃, 斧, 錘, 槍, 盾, 杖)."""
+    h = _magic_xml().get(int(magic_id)) or {}
+    return [h[k] for k in ('裝備限制1', '裝備限制2') if h.get(k)]
+
+
+def arma_valida(inventario, magic_id):
+    """Si lleva en alguna mano (3, 4) un arma de las que pide la habilidad.
+    Antes no se miraba: Mystic Missile V (arco/honda) salia sin arco."""
+    reqs = armas_requeridas(magic_id)
+    if not reqs:
+        return True
+    import inventario as _iv
+    cats = [_iv.categoria_de(int((inventario or {}).get(r) or 0)) or '' for r in (3, 4)]
+    return any(req in cat for req in reqs for cat in cats if cat)
+
+
+def bloqueado_por_control(p, tipo, ahora, ataque_normal):
+    """Si el control que lleva el jugador le impide este ataque/habilidad."""
+    cs = set()
+    for b in (getattr(p, 'buffs', None) or {}).values():
+        if isinstance(b, dict) and b.get('control') and b.get('fin', 0) > ahora:
+            cs.add(int(b['control']))
+    if 1 in cs:
+        return True
+    if tipo == ataque_normal or not cs:
+        return False
+    postura = es_postura(tipo)
+    return (2 in cs and not postura) or (3 in cs and postura)
+
+
+def _estado_de_hechizo(hid):
+    """El estado (sin dano por tiempo) que deja un hechizo de dano: {id,
+    dur_ms, prob, control} o None. Aturdir, congelar, silenciar, ralentizar,
+    marcas de color... El control lo aplica el servidor; el resto es el
+    icono y lo que lea el cliente del propio hechizo."""
+    sec = efecto_secundario(hid) or {}
+    sub, dur = int(sec.get('magia') or 0), int(sec.get('dur_ms') or 0)
+    if not sub or dur <= 0 or int(sec.get('hp_tick') or 0) < 0:
+        return None
+    return {'id': sub, 'dur_ms': dur, 'prob': max(1, min(100, int(sec.get('prob') or 100))),
+            'control': CONTROL_POR_ESTADO.get(sec.get('estado') or '', 0)}
+
+
+def control_del_jugador(p, ahora):
+    """El control mas fuerte que lleva el jugador (0 ninguno, 1 todo, 2
+    habilidades)."""
+    c = 0
+    for b in (getattr(p, 'buffs', None) or {}).values():
+        if isinstance(b, dict) and b.get('control') and b.get('fin', 0) > ahora:
+            c = 1 if b['control'] == 1 or c == 1 else 2
+    return c
+
+
+def _hechizo_mon(hid, tipo, mg):
+    mult = float(mg.get('dano_base') or 0) / float(mg.get('base_denom') or 200)
+    return {'id': int(hid), 'tipo': tipo, 'efecto': int(mg['efecto']),
+            'dot': _dot_de_hechizo(hid, mg) if tipo == 'ataque' else None,
+            'postura': es_postura(hid),
+            'est': _estado_de_hechizo(hid) if tipo == 'ataque' else None,
+            'cast_time': int(mg.get('cast_time') or 0),
+            'rango': max(1, int(mg.get('rango') or 1)),
+            'mult': min(2.5, max(1.0, mult)),
+            'es_magia': bool(mg.get('es_magia_visual')),
+            'dur_ms': int(mg.get('dur_ms') or 0),
+            'cura': int(mg.get('hp') or 0)}
+
+
+def hechizos_de_monstruo(npc_type):
+    """(hechizos, probabilidad, curas) de ese tipo. Cada hechizo: {id, tipo
+    ('ataque' | 'maldicion' | 'cura'), efecto, cast_time, rango, mult,
+    es_magia, dur_ms, cura}."""
+    r = _HECHIZOS_MON.get(npc_type)
+    if r is None:
+        d = _datos(npc_type) or {}
+        lista, curas = [], []
+        for hid in d.get('hechizos') or ():
+            mg = datos_magia(hid) or {}
+            if not mg.get('efecto'):
+                continue
+            if mg.get('es_ataque'):
+                lista.append(_hechizo_mon(hid, 'ataque', mg))
+            elif mg.get('es_debuff') and int(mg.get('dur_ms') or 0) > 0:
+                lista.append(_hechizo_mon(hid, 'maldicion', mg))
+        for hid in d.get('curas') or ():
+            mg = datos_magia(hid) or {}
+            if mg.get('efecto') and mg.get('es_cura') and int(mg.get('hp') or 0) > 0:
+                curas.append(_hechizo_mon(hid, 'cura', mg))
+        r = _HECHIZOS_MON[npc_type] = (lista, int(d.get('prob_hechizo') or PROB_HECHIZO_MONSTRUO), curas)
+    return r
+
+
+def mitigacion_pasiva(npc_type):
+    """(fisica, magica) en % de las pasivas (常駐法術) de ese tipo."""
+    r = _PASIVAS_MON.get(npc_type)
+    if r is None:
+        fis = mag = 0
+        for hid in (_datos(npc_type) or {}).get('pasivas') or ():
+            mg = datos_magia(hid) or {}
+            fis += int(mg.get('phys_mit_pct') or 0)
+            mag += int(mg.get('mag_mit_pct') or 0)
+        r = _PASIVAS_MON[npc_type] = (fis, mag)
+    return r
+
+
+def elegir_hechizo_monstruo(m, dist, ahora, azar, a_jugador=True, activos=()):
+    """El hechizo que lanza ahora el monstruo, o None (pega normal). Solo
+    tira el azar si tiene alguno que sirva y ya paso su espera. `activos`:
+    los buffs que ya lleva el jugador (no se repite una maldicion)."""
+    lista, prob, curas = hechizos_de_monstruo(getattr(m, 'npc_type', 0) or 0)
+    if not (lista or curas) or ahora < getattr(m, 'proximo_hechizo', 0):
+        return None
+    if curas and m.hp * 2 < m.hp_max:
+        sirven = curas
+    else:
+        silencio = ahora < getattr(m, 'silencio_hasta', 0)
+        sello = ahora < getattr(m, 'sello_hasta', 0)
+        sirven = [h for h in lista if h['rango'] >= dist and (
+            h['tipo'] == 'ataque' or (a_jugador and h['id'] not in activos))
+            and not (silencio and not h['postura']) and not (sello and h['postura'])]
+    if not sirven:
+        return None
+    m.proximo_hechizo = ahora + ESPERA_HECHIZO_MONSTRUO
+    if azar.randint(1, 100) > prob:
+        return None
+    return sirven[azar.randint(0, len(sirven) - 1)] if len(sirven) > 1 else sirven[0]
+
+
+# EL LION DRAGON Y SUS BARRILES (Gulp Room, stage 76). Visto en un video del
+# oficial y contado por el usuario: el jefe es invulnerable a los jugadores;
+# romper un Powder Pail (807, 828) cerca de el lo deja VULNERABLE unos
+# segundos, y si no muere hay que reventar otro. En monster.xml el jefe
+# lleva la IA 121 y los barriles la 128, con 死亡處理; radio y ventana son
+# SUPUESTOS.
+INMUNES_A_JUGADORES = {802}
+# EL EVIL EYE (Gulp Room 4, stage 79). En el oficial los cristales salen a
+# medida que se pelea con el (video del usuario); el mapa trae sus cinco
+# generadores (204..208, 30 cada uno, un punto) sin evento que los dispare:
+# era la IA 123 del jefe. Cadencia y tope SUPUESTOS.
+EVIL_EYE = 800
+GEN_CRISTALES = (204, 205, 206, 207, 208)
+CRISTALES = {857, 858, 859, 860, 869}
+ESPERA_CRISTAL = 8.0
+MAX_CRISTALES = 5
+BARRILES = {807, 828}
+RADIO_EXPLOSION = 5
+VENTANA_VULNERABLE = 10.0
+
+
 def retraso_golpe_monstruo(m) -> float:
     """Tiempo hasta el impacto visual del monstruo.
 
@@ -3076,27 +3444,28 @@ def efecto_captura(atacante: int, objetivo: int, x: int = 0, y: int = 0,
 
 
 
-def efecto_curacion_inicio(atacante: int, objetivo: int, cura_hp: int, efecto: int = 165) -> bytes:
+def efecto_curacion_inicio(atacante: int, objetivo: int, cura_hp: int, efecto: int = 165,
+                          cast_time=None, ataque=0) -> bytes:
     """Fase 0x00 de curacion 0x0011."""
     b0 = bytearray(23)
     b0[0] = efecto & 0xFF
-    b0[1] = 0x00
+    b0[1] = (efecto >> 8) & 0x0F
     struct.pack_into('<II', b0, 2, atacante, objetivo)
-    struct.pack_into('<H', b0, 18, max(0, min(65535, cura_hp)))
-    b0[20] = 1  # Tipo 1 (cura/verde)
-    struct.pack_into('<H', b0, 21, 0)
+    struct.pack_into('<H', b0, 18, max(0, min(65535, cura_hp if cast_time is None else cast_time)))
+    b0[20] = 1  # Magia; el numero verde se envia aparte con 0x000B.
+    struct.pack_into('<H', b0, 21, ataque & 0xFFFF)
     return struct.pack('<H', 0x0011) + bytes(b0)
 
 
-def efecto_curacion_fin(atacante: int, objetivo: int, efecto: int = 165) -> bytes:
+def efecto_curacion_fin(atacante: int, objetivo: int, efecto: int = 165, ataque=0) -> bytes:
     """Fase 0x80 de curacion 0x0011."""
     b1 = bytearray(23)
     b1[0] = efecto & 0xFF
-    b1[1] = 0x80
+    b1[1] = 0x80 | ((efecto >> 8) & 0x0F)
     struct.pack_into('<II', b1, 2, atacante, objetivo)
     struct.pack_into('<H', b1, 18, 0)
     b1[20] = 1
-    struct.pack_into('<H', b1, 21, 0)
+    struct.pack_into('<H', b1, 21, ataque & 0xFFFF)
     return struct.pack('<H', 0x0011) + bytes(b1)
 
 

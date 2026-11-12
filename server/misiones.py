@@ -791,7 +791,8 @@ def avanzar_paso(ses, qid: int, nuevo_paso: int) -> bool:
 
 
 def completar_mision(ses, qid: int, exp: int = 0, oro: int = 0,
-                     items: list = None, creditos_honor: int = 0) -> bool:
+                     items: list = None, creditos_honor: int = 0,
+                     sin_premio: bool = False) -> bool:
     """Marca la mision como completada, retira items requeridos, entrega recompensas y persiste."""
     p = getattr(ses, 'personaje', None)
     if not p:
@@ -862,8 +863,9 @@ def completar_mision(ses, qid: int, exp: int = 0, oro: int = 0,
         ses.cantidades.pop(slot_oc, None)
         ses.cantidades.pop(str(slot_oc), None)
 
-    # 4. Recompensas por defecto si no vienen fijadas
-    recomp = info.get('recompensa', {})
+    # 4. Recompensas por defecto si no vienen fijadas. Con `sin_premio` (la
+    # cierra el arbol oficial del NPC, que ya dio su premio) no se da nada.
+    recomp = {} if sin_premio else info.get('recompensa', {})
     if qid == 976:
         # Recompensa oficial de Quest 976 ("Nature is Crying for Help"):
         # EXP dependiente del nivel (Lv<90: 36M, Lv 90-94: 48M, Lv>=95: 72M)
@@ -889,7 +891,7 @@ def completar_mision(ses, qid: int, exp: int = 0, oro: int = 0,
         oro = recomp.get('oro', 0)
     if creditos_honor <= 0:
         creditos_honor = recomp.get('creditos', 0)
-    if creditos_honor <= 0:
+    if creditos_honor <= 0 and not sin_premio:
         creditos_honor = max(10, min(200, int((exp or 1000) // 1000) * 5))
 
     # 5. Oro de recompensa
@@ -1770,9 +1772,36 @@ def interactuar_npc(ses, npc_nombre: str, entidad: int = 0) -> tuple:
                 npc_target == nom_clean or nom_clean in npc_target or npc_target in nom_clean
                 or target_norm == nom_norm or (target_norm and target_norm in nom_norm)
                 or (nom_norm and nom_norm in target_norm))
+            # Hay TRES Michael: el lider (Lyceum y Graduation Palace) y el
+            # enfermo de Breeze Woods (stage 29, mision 602). Mismo nombre,
+            # otro NPC: un paso del uno no lo cumple el otro. No se compara
+            # el stage exacto porque el del paso es a veces el del objetivo
+            # (la 123 dice Training Palace y Michael esta en el Lyceum).
+            if (nom_clean == 'michael'
+                    and (int(paso_actual.get('stage_id') or 0) == 29)
+                    != (int(getattr(p, 'stage', 0) or 0) == 29)):
+                continue
             # El texto del paso manda sobre el NPC compilado (ver
             # npc_segun_texto): None si el texto no nombra a nadie.
             _por_texto = npc_segun_texto(paso_actual.get('texto'), nom_clean)
+            # Pasos que solo pone el mapa de una instancia ("acercate a la
+            # puerta", "encuentra la llave"): el texto no nombra a nadie y el
+            # NPC compilado es el que dio la mision. Hablandole se saltaban:
+            # la 611 pasaba del paso 1 al 4 con el Annoying Clerk y la puerta
+            # de la Devil Kitchen se abria sin la llave (10/11/2026).
+            # Lo mismo con los pasos de "ve a tal sitio" de las misiones
+            # repasadas contra el arbol (dialogos_mapa.MISIONES_POR_ARBOL).
+            _dm_solo = __import__('dialogos_mapa')
+            _st_jug = int(getattr(p, 'stage', 0) or 0)
+
+            def _solo_mapa(paso_n):
+                _pd = pasos[paso_n - 1] if 0 < paso_n <= len(pasos) else None
+                return bool(
+                    _pd and _pd.get('tipo', 'hablar') == 'hablar'
+                    and npc_segun_texto(_pd.get('texto'), nom_clean) is None
+                    and _dm_solo.paso_solo_del_mapa(q, paso_n, _pd.get('stage_id'), _st_jug))
+            if _solo_mapa(pa):
+                continue
             if (_por_texto is True) or (_por_texto is None and _coincide_compilado):
                 tipo_obj = paso_actual.get('tipo', 'hablar')
                 k_rec = f"{q}_{pa}"
@@ -1784,6 +1813,16 @@ def interactuar_npc(ses, npc_nombre: str, entidad: int = 0) -> tuple:
 
                 # Objetivo de caceria
                 elif tipo_obj == 'matar':
+                    # Dentro de una instancia, si el paso lo cumplen los
+                    # eventos de la sala al matar (Beelzebub, paso 4 de la
+                    # 611), hablar con el NPC no es entregarle nada: el clic
+                    # sigue a su dialogo del mapa. Antes salia "Defeat
+                    # targets first!" y el recordatorio, y el Annoying Clerk
+                    # de la sala 2 nunca abria la carrera (10/11/2026).
+                    import eventos as _ev_k
+                    if (__import__('app').es_instancia(stage)
+                            and _ev_k.paso_definido_por_muertes(q, pa - 1)):
+                        continue
                     req = paso_actual.get('cantidad', 1)
                     kills = (getattr(ses, 'quest_kills', {}) or {}).get((q, pa), 0)
                     if kills < req:
@@ -1812,7 +1851,7 @@ def interactuar_npc(ses, npc_nombre: str, entidad: int = 0) -> tuple:
                         sig_npc = (sig_p.get('npc_entrega') or sig_p.get('npc') or '').strip().lower()
                         sig_norm = normalizar_nombre_npc(sig_npc)
                         sig_tipo = sig_p.get('tipo', 'hablar')
-                        if sig_tipo == 'hablar' and (not sig_npc or sig_npc == nom_clean or nom_clean in sig_npc or sig_npc in nom_clean or sig_norm == nom_norm or (sig_norm and sig_norm in nom_norm)):
+                        if sig_tipo == 'hablar' and not _solo_mapa(sig) and (not sig_npc or sig_npc == nom_clean or nom_clean in sig_npc or sig_npc in nom_clean or sig_norm == nom_norm or (sig_norm and sig_norm in nom_norm)):
                             # El paso siguiente es hablar con este mismo NPC: avanzamos internamente y seguimos la cadena
                             avanzar_paso(ses, q, sig)
                             cur_pa = sig

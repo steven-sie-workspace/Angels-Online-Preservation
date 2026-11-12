@@ -25,6 +25,47 @@ import configuracion as _cf
 
 log = logging.getLogger('cliente_local')
 
+# Los puertos del launcher que de verdad se usan en esta ejecucion. En
+# Windows el servicio winnat (Hyper-V/WSL/Docker) reserva rangos de puertos
+# que CAMBIAN en cada arranque (`netsh interface ipv4 show excludedportrange
+# protocol=tcp`): un puerto fijo acaba cayendo dentro tarde o temprano y el
+# bind falla con WinError 10013 aunque nadie lo use. Se prueba el configurado
+# y, si esta reservado u ocupado, el siguiente libre de 4 cifras (la URL que
+# se parchea en START.EXE solo admite 4). El elegido vale para todo: el
+# parche de START.EXE, reg.ini, activityurl.xml y el servidor.
+_PUERTOS_ELEGIDOS = {}
+
+
+def _puerto_abre(p: int) -> bool:
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        if hasattr(socket, 'SO_EXCLUSIVEADDRUSE'):
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        s.bind(('127.0.0.1', p))
+        return True
+    except OSError:
+        return False
+    finally:
+        s.close()
+
+
+def puerto_launcher(nombre: str, defecto: int) -> int:
+    """El puerto `nombre` de configuracion, o el primero libre de 4 cifras."""
+    if nombre in _PUERTOS_ELEGIDOS:
+        return _PUERTOS_ELEGIDOS[nombre]
+    base = int(getattr(_cf, nombre, defecto))
+    usados = set(_PUERTOS_ELEGIDOS.values())
+    elegido = base
+    for p in [base, *range(max(base + 1, 1024), 10000), *range(1024, min(base, 10000))]:
+        if p not in usados and _puerto_abre(p):
+            elegido = p
+            break
+    if elegido != base:
+        log.warning('Puerto %d (%s) reservado u ocupado; se usa %d', base, nombre, elegido)
+    _PUERTOS_ELEGIDOS[nombre] = elegido
+    return elegido
+
 RAIZ_PROYECTO = pathlib.Path(__file__).parent.parent
 
 # LA ESTACION NO ESTA EN map041.mpc. Esta en stage.xml, en la escena 41:
@@ -404,7 +445,7 @@ def _parchear_activityurl_xml_bytes(xml_bytes: bytes) -> bytes:
     (/news.htm del HTTP del launcher) en vez de igg.com. Pactado con el
     usuario el 21/10/2026."""
     txt = xml_bytes.decode('utf-8', errors='ignore')
-    puerto = int(getattr(_cf, 'PUERTO_UPDATE_HTTP', 8280))
+    puerto = puerto_launcher('PUERTO_UPDATE_HTTP', 8280)
     for i, (titulo, pagina) in enumerate(BOTONES_NOTICIAS, 1):
         def _fila(m, titulo=titulo, pagina=pagina):
             tag = re.sub(r'名稱="[^"]*"', '名稱="%s"' % titulo, m.group(0))
@@ -482,7 +523,10 @@ def actualizar_pak_cliente(pak_path: pathlib.Path, reemplazos: dict, anadir: boo
         return False
     for i in range(4, 22):
         eocd[i] ^= (3 * i - 91) & 0xFF
-    comp_cd_size, cd_disk, disk_entries, total_entries, cd_size, cd_offset, comment_len = struct.unpack('<HHHHIIH', eocd[4:22])
+    comp_lo, comp_hi, disk_entries, total_entries, cd_size, cd_offset, comment_len = struct.unpack('<HHHHIIH', eocd[4:22])
+    # El tamano del indice comprimido son DOS u16 (lo | hi << 16): con solo
+    # el bajo, un indice de mas de 64 KB sale truncado (paks de Taiwan).
+    comp_cd_size = comp_lo | (comp_hi << 16)
     cd_raw = bytearray(data[cd_offset + 4 : cd_offset + 4 + comp_cd_size])
     cd_raw[0] ^= 0x7A
     cd = bytearray(zlib.decompress(bytes(cd_raw)))
@@ -544,8 +588,8 @@ def actualizar_pak_cliente(pak_path: pathlib.Path, reemplazos: dict, anadir: boo
 
     nuevo_eocd = bytearray(b'OD\x05\x06' + struct.pack(
         '<HHHHIIH',
-        len(cd_comp),
-        0,
+        len(cd_comp) & 0xFFFF,
+        len(cd_comp) >> 16,
         total_entries,
         total_entries,
         len(cd),
@@ -571,7 +615,8 @@ def _extraer_archivo_pak(pak_path: pathlib.Path, nombre_buscado: str) -> bytes:
         return b''
     for i in range(4, 22):
         eocd[i] ^= (3 * i - 91) & 0xFF
-    comp_cd_size, _, _, _, _, cd_offset, _ = struct.unpack('<HHHHIIH', eocd[4:22])
+    comp_lo, comp_hi, _, _, _, cd_offset, _ = struct.unpack('<HHHHIIH', eocd[4:22])
+    comp_cd_size = comp_lo | (comp_hi << 16)
     cd_raw = bytearray(data[cd_offset + 4 : cd_offset + 4 + comp_cd_size])
     cd_raw[0] ^= 0x7A
     cd = zlib.decompress(bytes(cd_raw))
@@ -764,6 +809,13 @@ def aplicar_modo_estacion(modo: str = None) -> str:
     return modo_Norm
 
 
+# Version que ensenan el launcher y el juego (reg.ini y update3.ini). Desde
+# el 26/10/2026 el cliente lleva el contenido de ALO Taiwan hasta update32
+# (8.7.6.1), ver tools/tw_migracion.py. angel.dat solo la muestra ("Version:
+# %s", 7 caracteres); no viaja al servidor, asi que no afecta al login.
+VERSION_CLIENTE = '8.7.6.1'
+
+
 def parchear_launcher():
     """Parchea C:\\AO\\Angels Online\\START.EXE y reg.ini (creando .bak antes)
     para que el launcher apunte a 127.0.0.1 y muestre el panel local."""
@@ -771,8 +823,8 @@ def parchear_launcher():
     if not ruta_cli.exists():
         return
 
-    puerto_ftp = int(getattr(_cf, 'PUERTO_UPDATE_FTP', 2121))
-    puerto_http = int(getattr(_cf, 'PUERTO_UPDATE_HTTP', 8280))
+    puerto_ftp = puerto_launcher('PUERTO_UPDATE_FTP', 2121)
+    puerto_http = puerto_launcher('PUERTO_UPDATE_HTTP', 8280)
 
     # 1. reg.ini
     reg_ini = ruta_cli / 'reg.ini'
@@ -781,7 +833,7 @@ def parchear_launcher():
         txt_reg = (
             "[PROFILE]\r\n"
             "GameName = Angels Online\r\n"
-            "Version = 8.5.1.0\r\n"
+            f"Version = {VERSION_CLIENTE}\r\n"
             "GameDir = ./\r\n"
             "LoaderVer = 1.7\r\n"
             "PassiveMode = 1\r\n"
@@ -1036,8 +1088,8 @@ def _contenido_update3_ini() -> bytes:
         # INFO\LoaderURL del fichero que acaba de bajarse. Por eso ponerlo en
         # el reg.ini no servia de nada y seguia yendo a su host.
         "LoaderURL = 127.0.0.1\r\n"
-        "GameVerFrom = 8.5.1.0\r\n"
-        "GameVerTrans = 8.5.1.0\r\n"
+        f"GameVerFrom = {VERSION_CLIENTE}\r\n"
+        f"GameVerTrans = {VERSION_CLIENTE}\r\n"
         "[VERSION]\r\n"
         "[COMPLEXFILE]\r\n"
     ).encode('ascii')
@@ -1496,8 +1548,8 @@ async def _manejar_http(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
 
 async def iniciar_servidores_launcher():
     """Inicia los servidores FTP y HTTP locales para START.EXE."""
-    p_ftp = int(getattr(_cf, 'PUERTO_UPDATE_FTP', 2121))
-    p_http = int(getattr(_cf, 'PUERTO_UPDATE_HTTP', 8280))
+    p_ftp = puerto_launcher('PUERTO_UPDATE_FTP', 2121)
+    p_http = puerto_launcher('PUERTO_UPDATE_HTTP', 8280)
     srvs = []
     try:
         s_ftp = await asyncio.start_server(_manejar_actualizacion, '127.0.0.1', p_ftp)

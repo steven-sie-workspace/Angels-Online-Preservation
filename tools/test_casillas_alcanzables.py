@@ -41,8 +41,11 @@ def test_monstruos_de_plantilla_en_suelo_alcanzable():
         casillas = login.casillas_de_plantilla(stage, spawns)
         moviles = [e for e in spawns if e['entity_id'] in casillas
                    and not e.get('apagado') and _se_mueve(e)]
-        mal_antes = [e for e in moviles if not tr.alcanzable(stage, *e['tile'])]
-        assert mal_antes, f'{stage}: la plantilla ya no trae puntos en agua o pared'
+        # La 199 ya viene recolocada en la plantilla (upstream fe2bf5a); las
+        # otras dos siguen trayendo puntos en agua o pared.
+        if stage != PHOENIX_PALACE:
+            mal_antes = [e for e in moviles if not tr.alcanzable(stage, *e['tile'])]
+            assert mal_antes, f'{stage}: la plantilla ya no trae puntos en agua o pared'
         mal = [(e['nombre'], e['tile'], casillas[e['entity_id']]) for e in moviles
                if not tr.alcanzable(stage, *casillas[e['entity_id']])]
         assert not mal, f'{stage}: siguen fuera del suelo: {mal[:5]}'
@@ -66,16 +69,17 @@ def test_spawn_del_cliente_y_monstruo_del_servidor_coinciden():
 
 
 def test_reaparece_en_suelo_alcanzable():
-    spawns = _plantilla(PHOENIX_PALACE)
-    casillas = login.casillas_de_plantilla(PHOENIX_PALACE, spawns)
+    # Silent Lakeside: su plantilla aun trae puntos en el agua.
+    spawns = _plantilla(SILENT_LAKESIDE)
+    casillas = login.casillas_de_plantilla(SILENT_LAKESIDE, spawns)
     e = next(e for e in spawns if e['entity_id'] in casillas and _se_mueve(e)
-             and not tr.alcanzable(PHOENIX_PALACE, *e['tile']))
+             and not tr.alcanzable(SILENT_LAKESIDE, *e['tile']))
     m = combate.Monstruo(e['entity_id'], e['npc_type'], e['nombre'],
-                         list(casillas[e['entity_id']]), stage=PHOENIX_PALACE)
+                         list(casillas[e['entity_id']]), stage=SILENT_LAKESIDE)
     for _ in range(40):
         m.vivo = False
         m.revivir()
-        assert tr.alcanzable(PHOENIX_PALACE, m.tile_x, m.tile_y), (m.tile_x, m.tile_y)
+        assert tr.alcanzable(SILENT_LAKESIDE, m.tile_x, m.tile_y), (m.tile_x, m.tile_y)
 
 
 def test_generado_en_el_lago_sale_en_la_orilla():

@@ -112,6 +112,7 @@ class Personaje:
     star_blessing: dict = field(default_factory=dict)
     travel_mark: dict = field(default_factory=dict)
     recetas: list = field(default_factory=list)
+    tesoro: dict = field(default_factory=dict)       # mapa del tesoro (mapa_tesoro.py)
 
 
 def _cargar_secuencia():
@@ -392,6 +393,15 @@ def secuencia(p: Personaje):
     salida.append(_pr.paquete_quick_emotes(p.entity_id, getattr(p, 'quick_emotes', None) or {}))
     salida.extend(__import__('chat_filtros').paquetes(p))
     salida.append(__import__('star_blessing').paquete(p))
+    # En mapas normales (fuera de Holy Battlefield y Arenas), apagar explicitamente
+    # auras y marcas de PVP/HB residuales en el cliente (circulo de combate en el suelo).
+    if getattr(p, 'stage', 0) not in (112, 44, 45, 46, 47):
+        salida.extend([
+            struct.pack('<HIBBII', 0x001D, p.entity_id, 1, 36, 0, 0),
+            struct.pack('<HIBBII', 0x001D, p.entity_id, 1, 38, 1, 0),
+            struct.pack('<HIBBII', 0x001D, p.entity_id, 1, 42, p.entity_id, 0),
+            struct.pack('<HIBBII', 0x001D, p.entity_id, 1, 62, 0, 0),
+        ])
     return salida
 
 
@@ -879,6 +889,23 @@ PLANTILLAS_POR_STAGE = {
     #
     # El 77 trae un solo monstruo a proposito: es el laberinto de tornados,
     # con 52 portales internos y nada mas.
+    # SAND CASTLE TALES (砂城秘譚), la region de ALO Taiwan update31-32
+    # (jumpmapclass 40). Se entra por el tornado nuevo de (7,172) del 169
+    # Karang Desert, que solo trae el map169.mpc de TW 32. Pobladas desde los
+    # generadores de sus .mpc; ver docs/MIGRACION_TAIWAN_UPDATE32.md.
+    423 : 'rushing_valley.json',            # nv 400
+    424 : 'citygate_sand_path.json',        # nv 417
+    425 : 'bluesand_realm.json',            # nv 420
+    426 : 'shimmering_harbor.json',         # nv 430
+    427 : 'ancient_library.json',           # nv 440
+    428 : 'fragrant_greenhouse.json',       # nv 457
+    429 : 'rotwood_abyss.json',             # 腐域森淵, instancia, nv 465
+    # Las cuatro Chaos de TW update31-32. Se entra por Past the Time Spirit
+    # (Rainbow Town, 308); ver dialogos.VIAJES_POR_OPCION.
+    430 : 'c_muno_battleship.json',         # Chaos-Muno Battleship, nv 400
+    431 : 'c_shooting_star_palace.json',    # Chaos-Shooting Star Palace, nv 285
+    439 : 'c_lost_chamber.json',            # Chaos-Lost Chamber, nv 319
+    440 : 'c_phantom_gold_city.json',       # Chaos-Phantom Gold Enigma City, nv 417
     76  : 'gulp_room.json',
     77  : 'gulp_room_2.json',
     78  : 'gulp_room_3.json',
@@ -1340,6 +1367,10 @@ def poblar(stage: int, player_level=1):
     f43 = PLANTILLAS / _pg[stage] if stage in _pg else None
     if f43 is not None and f43.exists():
         d43 = json.loads(f43.read_text(encoding='utf-8'))
+        # Daily Events: los bichos van donde los tiene la sala de la ronda
+        # (los cofres de Quick Reflexes se reparten por el bosque).
+        _daily = __import__('daily_events')
+        _pos_daily = _daily.posiciones(stage) if stage in _daily.STAGES else {}
         for e in d43['spawns']:
             # 'apagado': generador que el cliente declara con cantidad 0 (lo
             # saca otra cosa o no sale). Se deja en la plantilla para el censo
@@ -1352,7 +1383,7 @@ def poblar(stage: int, player_level=1):
             # Angel Michael y los totems igual. El suyo es 40006 para Cupid y
             # 60241 para los cuatro totems.
             salida.append(_npc_spawn(e['entity_id'], e['npc_type'],
-                                     e['nombre'], _casilla_spawn(stage, e, d43['spawns']),
+                                     e['nombre'], (_pos_daily.get(e['entity_id']) or _casilla_spawn(stage, e, d43['spawns'])),
                                      sprite=e.get('sprite', 0),
                                      klass=e.get('klass', 200),
                                      direccion=e.get('direccion'),
@@ -1593,7 +1624,10 @@ def _quests(p, base):
     import misiones as _mis
     qs = []
     for q, s in p.quests:
-        comp = _mis.mision_completada(p, q)
+        # Cada entrada con su propio paso: con una mision repetida, mirar solo
+        # la primera daba paso 998 para la de 999 y el U8 del codec impedia
+        # entrar al mundo.
+        comp = _mis.mision_completada_raw(q, s)
         paso_red = _mis.total_pasos_mision(q) if comp else max(0, s - 1)
         qs.append({'char_id': p.char_id, 'quest_id': q, 'paso': paso_red, 'resto': b'\x00' * 11})
     return m.build(n=len(qs), quests=qs)

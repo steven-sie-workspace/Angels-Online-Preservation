@@ -209,10 +209,11 @@ def vaciar_ranura(dueno: int, ranura: int,
     #   558       Equip Pet de Gear
     #   559..598  las casillas de Pet Amplify (sin ellas, sacar la mascota
     #             dejaba la 559 llena en el cliente y se cerraba, 21/10/2026)
+    #   599..607  Pet Equipment (3 trajes de arma/armadura/accesorio)
     #   616       burbuja de chat equipada
     #   617..666  bolsa de burbujas de chat
     # Esas casillas tambien aceptan el submensaje de vaciado con ranura u16.
-    if contenedor == CONT_MOCHILA and (ranura < 0 or (ranura > 154 and not ((156 <= ranura <= 556) or (558 <= ranura <= 598) or (616 <= ranura <= 666)))):
+    if contenedor == CONT_MOCHILA and (ranura < 0 or (ranura > 154 and not ((156 <= ranura <= 556) or (558 <= ranura <= 607) or (616 <= ranura <= 666)))):
         log.warning(f"Intento de vaciar ranura fuera de limites ({ranura}) en CONT_MOCHILA - omitido para evitar crash")
         return b''
     return struct.pack('<HIBBIH', 0x001B, 1, 2, contenedor, dueno, ranura)
@@ -255,7 +256,8 @@ def es_equipo(ranura) -> bool:
         return False
     # La 175 es la insignia y la 166 (0xA6) es la tarjeta de puesto (Stall Card).
     # La 616 es la ranura equipada de la burbuja de chat (Speech Bubble slot).
-    return (r < PRIMERA_RANURA_BOLSA) or (166 <= r <= 175) or (r == RANURA_BURBUJA) or r == 558
+    # Las ranuras 599..607 corresponden al equipamiento de la mascota (Pet Equipment: 3 trajes de arma/armadura/accesorio).
+    return (r < PRIMERA_RANURA_BOLSA) or (166 <= r <= 175) or (r == RANURA_BURBUJA) or r == 558 or (599 <= r <= 607)
 
 
 def es_burbuja_bag(ranura) -> bool:
@@ -357,13 +359,18 @@ def _bonus(item_id: int) -> dict:
                     rf_col = 'res_fire' if 'res_fire' in cols else '0'
                     ri_col = 'res_ice' if 'res_ice' in cols else '0'
                     rc_col = 'res_corrosion' if 'res_corrosion' in cols else '0'
+                    al_col = '"雷電攻擊"' if '雷電攻擊' in cols else '0'
+                    af_col = '"火焰攻擊"' if '火焰攻擊' in cols else '0'
+                    ai_col = '"寒冰攻擊"' if '寒冰攻擊' in cols else '0'
+                    ac_col = '"腐蝕攻擊"' if '腐蝕攻擊' in cols else '0'
                     _filas_b += list(con.execute(
                         f"select id, def, accuracy, agility, atk_avg, matk, mdef, {hp_col}, {mp_col}, {carga_col}, "
-                        f"{rb_col}, {rm_col}, {rl_col}, {rf_col}, {ri_col}, {rc_col} from {_t} "
+                        f"{rb_col}, {rm_col}, {rl_col}, {rf_col}, {ri_col}, {rc_col}, "
+                        f"{al_col}, {af_col}, {ai_col}, {ac_col} from {_t} "
                         "where id glob '[0-9]*'"))
                 except Exception:
                     continue
-            for i, d, ac, ag, av, ma, md, _hp, _mp, _cg, _rb, _rm, _rl, _rf, _ri, _rc in _filas_b:
+            for i, d, ac, ag, av, ma, md, _hp, _mp, _cg, _rb, _rm, _rl, _rf, _ri, _rc, _al, _af, _ai, _ac in _filas_b:
                 # Algunos valores vienen con decimales en item.xml.
                 def _n(x):
                     try:
@@ -377,11 +384,14 @@ def _bonus(item_id: int) -> dict:
                                 'carga': _n(_cg),
                                 'res_body': _n(_rb), 'res_mind': _n(_rm),
                                 'res_lightning': _n(_rl), 'res_fire': _n(_rf),
-                                'res_ice': _n(_ri), 'res_corrosion': _n(_rc)}
+                                'res_ice': _n(_ri), 'res_corrosion': _n(_rc),
+                                'atk_lightning': _n(_al), 'atk_fire': _n(_af),
+                                'atk_ice': _n(_ai), 'atk_corrosion': _n(_ac)}
     return _BON.get(item_id, {'def': 0, 'accuracy': 0, 'agility': 0, 'atk': 0,
                               'matk': 0, 'mdef': 0, 'hp': 0, 'mp': 0, 'carga': 0,
                               'res_body': 0, 'res_mind': 0, 'res_lightning': 0,
-                              'res_fire': 0, 'res_ice': 0, 'res_corrosion': 0})
+                              'res_fire': 0, 'res_ice': 0, 'res_corrosion': 0,
+                              'atk_lightning': 0, 'atk_fire': 0, 'atk_ice': 0, 'atk_corrosion': 0})
 
 
 def bonos_de_habilidades(habilidades):
@@ -513,7 +523,45 @@ def es_bolsa_de_alma(bolsa) -> bool:
     return bolsa is not None and _BOLSAS_ALMA.get(id(bolsa)) is bolsa
 
 
+_CACHE_BONOS_EQUIPO = {}
+
+
 def bonos_de_equipo(bolsa, mejoras: dict = None, mascotas: dict = None) -> dict:
+    """bonos_de_equipo con memoria: la clave es EXACTAMENTE lo que lee el
+    calculo (las casillas de equipo, sus mejoras y la ficha de la mascota
+    equipada), asi que cualquier cambio da otra clave. Se pedia en cada golpe
+    que recibe el jugador, gemas incluidas: 0,6 ms cada vez (perfil del
+    10/11/2026).
+
+    El alma no pasa por la memoria: su equipo da 0 y esa clave es la misma
+    que la del jugador vivo con ese equipo."""
+    if not bolsa or es_bolsa_de_alma(bolsa):
+        return _bonos_de_equipo_calc(bolsa, mejoras, mascotas)
+    try:
+        import pet_equipment
+        mej = mejoras or {}
+        eq = []
+        for ranura, item_id in bolsa.items():
+            try:
+                r = int(ranura)
+            except (ValueError, TypeError):
+                continue
+            if es_equipo(r):
+                eq.append((r, item_id, mej.get(r) or mej.get(str(r))))
+        eq.sort(key=lambda x: x[0])
+        pet = (mascotas or {}).get(str(pet_equipment.RANURA)) or (mascotas or {}).get(pet_equipment.RANURA)
+        clave = json.dumps([eq, pet], sort_keys=True, default=str)
+    except Exception:
+        return _bonos_de_equipo_calc(bolsa, mejoras, mascotas)
+    r = _CACHE_BONOS_EQUIPO.get(clave)
+    if r is None:
+        if len(_CACHE_BONOS_EQUIPO) > 512:
+            _CACHE_BONOS_EQUIPO.clear()
+        r = _CACHE_BONOS_EQUIPO[clave] = _bonos_de_equipo_calc(bolsa, mejoras, mascotas)
+    return dict(r)
+
+
+def _bonos_de_equipo_calc(bolsa, mejoras: dict = None, mascotas: dict = None) -> dict:
     """Calcula la suma de atributos que otorgan los items equipados en la bolsa (Gear 1..10 y Fashion 167..174)."""
     eq = {'def': 0, 'accuracy': 0, 'agility': 0, 'atk_r': 0, 'atk_l': 0, 'matk': 0, 'mdef': 0, 'hp': 0, 'mp': 0, 'carga': 0,
           'res_body': 0, 'res_mind': 0, 'res_lightning': 0, 'res_fire': 0, 'res_ice': 0, 'res_corrosion': 0}
@@ -535,7 +583,7 @@ def bonos_de_equipo(bolsa, mejoras: dict = None, mascotas: dict = None) -> dict:
             iid = int(item_id)
         except (ValueError, TypeError):
             continue
-        if not es_equipo(r) or r == RANURA_ORO or r in (11, 12, pet_equipment.RANURA):
+        if not es_equipo(r) or r == RANURA_ORO or r in (11, 12, pet_equipment.RANURA) or (599 <= r <= 607):
             continue
         x = dict(_bonus(iid))
         # LOS STATS DEL MARTILLO VERDE. Se guardaban y se enseñaban en el
@@ -632,6 +680,88 @@ def bonos_de_equipo(bolsa, mejoras: dict = None, mascotas: dict = None) -> dict:
 
     eq['atk_r'] = r_weap_atk + gen_atk
     eq['atk_l'] = l_weap_atk + gen_atk
+    return eq
+
+
+def bonos_equipo_mascota(bolsa, mejoras=None, traje=0) -> dict:
+    """Calcula los atributos que otorgan los 3 slots del traje activo de pet equipment.
+
+    Traje 0 (Set 1): 599 (Weapon), 600 (Armor), 601 (Accessory)
+    Traje 1 (Set 2): 602 (Weapon), 603 (Armor), 604 (Accessory)
+    Traje 2 (Set 3): 605 (Weapon), 606 (Armor), 607 (Accessory)
+    """
+    eq = {
+        'def': 0, 'accuracy': 0, 'agility': 0, 'atk': 0,
+        'matk': 0, 'mdef': 0, 'hp': 0, 'mp': 0,
+        'res_body': 0, 'res_mind': 0,
+        'res_lightning': 0, 'res_fire': 0, 'res_ice': 0, 'res_corrosion': 0,
+        'atk_lightning': 0, 'atk_fire': 0, 'atk_ice': 0, 'atk_corrosion': 0,
+    }
+    if not bolsa:
+        return eq
+
+    # `traje` es lo que manda el cliente en el 0x015E (game.updatepetequipsuit,
+    # medido en angel.dat 0x649610): 0 = ninguna casilla marcada, 1..3 = la
+    # fila marcada. Sin fila marcada el equipo no da nada.
+    try:
+        traje_n = int(traje or 0)
+    except (TypeError, ValueError):
+        traje_n = 0
+    if traje_n not in (1, 2, 3):
+        return eq
+    base_r = 599 + (traje_n - 1) * 3
+    slots_traje = (base_r, base_r + 1, base_r + 2)
+
+    for r in slots_traje:
+        item_id = bolsa.get(r) if r in bolsa else bolsa.get(str(r))
+        if not item_id:
+            continue
+        try:
+            iid = int(item_id)
+        except (ValueError, TypeError):
+            continue
+        if iid <= 0:
+            continue
+
+        x = dict(_bonus(iid))
+        _ex = (mejoras or {}).get(r) or (mejoras or {}).get(str(r)) or {}
+        _veces = int(_ex.get('veces') or 0)
+        if _veces > 0:
+            try:
+                import mejoras as _mj
+                _pct = _mj.pct_por_mejoras(_mj.tipo_de_ranura(r, iid), _veces)
+            except Exception:
+                _pct = {}
+            for _k, _p in (_pct or {}).items():
+                _orig = {'rigor': 'accuracy', 'dfs': 'def', 'agilidad': 'agility'}.get(_k, _k)
+                _b = x.get('atk' if _orig == 'atk' else _orig, 0)
+                if _b:
+                    x[_orig] = _b + int(_b * _p / 100.0)
+
+        for _g in (_ex.get('gemas') or []):
+            if not _g:
+                continue
+            for _k, _v in bono_gema(_g, r, iid).items():
+                _dest = {'rigor': 'accuracy', 'dfs': 'def',
+                         'agilidad': 'agility', 'peso': 'carga',
+                         '體抗': 'res_body', '心抗': 'res_mind',
+                         '電抗': 'res_lightning', '火抗': 'res_fire',
+                         '冰抗': 'res_ice', '腐抗': 'res_corrosion'}.get(_k, _k)
+                if _dest in eq:
+                    x[_dest] = x.get(_dest, 0) + int(_v)
+
+        for _k, _v in (_ex.get('extra') or {}).items():
+            _dest = {'rigor': 'accuracy', 'dfs': 'def',
+                     'agilidad': 'agility', 'peso': 'carga',
+                     '體抗': 'res_body', '心抗': 'res_mind',
+                     '電抗': 'res_lightning', '火抗': 'res_fire',
+                     '冰抗': 'res_ice', '腐抗': 'res_corrosion'}.get(_k, _k)
+            if _dest in eq:
+                x[_dest] = x.get(_dest, 0) + int(_v)
+
+        for k in eq:
+            eq[k] += x.get(k, 0)
+
     return eq
 
 
@@ -1760,6 +1890,14 @@ def es_ranura_valida(item_id: int, ranura: int) -> bool:
     # 7c2. Pet Amplify (559..598): solo mascotas (ver amplify.py)
     if 559 <= ranura <= 598:
         return es_mascota(item_id)
+    # 7c3. Pet Equipment (599..607): 3 trajes de Arma, Armadura y Accesorio para mascota
+    if ranura in (599, 602, 605):
+        return categoria_item(item_id) == '寵物武器' or categoria_de(item_id) == '寵物武器'
+    if ranura in (600, 603, 606):
+        return categoria_item(item_id) == '寵物防具' or categoria_de(item_id) == '寵物防具'
+    if ranura in (601, 604, 607):
+        cat_p = categoria_item(item_id) or categoria_de(item_id)
+        return cat_p in ('寵物飾品', '寵物裝備')
     # 7d. Raise-a-Pet Room (477..486): mascotas y huevos de mascotas
     if 477 <= ranura <= 486:
         return es_mascota(item_id) or categoria_item(item_id) in ('寵物', '寵物蛋')
@@ -1774,8 +1912,11 @@ def es_ranura_valida(item_id: int, ranura: int) -> bool:
         return categoria_item(item_id) == '怪物蛋' or 'egg' in str(categoria_item(item_id)).lower()
     # 8. Mochila normal (20..120): valida para cualquier item regular
     if 20 <= ranura <= 120:
-
         return True
+    # Los items de equipamiento de mascota NO van en las ranuras de equipo humano
+    cat_eq = categoria_item(item_id) or categoria_de(item_id)
+    if cat_eq in ('寵物武器', '寵物防具', '寵物飾品', '寵物裝備'):
+        return False
     if es_mascota(item_id):
         # UNA MASCOTA NO ES UN ACCESORIO.
         return False
@@ -1941,6 +2082,12 @@ def ranuras_posibles(item_id: int):
         return []
     if r in RANURAS_ACCESORIO:
         return list(RANURAS_ACCESORIO)
+    if r == 599:
+        return [599, 602, 605]
+    if r == 600:
+        return [600, 603, 606]
+    if r == 601:
+        return [601, 604, 607]
     return [r]
 
 
@@ -2040,6 +2187,12 @@ def ranura_equipo_de(item_id: int):
                     _SLOT_CACHE[iid] = 7
                 elif acc:
                     _SLOT_CACHE[iid] = 8
+                elif cat == '寵物武器':
+                    _SLOT_CACHE[iid] = 599
+                elif cat == '寵物防具':
+                    _SLOT_CACHE[iid] = 600
+                elif cat in ('寵物飾品', '寵物裝備'):
+                    _SLOT_CACHE[iid] = 601
                 elif cat == '徽章':
                     # INSIGNIAS. No declaran ninguna columna de equipo, asi
                     # que se quedaban SIN RANURA: no se podian poner y por eso
@@ -2053,7 +2206,19 @@ def ranura_equipo_de(item_id: int):
             con.close()
             for _sc in ITEMS_TARJETA_PUESTO:
                 _SLOT_CACHE[_sc] = RANURA_PUESTO
-    return _SLOT_CACHE.get(item_id)
+    res = _SLOT_CACHE.get(item_id)
+    if res is None and item_id:
+        try:
+            cat_dyn = categoria_item(item_id) or categoria_de(item_id)
+            if cat_dyn == '寵物武器':
+                return 599
+            if cat_dyn == '寵物防具':
+                return 600
+            if cat_dyn in ('寵物飾品', '寵物裝備'):
+                return 601
+        except Exception:
+            pass
+    return res
 
 _TWO_HAND_CACHE = {}
 _CAT_ITEM_CACHE = None
@@ -2966,11 +3131,27 @@ def uso_en_mascota(item_id: int):
         if not db.exists():
             return None
         con = sqlite3.connect(db)
-        fila = fila_item(con, '"使用目標", "動態資料1", "常駐法術", "基本名稱"', item_id)
+        fila = fila_item(con, '"使用目標", "動態資料1", "常駐法術", "基本名稱", "使用公式", "動態資料2"', item_id)
         if not fila or str(fila[0] or '') != OBJETIVO_MASCOTA:
             return None
+        # Piedras y diamantes de EXP (使用公式=6): capacidad y % que guardan.
+        if str(fila[4] or '') == '6' and str(fila[1] or '').isdigit() and str(fila[5] or '').isdigit():
+            return {'piedra': {'max': int(fila[1]), 'pct': int(fila[5])}}
         hechizo = str(fila[2] or '')
         if hechizo.isdigit() and int(hechizo):
+            # Pociones de mascota (1756..1761 y las demas iguales): el hechizo
+            # da HP/MP en numero (數值) o en % (百分比) al momento, sin
+            # duracion. Antes caian en el buff de EXP y no curaban nada.
+            c = con.execute('select HP,"HP定義",MP,"MP定義",持續時間 from magic where id=?',
+                            (hechizo,)).fetchone()
+            if c and not str(c[4] or '').strip('0 '):
+                cura = {}
+                for v, defn, k in ((c[0], c[1], 'hp'), (c[2], c[3], 'mp')):
+                    if str(v or '').isdigit() and int(v) and defn in ('數值', '百分比'):
+                        cura[k] = int(v)
+                        cura[k + '_pct'] = defn == '百分比'
+                if cura:
+                    return {'cura': cura}
             r = con.execute('select 持續時間,經驗加倍 from magic where id=?',
                             (hechizo,)).fetchone()
             seg = int(r[0]) if r and str(r[0] or '').lstrip('-').isdigit() else 0
@@ -3187,10 +3368,19 @@ def bono_gema(item_id: int, ranura: int, pieza: int = 0) -> dict:
     if not fila:
         return {}
     r = int(ranura)
-    if r == RANURA_IZQUIERDA and pieza:
+    cat_pz = (categoria_item(pieza) or '') if pieza else ''
+    if r in (599, 602, 605) or cat_pz == '寵物武器':
+        cuales = fila.get('arma') or []
+    elif r in (600, 603, 606) or cat_pz == '寵物防具':
+        equipo = fila.get('equipo') or {}
+        cuales = equipo.get('2') or fila.get('armadura') or []
+    elif r in (601, 604, 607) or cat_pz in ('寵物飾品', '寵物裝備'):
+        equipo = fila.get('equipo') or {}
+        cuales = equipo.get('8') or equipo.get('2') or fila.get('accesorio') or []
+    elif r == RANURA_IZQUIERDA and pieza:
         # Decide la PIEZA, no la ranura: una espada en la izquierda cuenta
         # como arma.
-        es_escudo = (categoria_item(pieza) or '') in CATEGORIAS_ESCUDO
+        es_escudo = cat_pz in CATEGORIAS_ESCUDO
         cuales = fila.get('escudo' if es_escudo else 'arma') or []
     elif r == RANURA_DERECHA:
         cuales = fila.get('arma') or []

@@ -59,29 +59,36 @@ def de_id(lid: int):
     return None
 
 
+_PUNTOS_TITULO = None
+
+
+def _puntos_y_titulos():
+    """{id: (puntos, titulo)} de la tabla, una vez. puntos_de y titulos_de
+    recorrian los 4.443 logros en cada llamada, y titulos_de se llama al
+    calcular los stats del jugador: en cada golpe de cada monstruo (perfil del
+    10/11/2026: 3,9 s de 72 en un combate)."""
+    global _PUNTOS_TITULO
+    if _PUNTOS_TITULO is None:
+        m = {}
+        for f in tabla():
+            # Si un id se repite, cuenta cada fila, como el recorrido de antes.
+            m.setdefault(f.get('id'), []).append((int(f.get('puntos') or 0), f.get('titulo')))
+        _PUNTOS_TITULO = m
+    return _PUNTOS_TITULO
+
+
 def puntos_de(conseguidos) -> int:
     """La suma de puntos de los logros que ya tiene."""
     ids = set(int(x) for x in (conseguidos or []))
-    return sum(int(f.get('puntos') or 0) for f in tabla() if f.get('id') in ids)
+    m = _puntos_y_titulos()
+    return sum(pt for i in ids for pt, _t in m.get(i, ()))
 
 
 def titulos_de(conseguidos) -> list:
     """Los titulos que desbloquean esos logros."""
-    # Indice hecho una vez: recorrer las 4351 filas costaba 1 ms, y se llama
-    # desde _vida_max/_mana_max (reputacion) en cada paso de la regeneracion.
-    global _TITULOS_POR_ID
-    if _TITULOS_POR_ID is None:
-        _TITULOS_POR_ID = {}
-        for f in tabla():
-            if f.get('titulo'):
-                _TITULOS_POR_ID.setdefault(f.get('id'), set()).add(int(f['titulo']))
-    titulos = set()
-    for x in set(int(x) for x in (conseguidos or [])):
-        titulos |= _TITULOS_POR_ID.get(x, set())
-    return sorted(titulos)
-
-
-_TITULOS_POR_ID = None
+    ids = set(int(x) for x in (conseguidos or []))
+    m = _puntos_y_titulos()
+    return sorted({int(t) for i in ids for _pt, t in m.get(i, ()) if t})
 
 
 # --------------------------------------------------------------- reglas
@@ -154,6 +161,12 @@ def comprobar(personaje, conseguidos, *, muertos=None, stats=None) -> list:
         tipo = _num(f.get('param1'))
         if tipo and muertos.get(tipo, 0) >= max(1, _num(f.get('param2'), 1)):
             nuevos.append(f['id'])
+    # 完成某副本: "Go to [Magic Kitchen Path] to defeat [Fly King]"; param1 es
+    # el jefe de la instancia (798 Fly King, 853 Berssif...): matarlo una vez.
+    for f in por_regla('完成某副本'):
+        tipo = _num(f.get('param1'))
+        if f['id'] not in ya and tipo and muertos.get(tipo, 0) >= 1:
+            nuevos.append(f['id'])
     for f in por_regla('角色素質'):
         if f['id'] in ya:
             continue
@@ -166,7 +179,8 @@ def comprobar(personaje, conseguidos, *, muertos=None, stats=None) -> list:
     for f in por_regla('達成成就'):
         if f['id'] in ya:
             continue
-        pide = [_num(f.get('param1')), _num(f.get('param2'))]
+        # Todos sus param1..paramN (370 pide 371..375; antes solo miraba 2).
+        pide = [_num(f.get('param%d' % i)) for i in range(1, 20)]
         pide = [x for x in pide if x]
         if pide and all(x in ya for x in pide):
             nuevos.append(f['id'])
@@ -221,11 +235,18 @@ def _pct(personaje, f, ya, pts, habs, muertos, stats):
         return frac(max(habs.values() or [0]), f.get('param1'))
     if regla == '殺指定編號怪物':
         return frac(muertos.get(_num(f.get('param1')), 0), max(1, _num(f.get('param2'), 1)))
+    if regla == '完成某副本':
+        return frac(muertos.get(_num(f.get('param1')), 0), 1)
     if regla == '角色素質':
         clave = STATS.get(str(f.get('param1') or ''))
         return frac(_num(stats.get(clave)), f.get('param2')) if clave else 0
     if regla == '成就積分':
         return frac(pts, f.get('param1'))
+    if regla == '達成成就':
+        # El logro "padre" (Demon's Kitchen = seis misiones): la parte de sus
+        # hijos que ya se tiene. Antes se quedaba en 0% hasta tenerlos todos.
+        pide = [x for x in (_num(f.get('param%d' % i)) for i in range(1, 20)) if x]
+        return frac(sum(1 for x in pide if x in ya), len(pide))
     return 0
 
 
@@ -292,7 +313,8 @@ def paquete_titulo(entidad, titulo, es_yo) -> bytes:
 @__import__('functools').lru_cache(maxsize=1)
 def tipos_con_logro() -> frozenset:
     """Los npc_type que cuenta algun logro de "matar N de este monstruo"."""
-    return frozenset(_num(f.get('param1')) for f in por_regla('殺指定編號怪物') if _num(f.get('param1')))
+    return frozenset(_num(f.get('param1')) for r in ('殺指定編號怪物', '完成某副本')
+                     for f in por_regla(r) if _num(f.get('param1')))
 
 
 # ---- Logros de RANKING (排行榜相關, 52): estar entre los N primeros ----

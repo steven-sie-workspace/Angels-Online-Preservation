@@ -262,16 +262,19 @@ def bonos_de_ficha(estado: dict) -> dict:
     return calc
 
 
-def totales(estado: dict) -> dict:
+def totales(estado: dict, bonos_eq: dict = None) -> dict:
     """Los ocho stats TOTALES de la mascota (base + bono verde), los del
     tooltip: "Maximum MP 2074 (1541 + 533)". Los usa el Pet Amplify."""
     if not isinstance(estado, dict):
         return {}
     b = bonos_de_ficha(estado)
+    b_eq = bonos_eq if bonos_eq is not None else (estado.get('bonos_eq') or {})
+    eq_map = {'atk': 'atk', 'dfs': 'def', 'matk': 'matk', 'mdef': 'mdef',
+              'rigor': 'accuracy', 'agilidad': 'agility', 'hp': 'hp', 'mp': 'mp'}
     base = {'hp': estado.get('hp_max') or estado.get('hp'), 'mp': estado.get('mp_max') or estado.get('mp')}
     for k in ('atk', 'dfs', 'matk', 'mdef', 'rigor', 'agilidad'):
         base[k] = estado.get(k)
-    return {k: int(v or 0) + int(b.get(k, 0)) for k, v in base.items()}
+    return {k: int(v or 0) + int(b.get(k, 0)) + int(b_eq.get(eq_map.get(k, k), 0) or b_eq.get(k, 0)) for k, v in base.items()}
 
 
 def uid_cliente(estado: dict) -> int:
@@ -387,6 +390,23 @@ def hp_max_eff(estado: dict) -> int:
     return max(1, val)
 
 
+def curar(ficha: dict, cura: dict) -> str:
+    """Pocion de mascota: {'hp': n, 'hp_pct': bool, 'mp': n, 'mp_pct': bool}.
+    Sube el HP/MP actual de la ficha sin pasar de su maximo."""
+    hechos = []
+    for k in ('hp', 'mp'):
+        if k not in cura:
+            continue
+        tope = max(1, int(ficha.get(k + '_max') or ficha.get(k) or 1))
+        n = int(cura[k])
+        if cura.get(k + '_pct'):
+            n = tope * n // 100
+        antes = int(ficha.get(k) or 0)
+        ficha[k] = min(tope, antes + n)
+        hechos.append('%s %d -> %d' % (k.upper(), antes, ficha[k]))
+    return ', '.join(hechos)
+
+
 def hp_eff(estado: dict) -> int:
     """Devuelve el HP actual efectivo de la mascota (escalado con estrella, Pet's Satiation > 100 y buffs activos)."""
     if not isinstance(estado, dict):
@@ -404,7 +424,7 @@ def hp_eff(estado: dict) -> int:
     return max(1, min(hp_max_eff(estado), val))
 
 
-def armar(estado: dict) -> bytes:
+def armar(estado: dict, bonos_eq: dict = None) -> bytes:
     """El 0x0065 con el estado de una mascota (sub_60ADC0 en Angel.exe)."""
     b = bytearray(TAM)
     nv = max(1, int(estado.get('nivel') or 1))
@@ -412,6 +432,7 @@ def armar(estado: dict) -> bytes:
     b_star = bonos_de_ficha(estado)
     st_lvl = max(1, int(estado.get('estrellas') or calcular_estrellas_total(b_star)))
     mej = max(0, int(estado.get('mejoras') or 0))
+    b_eq = bonos_eq if bonos_eq is not None else (estado.get('bonos_eq') or {})
 
     hp_max = max(1, int(estado.get('hp_max') or estado.get('hp') or 127))
     hp = max(1, int(estado.get('hp') or hp_max))
@@ -431,11 +452,22 @@ def armar(estado: dict) -> bytes:
         h_eff = min(h_max_eff, int(round(h_eff * 3.5)))
         m_eff = min(m_max_eff, int(round(m_eff * 3.5)))
 
+    hp_eq = int(b_eq.get('hp', 0))
+    mp_eq = int(b_eq.get('mp', 0))
     b_bf = bonos_buffs(estado, h_max_base=h_max_eff, m_max_base=m_max_eff)
-    h_max_eff += int(b_bf.get('hp_total', 0))
-    m_max_eff += int(b_bf.get('mp_total', 0))
-    h_eff = min(h_max_eff, h_eff + int(b_bf.get('hp_total', 0)))
-    m_eff = min(m_max_eff, m_eff + int(b_bf.get('mp_total', 0)))
+    h_max_eff += int(b_bf.get('hp_total', 0)) + hp_eq
+    m_max_eff += int(b_bf.get('mp_total', 0)) + mp_eq
+    h_eff = min(h_max_eff, h_eff + int(b_bf.get('hp_total', 0)) + hp_eq)
+    m_eff = min(m_max_eff, m_eff + int(b_bf.get('mp_total', 0)) + mp_eq)
+
+    eq_stat_map = {
+        'atk': 'atk',
+        'dfs': 'def',
+        'matk': 'matk',
+        'mdef': 'mdef',
+        'rigor': 'accuracy',
+        'agilidad': 'agility',
+    }
 
     for campo, off in OFF.items():
         v = estado.get(campo)
@@ -464,6 +496,9 @@ def armar(estado: dict) -> bytes:
                     eff_v = int(round(eff_v * (1.0 + b_bf['phys_dmg_pct'] / 100.0)))
                 elif campo == 'matk' and b_bf.get('mag_dmg_pct'):
                     eff_v = int(round(eff_v * (1.0 + b_bf['mag_dmg_pct'] / 100.0)))
+                k_eq = eq_stat_map.get(campo, campo)
+                bono_eq_val = int(b_eq.get(k_eq, 0)) or int(b_eq.get(campo, 0))
+                eff_v += bono_eq_val
             struct.pack_into('<I', b, off, base_v & 0xFFFFFFFF)
             if campo in DOBLES:
                 struct.pack_into('<I', b, off + 4, max(0, eff_v) & 0xFFFFFFFF)
@@ -488,6 +523,25 @@ def armar(estado: dict) -> bytes:
     if mej > 0:
         for idx_def in (3, 7, 11, 15):
             elem_vals[idx_def] = min(0xFFFF, elem_vals[idx_def] + mej)
+
+    res_l = int(b_eq.get('res_lightning', 0))
+    res_f = int(b_eq.get('res_fire', 0))
+    res_i = int(b_eq.get('res_ice', 0))
+    res_c = int(b_eq.get('res_corrosion', 0))
+    if res_l: elem_vals[3] = min(0xFFFF, elem_vals[3] + res_l)
+    if res_f: elem_vals[7] = min(0xFFFF, elem_vals[7] + res_f)
+    if res_i: elem_vals[11] = min(0xFFFF, elem_vals[11] + res_i)
+    if res_c: elem_vals[15] = min(0xFFFF, elem_vals[15] + res_c)
+
+    atk_l = int(b_eq.get('atk_lightning', 0))
+    atk_f = int(b_eq.get('atk_fire', 0))
+    atk_i = int(b_eq.get('atk_ice', 0))
+    atk_c = int(b_eq.get('atk_corrosion', 0))
+    if atk_l: elem_vals[1] = min(0xFFFF, elem_vals[1] + atk_l)
+    if atk_f: elem_vals[5] = min(0xFFFF, elem_vals[5] + atk_f)
+    if atk_i: elem_vals[9] = min(0xFFFF, elem_vals[9] + atk_i)
+    if atk_c: elem_vals[13] = min(0xFFFF, elem_vals[13] + atk_c)
+
     struct.pack_into('<16H', b, 131, *elem_vals)
     struct.pack_into('<4H', b, 163, STA_BASE, STA_BASE, SOUL_BASE, SOUL_BASE)
 
@@ -499,11 +553,76 @@ def armar(estado: dict) -> bytes:
                          int(sks[1] or 0) & 0xFFFF,
                          int(sks[2] or 0) & 0xFFFF)
 
+    # Piedra / diamante de EXP (sub_60ADC0): +180 lo acumulado (dword_142B8),
+    # +184 su capacidad (dword_142BC) y +191 el item (dword_14354, el icono
+    # de la barra de WND_PET_INFO). El boton de pasarla al jugador solo se
+    # enciende con los dos primeros distintos de 0 (0x66585F).
+    dm = diamante_de(estado)
+    if dm:
+        struct.pack_into('<II', b, 180, int(dm['exp']) & 0xFFFFFFFF, int(dm['max']) & 0xFFFFFFFF)
+        struct.pack_into('<I', b, 191, int(dm['item']) & 0xFFFFFFFF)
     # Byte 190 (a2+192 en sub_60ADC0 -> dword_1434C): contador de mejoras (+N) en WND_PET_INFO
     b[190] = min(255, mej)
     # Estrellas (+196, 1 = Star Level 0.1)
     struct.pack_into('<I', b, 196, st_lvl & 0xFFFFFFFF)
     return struct.pack('<H', 0x0065) + bytes(b)
+
+
+# ---------------------------------------------------------------------------
+# Piedras y diamantes de EXP (item.xml 使用公式=6: 3383..3385, 4450..4455,
+# 5707..5710). Se engastan en la mascota fuera; en cada combate guardan un %
+# EXTRA (動態資料2: 25, 35 o 60) de la EXP que gana la mascota, hasta su
+# capacidad (動態資料1). Llena, el boton de WND_PET_INFO (petinfo.lua
+# OnWithdrawGemExp -> c2s 0x003E con PET_COMMAND_WITHDRAW_GEMEXP = 3) da esa
+# EXP al JUGADOR. Mensajes de string.xml:
+MSG_DIAMANTE_PUESTO = 943     # "Use Exp diamond to share %s%% exp and then the total exp is %s!"
+MSG_DIAMANTE_YA = 944         # "You are using an exp diamond!"
+MSG_DIAMANTE_NO_LLENO = 945   # "...unless the Exp Diamond is full."
+MSG_DIAMANTE_NINGUNO = 946    # "Unable to use the function unless you have used Exp diamond."
+MSG_DIAMANTE_COBRADO = 947    # "You add %s exp from the exp diamond to yourself."
+ORDEN_COBRAR_DIAMANTE = 3     # petinfo.lua PET_COMMAND_WITHDRAW_GEMEXP
+# El aviso del cuadro (string 970) dice que la intimidad baja al cobrarla;
+# cuanto no lo dice ninguna tabla.
+INTIMIDAD_AL_COBRAR_DIAMANTE = 10
+
+
+def diamante_de(estado: dict):
+    """{'item', 'max', 'pct', 'exp'} de la piedra engastada, o None."""
+    d = estado.get('diamante') if isinstance(estado, dict) else None
+    if isinstance(d, dict) and int(d.get('max') or 0) > 0 and int(d.get('item') or 0):
+        return d
+    return None
+
+
+def poner_diamante(estado: dict, item: int, capacidad: int, pct: int) -> bool:
+    """Engasta la piedra. False si ya lleva una (mensaje 944)."""
+    if diamante_de(estado):
+        return False
+    estado['diamante'] = {'item': int(item), 'max': int(capacidad), 'pct': int(pct), 'exp': 0}
+    return True
+
+
+def acumular_diamante(estado: dict, exp_ganada: int) -> int:
+    """Lo que guarda la piedra de un combate: su % de la EXP de la mascota."""
+    d = diamante_de(estado)
+    if not d or exp_ganada <= 0:
+        return 0
+    hueco = max(0, int(d['max']) - int(d.get('exp') or 0))
+    suma = min(hueco, int(exp_ganada) * int(d.get('pct') or 0) // 100)
+    d['exp'] = int(d.get('exp') or 0) + suma
+    return suma
+
+
+def cobrar_diamante(estado: dict):
+    """(mensaje, exp para el jugador). Solo llena: la vacia y la quita."""
+    d = diamante_de(estado)
+    if not d:
+        return MSG_DIAMANTE_NINGUNO, 0
+    if int(d.get('exp') or 0) < int(d['max']):
+        return MSG_DIAMANTE_NO_LLENO, 0
+    estado.pop('diamante', None)
+    estado['intimidad'] = max(0, int(estado.get('intimidad', 60)) - INTIMIDAD_AL_COBRAR_DIAMANTE)
+    return MSG_DIAMANTE_COBRADO, int(d['exp'])
 
 
 def alimentar(estado: dict, cantidad: int = SACIEDAD_POR_PIENSO) -> tuple:
@@ -669,7 +788,10 @@ def mejorar_mascota(ficha: dict) -> tuple:
     # Conservamos la politica de incrementos existente hasta verificar la
     # formula oficial; no presentar estos coeficientes como datos del XML.
     for k, (lo, hi) in rangos.items():
-        inc = max(1, random.randint(max(1, lo // 2), max(2, hi // 2)))
+        # Hay mascotas con el minimo por encima del maximo en pet.xml: sin
+        # ordenar, randint lanzaba ValueError y el pienso fallaba.
+        a, b = sorted((max(1, lo // 2), max(2, hi // 2)))
+        inc = max(1, random.randint(a, b))
         bonos[k] = int(bonos.get(k, 0)) + inc
     ficha['bonos'] = bonos
     ficha['estrellas'] = calcular_estrellas_total(bonos)
@@ -1118,9 +1240,13 @@ RAMA_NICE = 'rama2'
 
 
 def ramas_de(sprite):
-    """Las dos evoluciones posibles: (mean, nice). None donde no haya."""
+    """Las dos evoluciones posibles: (mean, nice). None donde no haya.
+
+    Solo las que existen en la tabla: hay huevos (el Spirit Egg 30105) que en
+    pet.xml apuntan a 30106/30107, que no estan ni en IGG ni en Taiwan.
+    Evolucionar a una de esas dejaba una mascota sin datos."""
     d = ficha_de_sprite(sprite)
-    return (d.get('rama1'), d.get('rama2'))
+    return tuple(r if r and ficha_de_sprite(r) else None for r in (d.get('rama1'), d.get('rama2')))
 
 
 def crianza_necesaria(sprite):
@@ -1464,13 +1590,17 @@ def dar_exp(ficha: dict, cantidad: int, ahora=None) -> int:
         ficha['nivel'] = int(ficha.get('nivel', 1)) + 1
         subidos += 1
     ficha['exp_max'] = exp_para_subir(ficha.get('nivel', 1), sp)
-    if subidos:
-        nv = ficha['nivel']
-        # Comprobar evolucion en nivel 15 SOLO para huevos (原型 -> 初階)
-        if evoluciona(ficha.get('sprite')):
-            etapa = ficha_de_sprite(ficha.get('sprite')).get('etapa')
-            if etapa == '原型' and nv >= NIVEL_PRIMERA_RAMA:
-                evolucionar(ficha, rama_por_crianza(ficha))
+    # Evolucion en nivel 15 SOLO para huevos (原型 -> 初階). Se mira en cada
+    # ganancia y no solo al subir: un huevo que llego a 15 o mas por otro
+    # camino (y antes nunca evolucionaba) evoluciona en cuanto gana EXP.
+    nv = int(ficha.get('nivel', 1))
+    evoluciono = False
+    if nv >= NIVEL_PRIMERA_RAMA and evoluciona(ficha.get('sprite')):
+        if ficha_de_sprite(ficha.get('sprite')).get('etapa') == '原型':
+            antes = ficha.get('sprite')
+            evolucionar(ficha, rama_por_crianza(ficha))
+            evoluciono = ficha.get('sprite') != antes
+    if subidos or evoluciono:
         ficha.update(stats_de(ficha.get('sprite'), ficha['nivel']))
     return subidos
 

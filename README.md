@@ -63,6 +63,18 @@ top rolling banner announcements (/notice style) for registration start, battle 
 exit warps back to Angel Lyceum (radius 2, with Training City exit under the clover archway at 28,25),
 and preservation of the original chest return mechanic upon opening.
 Use /daily start and /daily enter for GM checks. Original server schedules and draw odds remain unavailable.
+**Fixes of 10/11/2026.** Album: the Collection Box Key now opens the 5th grid of a subcategory ("Add more Grids", C2S `0x002F` container `0x34`).
+Single-target skills (Vampire Arrow, Rapidfire...) cast on the clicked enemy instead of being replaced by a basic attack.
+The Magic Kitchen Path Devil Kitchen gate now requires Devil's Feast (611) the first time; afterwards it stays open for that character, and in a party one member opens it for everyone.
+Quests 602-611 no longer skip steps by talking to the wrong NPC (the two Michaels are told apart; Athlete Cliff is the "strong human" of 610), quest 602 uses its own dialogue lines, and parent achievements such as Demon's Kitchen show partial progress.
+**Fixes of 11/11/2026.** Monsters: smooth chase (they move at ~2x the 0x0005 speed value and re-target before arriving, measured on 53,461 official segments) and they react immediately instead of finishing their wander step.
+Clicking a monster attacks; the client's automatic 0x0016 target selection no longer makes the character counter-attack on its own (PvP unchanged); the selected monster's HP bar is filled.
+Monsters cast their monster.xml spells (2,453 damage spells, 276 curses, 19 heals, 297 passive mitigations; one try every 1.5 s at 50%): damage, damage over time (536 monsters), stun/freeze/silence/seal with their real duration and probability, and stat/speed debuffs with their values.
+Silence blocks MP spells and Seal blocks SP stances, both ways (Remove Magic and Silencing Chop also stop monster spells). Skills now require the weapon listed in magic.xml (1,889 skills).
+Treasure maps (TreMap): Robber Lord Map Pieces are counted (S2C 0x012A), level 1-7 maps give the treasure types from the guide, and a private chest appears at the marked spot.
+Gulp Room: Overlord Legte spawns on arrival; the Exit Guide and maze doors follow the map's maze roll (the Exit Guide takes you to Hank); the Lion Dragon is only vulnerable for a few seconds after a nearby Powder Pail explodes; Evil Eye summons its crystals during the fight; Heat Elf respawn inside the instance so Demon Kidace can appear.
+Arrival-tile map events fire when a map finishes loading. White mounts cannot go in the album by client design (only blue/yellow).
+Later on 11/11: the TreMap Delete button now clears the map on the server (C2S 0x012A); the 43 "Defeat <boss>" achievements count killing the instance boss (Fly King = Beelzebub, Berssif = GluttonBeelzebub...); wrong maze doors in Gulp Room show the Swiftness teleport and only trigger at the door (radius 1); the Knight Statue name sits over the statue.
 Angel Lyceum: restored missing NPCs Astral Angel (Star Key exchange 393), Party Angel (renewal gifts & exchange 245),
 Chat Bubble Exchange (groups 559, 570), Fashionable (voucher recipes), and Reissue Angel.
 Party Angel applies the original 12-hour Archangel's Secret; Compensation Angel is removed.
@@ -286,7 +298,7 @@ see [release scope and validation](docs/ENTREGA_2026-10-21.md).
   - **Faction Hubs & Outposts**: Cherry Village, Memory Cave, Mysterious Garden,
 - **Past the Time Spirit & Weekly Quest 976**:
   - The Rainbow Town NPC uses its official sprite (`40542`), portrait (`1342`), south-facing direction, and level 250 gate. Its menu opens Chaos-Dinosaur Arena (Stage 413), Chaos-End Time (Stage 414), Time Crystal exchange shop 659, or leaves the dialogue.
-  - *Nature is Crying for Help* awards the official level-scaled EXP (36M below level 90, 48M at levels 90-94, and 72M from level 95), one Weekly Quest Mark (`12611`), and 50 Honor Credits. It neither charges nor awards gold, eliminating the erroneous `Pay 29480` message.
+  - _Nature is Crying for Help_ awards the official level-scaled EXP (36M below level 90, 48M at levels 90-94, and 72M from level 95), one Weekly Quest Mark (`12611`), and 50 Honor Credits. It neither charges nor awards gold, eliminating the erroneous `Pay 29480` message.
 - **Comprehensive Pet System (85-90% Complete)**:
   - **Summoning & Hotkey Management**: Right-click bag summoning, hotkey bar (F1-F12) activation, and multi-pet management. Switching pets cleanly despawns the previous entity without leaving ghost duplicates (`0x000E`, `0x001B`, `0x015E`).
   - **Evolution & Growth Stages**: Automatic form progression from Egg to Junior Pet at level 15, and certificate-driven evolutions (Medium Blood Certificate at Lvl 35, Advanced Blood Certificate at Lvl 55) with instant model/sprite refresh.
@@ -304,11 +316,11 @@ see [release scope and validation](docs/ENTREGA_2026-10-21.md).
 - **Buffs, HoT & DoT Tick Engine**:
   - Timed buff management for self-buffs, regeneration ticks (Earth Blessing HP/MP HoT), potion effects, and long-duration utility cards.
 - **High-Tier Combat & Skill Progression**:
-  - **Multi-Hit Combos & Continuous Barrages**: full support for chained skills and continuous attacks (formulas 36, 40, and 42, e.g., *Rapidfire*, *Steel Rain*, *Victory Sword*, *Quake Spear*, *Strangle Strike*, *Windbreaker Arrow*). The player character model performs the casting/shooting animation strictly **once** at invocation, while subsequent combo hits land with smooth timing intervals.
-  - **Faithful AoE Barrage & Ricochet Distribution**: AoE barrages (*Steel Rain*, *Sword of Kings*, *Quake Spear*, *Flaming Blade Rain*) distribute their N combo strikes randomly among alive enemies in the area (focusing all strikes if a single target is present). Windbreaker Arrow executes an initial ground tornado AoE strike followed by 5 to 10 sequential ricochets against nearby enemies.
+  - **Multi-Hit Combos & Continuous Barrages**: full support for chained skills and continuous attacks (formulas 36, 40, and 42, e.g., _Rapidfire_, _Steel Rain_, _Victory Sword_, _Quake Spear_, _Strangle Strike_, _Windbreaker Arrow_). The player character model performs the casting/shooting animation strictly **once** at invocation, while subsequent combo hits land with smooth timing intervals.
+  - **Faithful AoE Barrage & Ricochet Distribution**: AoE barrages (_Steel Rain_, _Sword of Kings_, _Quake Spear_, _Flaming Blade Rain_) distribute their N combo strikes randomly among alive enemies in the area (focusing all strikes if a single target is present). Windbreaker Arrow executes an initial ground tornado AoE strike followed by 5 to 10 sequential ricochets against nearby enemies.
   - **Physical Skill Scaling & R.Atk Baseline**: physical skills scale faithfully from main-hand attack power (`R.Atk`) and Stance Power (`PESO_STANCE = 2.0`) against target defense. Combos apply a calibrated +0.2x boost (`1.2x` per hit) and single-hit strikes use `1.35x`, with Rapidfire applying its official 50% damage penalty against boss monsters.
-  - **High-Tier Skill Delegation**: launcher skills for archers and long-range classes (formulas 63 and 7, e.g., *TNT Arrow*, *Aparctias Shot*, *Toma Tornado*, *Windbreaker Arrow*) resolve their combat sub-spells to inherit genuine Stance Power, AoE explosion radii (5-6 tiles), and secondary debuffs (knockback, silence, elemental DoT, blind).
-  - **Summon & Totem Secondary Effects**: summons and totems trigger their automated auras and DoTs (e.g. *Black Thorn Totem* corrosive DoT and slow), enforcing official non-coexistence rules with *Guardian Star (Starchaos)*.
+  - **High-Tier Skill Delegation**: launcher skills for archers and long-range classes (formulas 63 and 7, e.g., _TNT Arrow_, _Aparctias Shot_, _Toma Tornado_, _Windbreaker Arrow_) resolve their combat sub-spells to inherit genuine Stance Power, AoE explosion radii (5-6 tiles), and secondary debuffs (knockback, silence, elemental DoT, blind).
+  - **Summon & Totem Secondary Effects**: summons and totems trigger their automated auras and DoTs (e.g. _Black Thorn Totem_ corrosive DoT and slow), enforcing official non-coexistence rules with _Guardian Star (Starchaos)_.
   - **Account & Character Management**: safe character deletion via raw `0x0004` response preventing client crashes, alongside transparent SQLite `cuentas.db` migration from legacy `cuentas.json`.
 - **Bound Equipment & Enchanted Fashion with Residual Times = 0**: ownership verified by persistent `char_id` (offset 53 of packet `0x001B` / `sub_58B640` in `Angel.exe`). If the player is the registered owner, the item can be equipped freely even when 0 residual times remain.
 - **NPC Sale of Bound S/Fine Equipment**: the local client keeps reward equipment non-tradable between players while adding an NPC buyback price equal to half its list price, so high-tier bound weapons and armor no longer accumulate permanently.
@@ -317,7 +329,7 @@ see [release scope and validation](docs/ENTREGA_2026-10-21.md).
   - Full support for enhancing and socketing level 410+ endgame equipment using tier 40 tools (40-Star Lucky Enhanced Pestle, 40-Star Lucky Piercing Hammer, and standard pestles).
   - Gem inlaying into sockets, Green Hammer rerolling (additional attribute rolls parsed from `adv.xml`), genuine success rates, and level penalties on failure.
 - **Personal Bank & Self Storage System**:
-  - Full support for depositing (`0x0038`) and withdrawing (`0x0039`) gold to/from the bank via the client's native *Sum* input dialog, with persistent `banco_oro` in SQLite `cuentas.db` and realtime two-way sync.
+  - Full support for depositing (`0x0038`) and withdrawing (`0x0039`) gold to/from the bank via the client's native _Sum_ input dialog, with persistent `banco_oro` in SQLite `cuentas.db` and realtime two-way sync.
   - Proper right-click handling: container 16 (`usebankitem`) withdraws from bank slot to bag, and container 17 (`usecharitem`) deposits from bag slot into bank without slot misalignment or item collisions.
   - Seamless drag-and-drop between bank and bag (or within bank slots) mapping genuine slot IDs (1..48 in bank, 20..163 in bag).
 - **Robust Inventory Packet Sync**: stackable consumables, slot-by-slot delta sync via official `0x001B` without client stream desynchronization.
@@ -400,67 +412,6 @@ The server prepares the local client on startup, always taking a `.bak` first:
   the no-player-trade flag while allowing eligible S/Fine rewards to be sold to shops
 - **Launcher** in Spanish and English, with buttons to open several clients at once
 - **Startup logo screen** blanked
-
-**Partly**
-
-- **Multiplayer Online Presence**: players see each other on map screens via official 128-byte `0x0001`, synchronize real-time movement (`0x0005`), transformations (`0x0013`), and companion combat actions. Complete third-party fashion skin overlays are still being refined.
-- **Party / Teams System**: server recognizes and logs incoming team invitations (`0x0017`), but party acceptance handling, UI group bar, shared EXP, and member management (`0x0018`) are in progress.
-- **Gold Cap / Gold Flag**: implemented, but thorough in-client testing is pending.
-- NPC dialogue: 17 of the Lyceum's 52 NPCs have their text and options, plus
-  expansion to regional and dungeon skill vendors.
-- **Skills and spells**: melee combat, AoE spells, and magic trees are operational
-  (casting, costs, damage, buffs, debuffs, summons, and progression). The longbow now lands
-  its ranged basic (Basic Shot I, range 12); whether the arrow is drawn in flight is still
-  unconfirmed, since the effect is only sent for skills. The dagger has had less testing.
-- Spells: they show up on F1-F3, cast, buff and deal damage, but some visual
-  effects are still missing.
-- Physical and spell damage formulas now scale with linear defense mitigation
-  and elemental stats, though extreme high levels (300+) or monsters with outlier
-  attributes may still need fine calibration against packet captures.
-- ~~Combos are read from `magic.xml` but never executed~~ **fixed**: all 475 run (376 direct
-  via `連擊次數`, 99 chained via `轉嫁法術`), and the extra hits process the monster's death.
-- The slow effect is registered but doesn't change movement speed.
-- The staff and the axe use the sword's attack animation until someone
-  captures theirs.
-- Mounts equip to slot 10 and do speed you up, but not by the right amount:
-  two different mounts that declare the same `move_speed` give different
-  speeds in the real server, so what a mount contributes depends on its own
-  instance, and that doesn't travel in `item.xml`.
-
-- **Comprehensive Quest System (1,489 quests)**:
-  - Complete quest catalog compiled from `quest.xml` with 1,489 quests and 662 repeatable quests.
-  - Dynamic combat hunting tracking (877 automatic kill steps triggered by mob defeats across all maps with monster aliases and canonical naming).
-  - Item collection objectives & **Hidden Quest Inventory**: regular collectable items drop into the visible bag, while Category `5001` quest tokens/credentials (such as *Work ID* 78179 or *Microcoin* 78180) route to hidden slot range `497..556`. Confirmed via disassembly of `Angel.exe`: `sub_4A48C0` (Prop window) strictly loops `20..94`, while `sub_4A47E0` (HUD tracker counter) and `sub_4A4720` (NPC turn-in check) iterate `20..154` and `497..556`. This allows HUD tracking progress (`1 / 1.`) and turn-in without cluttering the player's visible backpack.
-  - Fixed NPC quest dialogue progression: UI option order matching official client, level requirement checks (e.g., Mr. Fleming in Wise Institute lv. 380, Leif in Sandy Heights), and continuous city commander quest chains.
-  - NPC interaction & turn-in flow (over 1,500 delivery points and 1,100 quest-giving NPCs).
-  - Repeatable, daily, and weekly rotating quest pools.
-  - Automatic warps to quest instances / training arenas tied to specific quest stages.
-  - Full persistence in SQLite and real-time client sync via opcodes `0x0021` and `0x0022`.
-  - 100% stable quest abandonment and completion: disassembled `Angel.exe` (`sub_602BD0` / `0x004A5390`) and analyzed official packet traces (`mundo_180305_971213_orden.jsonl`) to send only `0x0022` mode 2 on abandon, eliminating `_invalid_parameter_noinfo` crashes and protecting against out-of-bounds backpack slots (> 60).
-
-**Does not work**
-
-- The ID Card draws the character in their underwear, even though the sprite
-  in the world is dressed correctly. `0x0179`, the last suspect, was ruled
-  out: its ids are hammers, not clothing (see below).
-- Resources can't be gathered, so the nine skills tied to gathering and
-  crafting never level up.
-- Five of the Lyceum's NPCs were never captured and are missing.
-- Passwords are **not validated**: the auth block hasn't been decrypted.
-- The diving gate is **documented but not enforced**: both trainers, their
-  dialogue and the two skills are captured, but the portal into the
-  underwater maps still lets anyone through.
-- Instances: nobody has been inside any of them. **Five entrances are
-  identified and left switched off** -- Nightmare Palace, Half-beast Hamlet,
-  Giant Wooden Stairs (which has two tornados leading to the same place) and
-  Chocolate Forest. They sit in `portales.json` with their tile and their
-  entity but with a null destination, and the server skips them, so standing
-  on one does nothing. For Lost Region and Horrible Lost Region the entry
-  dialogue, the two modes and the rejection messages are captured; their
-  monsters are known from the wiki, their positions are not. Careful with one
-  thing: that two-mode dialogue is **not** how instances are entered in
-  general -- most ask nothing at all.
-- Friend list system: documented from packet captures, but not yet implemented.
 
 ---
 
@@ -608,15 +559,16 @@ The **client ships separately**, not in the repo.
 ## Running it
 
 You need **Python 3.10 or newer** and the Angels Online client installed.
-Tested against client **8.5.1.0**; the captures the protocol comes from were
+Tested against client **8.7.6.1**; the captures the protocol comes from were
 taken with an **8.6.0.8**, and both speak the same thing.
 
 IGG took the game down in February 2026, so the client is no longer available
 from them. This is the copy this project is developed and tested against:
 
-**[Angels Online client 8.5.1.0](https://drive.google.com/file/d/13IOcTJUkX7LfsznZ8tobyu5c5MuXjpZK/view?usp=sharing)**
+**[Angels Online client 8.7.6.1](https://drive.google.com/file/d/1FTw0sNVxRwEF0KL3il6A4bpwEgG6dH5k/view?usp=sharing)**
 
-It is IGG's client, unmodified. It is here because a protocol you cannot run
+It is IGG's client with the ALO Taiwan content up to update32 (8.7.6.1)
+migrated into it and translated to English by this project. It is here because a protocol you cannot run
 against anything is not much use, and because without it none of the
 measurements in this repository can be reproduced.
 
@@ -702,84 +654,6 @@ gem itself and this table says which stat they land on, and that depends on
 where the gem is set: the same rune gives spell attack in a weapon and spell
 defence in armour.
 
-## Known issues
-
-### The pet's own record is not saved
-
-Everything else about pets works: the 231-byte inventory entry, the window
-with its real stats, summoning and putting away, renaming, experience,
-levelling and the whole evolution tree. But the pet's record lives only in
-memory, so it resets to level 1 on every reconnect. The bag item persists;
-what the pet has become does not.
-
-### The breeding counter cannot be read
-
-When a pet levels up the client shows a scene with three options and says
-"(Your act affects Pet's growth)". That text is not sent over the wire: the
-client picks the scene from its own `petaspect.xml` and only the chosen
-option travels back, in `c2s 0x003E` with the values 4, 5 and 6 -- the same
-message that carries pet orders with 0, 1 and 2.
-
-So the server never learns which scene the player answered, and therefore
-cannot tell what the answer was worth. Each of the 107 scenes has its own
-three values, from -3 to +3. To close this the server has to pick the scene
-itself and remember it, instead of letting the client choose.
-
-### The ID Card draws the character undressed
-
-The sprite walking around the world wears its gear correctly, but the figure
-inside the ID Card panel shows the character in their underwear. The weapon
-and the boots _are_ drawn there; it is the body garment that never applies.
-
-**The last candidate was ruled out (2026-09-30).** `0x0179` had been carried
-for a while as the message we were failing to send, with its ids
-`40287..40295` taken for clothing sprites. They are not: those nine numbers
-sit verbatim in `setting/pet_inlay.xml`, in the same order and the same
-groups of three, and the file's own ALIAS calls them `ItemID` with
-`Priority1/2/3`. Cross-referenced against `item.xml` they turn out to be
-**hammers** — Hammer, Attribute Hammer and Value Hammer, each in a normal,
-untradable and one-day variant. `0x0179` is a priority list of items for
-socketing, a static table identical for everyone, and it draws nothing.
-
-That closes out all four candidates: `0x0149`, `0x0179`, the character
-record `0x0002`, and the skill-requirement correlation. The message that
-redraws the figure **is not in anything captured so far**, so a capture
-taken with the ID Card **open** while taking a body garment off and putting
-it back on is still needed. What is no longer needed is the hunt for an
-item → sprite table: there never was one.
-
-### The damage formula drifts at high level
-
-`attack x 33 / (33 + defence)` matches what a low-level character does. At
-level 118 it is off by a factor of about 75. The relationship turned out to
-be linear in defence rather than multiplicative, with a slope that depends on
-the levels involved, and there aren't enough samples across level ranges to
-pin it down.
-
-### The staff and the axe attack animations
-
-The `0x000A` carries a type and an animation number, and the pair depends on
-the weapon. Measured by following the equipment changes inside each session:
-
-| weapon                 | type | animation |
-| ---------------------- | ---- | --------- |
-| sword, dagger          | 3    | 1480      |
-| spear                  | 2    | 827       |
-| staff                  | 2    | 951       |
-| two one-handed weapons | 2    | 832       |
-
-The number is not a duration: the spear swings slower than the sword and yet
-its number is lower. It selects which animation the client plays, so sending
-the wrong one makes a spear attack as if it were dual wielding, with the
-weapon not drawn at all. The staff and the axe still fall back to the sword's
-pair, so a capture of someone attacking with them would finish the table.
-
-### Screenshots of issues since fixed
-
-The images under `docs/capturas/` are kept as a record. All five have been
-resolved: the skill panel and the F1-F3 spells, NPC dialogue and movement,
-opening boxes, the shop, and the floor teleport zones.
-
 ---
 
 ## What is deliberately skipped
@@ -801,12 +675,21 @@ checked. These aren't bugs, they're decisions:
 }
 ```
 
-**Passwords are NOT validated.** Anything gets you in. The username is read
-from the auth message, but the block carrying the password hasn't been
-decrypted, so there's nothing to compare against. Finding that field was tried
-twice and both attempts were wrong: one rejected valid logins, the other
-accepted everything because the offset turned out to be a client-side
-constant. It's documented in `server/cuentas.py`.
+**Passwords are validated, and it can be switched off.** The client sends a
+32-byte hash of the password in the auth message; the server keeps it salted
+in `data/cuentas.db`. The switches live in the `configuracion` table of that
+database and take effect on the next login, without restarting:
+
+| key                     | default | what it does                                                                                                             |
+| ----------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `validar_password`      | `1`     | `1` checks the password; `0` lets anyone in                                                                              |
+| `registrar_primer_hash` | `1`     | an account with no stored password keeps the one from its first login (`0` rejects it)                                   |
+| `reemplazar_contrasena` | `0`     | `1` stores the new password instead of rejecting a wrong one (to change one: turn on, log in with the new one, turn off) |
+| `guardar_auth_crudo`    | `0`     | `1` saves the whole auth message in `logs/auth_muestras`                                                                 |
+
+```sql
+UPDATE configuracion SET valor='0' WHERE clave='validar_password';
+```
 
 **There's no sign-up, no email, no recovery.** It's a local server.
 
